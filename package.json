@@ -1,0 +1,48 @@
+{
+  "author": "https://github.com/tombatossals/angular-openlayers-directive/graphs/contributors",
+  "name": "angular-openlayers-directive",
+  "description": "angular-openlayers-directive - An AngularJS directive to easily interact with Openlayers maps",
+  "version": "0.5.1",
+  "homepage": "http://tombatossals.github.io/angular-openlayers-directive/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tombatossals/angular-openlayers-directive"
+  },
+  "keywords": [
+    "angularjs",
+    "openlayers",
+    "cli"
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "matchdep": "latest",
+    "grunt": "latest",
+    "grunt-contrib-connect": "latest",
+    "grunt-contrib-jshint": "latest",
+    "grunt-shell": "latest",
+    "grunt-karma": "latest",
+    "grunt-ngmin": "latest",
+    "grunt-contrib-watch": "latest",
+    "grunt-contrib-concat": "latest",
+    "grunt-contrib-uglify": "latest",
+    "grunt-open": "latest",
+    "grunt-bower-task": "latest",
+    "karma-script-launcher": "latest",
+    "karma-firefox-launcher": "latest",
+    "karma-chrome-launcher": "latest",
+    "karma-html2js-preprocessor": "latest",
+    "karma-jasmine": "latest",
+    "karma-requirejs": "latest",
+    "karma-coffee-preprocessor": "latest",
+    "karma-phantomjs-launcher": "latest",
+    "karma-coverage": "latest",
+    "karma": "latest",
+    "protractor": "latest",
+    "grunt-protractor-runner": "latest",
+    "grunt-shell-spawn": "latest"
+  },
+  "scripts": {
+    "test": "grunt travis --verbose"
+  }
+}

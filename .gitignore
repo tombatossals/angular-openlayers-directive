@@ -1,0 +1,14 @@
+temp
+node_modules
+libpeerconnection.log
+*.swp
+.*.swp
+*.iml
+.idea
+.project
+node_modules
+dist/angular-openlayers-directive.ngmin.js
+dist/angular-openlayers-directive.min.no-header.js
+selenium
+coverage
+bower_components

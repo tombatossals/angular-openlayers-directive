@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.2/angular.min.js"></script>
+    <script src="http://openlayers.org/api/OpenLayers.js"></script>
+    <script src="../dist/angular-openlayers-directive.min.js"></script>
+    <script>
+        var app = angular.module("demoapp", ['openlayers-directive']);
+        app.controller("DemoController", [ "$scope", function($scope) {
+            // Nothing here!
+        }]);
+    </script>
+  </head>
+  <body ng-controller="DemoController">
+    <openlayers width="640px" height="480px"></openlayers>
+  </body>
+</html>
