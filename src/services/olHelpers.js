@@ -1,4 +1,4 @@
-angular.module("openlayers-directive").factory('openlayersHelpers', function ($q, $log) {
+angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) {
 
     function _obtainEffectiveMapId(d, mapId) {
         var id, i;
@@ -12,7 +12,7 @@ angular.module("openlayers-directive").factory('openlayersHelpers', function ($q
             } else if (Object.keys(d).length === 0) {
                 id = "main";
             } else {
-                $log.error("[AngularJS - Openlayers] - You have more than 1 map on the DOM, you must provide the map ID to the openlayersData.getXXX call");
+                $log.error("[AngularJS - Openlayers] - You have more than 1 map on the DOM, you must provide the map ID to the olData.getXXX call");
             }
         } else {
             id = mapId;
@@ -114,6 +114,18 @@ angular.module("openlayers-directive").factory('openlayersHelpers', function ($q
         setResolvedDefer: function(d, mapId) {
             var id = _obtainEffectiveMapId(d, mapId);
             d[id].resolvedDefer = true;
+        },
+
+        getLayerObject: function(layer) {
+            var oLayer;
+
+            switch(layer) {
+                case 'OSM':
+                    oLayer = new OpenLayers.Layer.OSM();
+                    break;
+            }
+
+            return oLayer;
         }
     };
 });

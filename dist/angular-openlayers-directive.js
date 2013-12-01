@@ -2,8 +2,8 @@
 
 "use strict";
 
-angular.module("openlayers-directive", []).directive('openlayers', function ($log, $q, openlayersHelpers, openlayersMapDefaults, openlayersData) {
-    var _openlayersMap;
+angular.module("openlayers-directive", []).directive('openlayers', function ($log, $q, olHelpers, olMapDefaults, olData) {
+    var _olMap;
     return {
         restrict: "EA",
         replace: true,
@@ -13,9 +13,9 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
         },
         template: '<div class="angular-openlayers-map"></div>',
         controller: function ($scope) {
-            _openlayersMap = $q.defer();
+            _olMap = $q.defer();
             this.getMap = function () {
-                return _openlayersMap.promise;
+                return _olMap.promise;
             };
 
             this.getOpenlayersScope = function() {
@@ -24,9 +24,9 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
         },
 
         link: function(scope, element, attrs) {
-            var isDefined = openlayersHelpers.isDefined;
-
-            openlayersMapDefaults.setDefaults(scope.defaults, attrs.id);
+            var isDefined = olHelpers.isDefined,
+                getLayerObject = olHelpers.getLayerObject,
+                defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
             if (isDefined(attrs.width)) {
@@ -46,13 +46,12 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
 
             // Create the Openlayers Map Object with the options
             var map = new OpenLayers.Map();
-            _openlayersMap.resolve(map);
+            _olMap.resolve(map);
 
             // If no layers nor tiles defined, set the default tileLayer
             if (!isDefined(attrs.tiles) && (!isDefined(attrs.layers))) {
-                var layer = new OpenLayers.Layer.OSM();
+                var layer = getLayerObject(defaults.tileLayer);
                 map.addLayer(layer);
-                openlayersData.setTiles(layer);
             }
 
             map.render(element[0]);
@@ -61,26 +60,21 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
             }
 
             // Resolve the map object to the promises
-            openlayersData.setMap(map, attrs.id);
+            olData.setMap(map, attrs.id);
         }
     };
 });
 
-angular.module("openlayers-directive").service('openlayersData', function ($log, $q, openlayersHelpers) {
-    var getDefer = openlayersHelpers.getDefer,
-        getUnresolvedDefer = openlayersHelpers.getUnresolvedDefer,
-        setResolvedDefer = openlayersHelpers.setResolvedDefer;
+angular.module("openlayers-directive").service('olData', function ($log, $q, olHelpers) {
+    var getDefer = olHelpers.getDefer,
+        getUnresolvedDefer = olHelpers.getUnresolvedDefer,
+        setResolvedDefer = olHelpers.setResolvedDefer;
 
     var maps = {};
-    var tiles = {};
-    var layers = {};
-    var paths = {};
-    var markers = {};
-    var geoJSON = {};
 
-    this.setMap = function(openlayersMap, scopeId) {
+    this.setMap = function(olMap, scopeId) {
         var defer = getUnresolvedDefer(maps, scopeId);
-        defer.resolve(openlayersMap);
+        defer.resolve(olMap);
         setResolvedDefer(maps, scopeId);
     };
 
@@ -88,149 +82,9 @@ angular.module("openlayers-directive").service('openlayersData', function ($log,
         var defer = getDefer(maps, scopeId);
         return defer.promise;
     };
-
-    this.getPaths = function(scopeId) {
-        var defer = getDefer(paths, scopeId);
-        return defer.promise;
-    };
-
-    this.setPaths = function(openlayersPaths, scopeId) {
-        var defer = getUnresolvedDefer(paths, scopeId);
-        defer.resolve(openlayersPaths);
-        setResolvedDefer(paths, scopeId);
-    };
-
-    this.getMarkers = function(scopeId) {
-        var defer = getDefer(markers, scopeId);
-        return defer.promise;
-    };
-
-    this.setMarkers = function(openlayersMarkers, scopeId) {
-        var defer = getUnresolvedDefer(markers, scopeId);
-        defer.resolve(openlayersMarkers);
-        setResolvedDefer(markers, scopeId);
-    };
-
-    this.getLayers = function(scopeId) {
-        var defer = getDefer(layers, scopeId);
-        return defer.promise;
-    };
-
-    this.setLayers = function(openlayersLayers, scopeId) {
-        var defer = getUnresolvedDefer(layers, scopeId);
-        defer.resolve(openlayersLayers);
-        setResolvedDefer(layers, scopeId);
-    };
-
-    this.setTiles = function(openlayersTiles, scopeId) {
-        var defer = getUnresolvedDefer(tiles, scopeId);
-        defer.resolve(openlayersTiles);
-        setResolvedDefer(tiles, scopeId);
-    };
-
-    this.getTiles = function(scopeId) {
-        var defer = getDefer(tiles, scopeId);
-        return defer.promise;
-    };
-
-    this.setGeoJSON = function(openlayersGeoJSON, scopeId) {
-        var defer = getUnresolvedDefer(geoJSON, scopeId);
-        defer.resolve(openlayersGeoJSON);
-        setResolvedDefer(geoJSON, scopeId);
-    };
-
-    this.getGeoJSON = function(scopeId) {
-        var defer = getDefer(geoJSON, scopeId);
-        return defer.promise;
-    };
 });
 
-angular.module("openlayers-directive").factory('openlayersMapDefaults', function ($q, openlayersHelpers) {
-    function _getDefaults() {
-        return {
-            keyboard: true,
-            dragging: true,
-            doubleClickZoom: true,
-            scrollWheelZoom: true,
-            zoomControl: true,
-            attributionControl: true,
-            zoomsliderControl: false,
-            zoomControlPosition: 'topleft',
-            controlLayersPosition: 'topright',
-            tileLayer: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            tileLayerOptions: {
-                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            },
-            icon: {
-                url: 'http://cdn.leafletjs.com/leaflet-0.6.4/images/marker-icon.png',
-                retinaUrl: 'http://cdn.leafletjs.com/leaflet-0.6.4/images/marker-icon-2x.png',
-                size: [25, 41],
-                anchor: [12, 40],
-                labelAnchor: [10, -20],
-                popup: [0, -40],
-                shadow: {
-                    url: 'http://cdn.leafletjs.com/leaflet-0.6.4/images/marker-shadow.png',
-                    retinaUrl: 'http://cdn.leafletjs.com/leaflet-0.6.4/images/marker-shadow.png',
-                    size: [41, 41],
-                    anchor: [12, 40]
-                }
-            },
-            path: {
-                weight: 10,
-                opacity: 1,
-                color: '#0000ff'
-            }
-        };
-    }
-    var isDefined = openlayersHelpers.isDefined,
-        getDefer = openlayersHelpers.getDefer,
-        getUnresolvedDefer = openlayersHelpers.getUnresolvedDefer,
-        defaults = {};
-
-    // Get the _defaults dictionary, and override the properties defined by the user
-    return {
-        getDefaults: function (scopeId) {
-            var defer = getDefer(defaults, scopeId);
-            return defer.promise;
-        },
-
-        setDefaults: function(userDefaults, scopeId) {
-            var newDefaults = _getDefaults();
-
-            if (isDefined(userDefaults)) {
-                newDefaults.doubleClickZoom = isDefined(userDefaults.doubleClickZoom) ?  userDefaults.doubleClickZoom : newDefaults.doubleClickZoom;
-                newDefaults.scrollWheelZoom = isDefined(userDefaults.scrollWheelZoom) ?  userDefaults.scrollWheelZoom : newDefaults.doubleClickZoom;
-                newDefaults.zoomControl = isDefined(userDefaults.zoomControl) ?  userDefaults.zoomControl : newDefaults.zoomControl;
-                newDefaults.attributionControl = isDefined(userDefaults.attributionControl) ?  userDefaults.attributionControl : newDefaults.attributionControl;
-                newDefaults.tileLayer = isDefined(userDefaults.tileLayer) ? userDefaults.tileLayer : newDefaults.tileLayer;
-                newDefaults.zoomControlPosition = isDefined(userDefaults.zoomControlPosition) ? userDefaults.zoomControlPosition : newDefaults.zoomControlPosition;
-                newDefaults.keyboard = isDefined(userDefaults.keyboard) ? userDefaults.keyboard : newDefaults.keyboard;
-                newDefaults.dragging = isDefined(userDefaults.dragging) ? userDefaults.dragging : newDefaults.dragging;
-                newDefaults.controlLayersPosition = isDefined(userDefaults.controlLayersPosition) ? userDefaults.controlLayersPosition : newDefaults.controlLayersPosition;
-
-                if (isDefined(userDefaults.tileLayerOptions)) {
-                    angular.copy(userDefaults.tileLayerOptions, newDefaults.tileLayerOptions);
-                }
-
-                if (isDefined(userDefaults.maxZoom)) {
-                    newDefaults.maxZoom = userDefaults.maxZoom;
-                }
-
-                if (isDefined(userDefaults.minZoom)) {
-                    newDefaults.minZoom = userDefaults.minZoom;
-                }
-            }
-
-            var openlayersDefaults = getUnresolvedDefer(defaults, scopeId);
-            openlayersDefaults.resolve(newDefaults);
-
-            return newDefaults;
-        }
-    };
-});
-
-
-angular.module("openlayers-directive").factory('openlayersHelpers', function ($q, $log) {
+angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) {
 
     function _obtainEffectiveMapId(d, mapId) {
         var id, i;
@@ -244,7 +98,7 @@ angular.module("openlayers-directive").factory('openlayersHelpers', function ($q
             } else if (Object.keys(d).length === 0) {
                 id = "main";
             } else {
-                $log.error("[AngularJS - Openlayers] - You have more than 1 map on the DOM, you must provide the map ID to the openlayersData.getXXX call");
+                $log.error("[AngularJS - Openlayers] - You have more than 1 map on the DOM, you must provide the map ID to the olData.getXXX call");
             }
         } else {
             id = mapId;
@@ -346,8 +200,52 @@ angular.module("openlayers-directive").factory('openlayersHelpers', function ($q
         setResolvedDefer: function(d, mapId) {
             var id = _obtainEffectiveMapId(d, mapId);
             d[id].resolvedDefer = true;
+        },
+
+        getLayerObject: function(layer) {
+            var oLayer;
+
+            switch(layer) {
+                case 'OSM':
+                    oLayer = new OpenLayers.Layer.OSM();
+                    break;
+            }
+
+            return oLayer;
         }
     };
 });
+
+angular.module("openlayers-directive").factory('olMapDefaults', function ($q, olHelpers) {
+    function _getDefaults() {
+        return {
+            tileLayer: 'OSM'
+        };
+    }
+    var isDefined = olHelpers.isDefined,
+        obtainEffectiveMapId = olHelpers.obtainEffectiveMapId,
+        defaults = {};
+
+    // Get the _defaults dictionary, and override the properties defined by the user
+    return {
+        getDefaults: function (scopeId) {
+            var mapId = obtainEffectiveMapId(defaults, scopeId);
+            return defaults[mapId];
+        },
+
+        setDefaults: function(userDefaults, scopeId) {
+            var newDefaults = _getDefaults();
+
+            if (isDefined(userDefaults)) {
+                newDefaults.tileLayer = isDefined(userDefaults.tileLayer) ? userDefaults.tileLayer : newDefaults.tileLayer;
+            }
+
+            var mapId = obtainEffectiveMapId(defaults, scopeId);
+            defaults[mapId] = newDefaults;
+            return newDefaults;
+        }
+    };
+});
+
 
 }());

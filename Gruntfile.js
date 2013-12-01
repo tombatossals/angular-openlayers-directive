@@ -232,11 +232,7 @@ module.exports = function(grunt) {
                     //'src/directives/controls.js',
                     //'src/directives/eventBroadcast.js',
                     //'src/directives/maxBounds.js',
-                    'src/services/openlayersData.js',
-                    'src/services/openlayersMapDefaults.js',
-                    //'src/services/openlayersEvents.js',
-                    //'src/services/openlayersLayerHelpers.js',
-                    'src/services/openlayersHelpers.js'
+                    'src/services/*.js'
                 ],
                 dest: 'dist/angular-openlayers-directive.js',
             },
