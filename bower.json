@@ -1,10 +1,13 @@
 {
-  "name": "angular-leaflet-directive-testing-libraries",
+  "name": "angular-leaflet-directive",
   "dependencies": {
-    "angular": "1.2.2",
-    "angular-route": "1.2.2",
-    "angular-animate": "1.2.2",
-    "angular-mocks": "1.2.2",
-    "openlayers": "2.13.1"
+    "angular": "1.2.x",
+    "angular-route": "1.2.x",
+    "angular-animate": "1.2.x",
+    "angular-mocks": "1.2.x",
+    "openlayers": "2.13.x"
+  },
+  "resolutions": {
+    "angular": "1.2.4"
   }
 }
