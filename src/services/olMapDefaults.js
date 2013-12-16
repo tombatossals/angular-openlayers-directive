@@ -4,6 +4,14 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
             tileLayer: {
                 name: 'OpenStreetMap',
                 type: 'OSM'
+            },
+            controls: {
+                navigation: {
+                    zoomWheelEnabled: true
+                },
+                zoom: {
+                    position: 'topright'
+                }
             }
         };
     }

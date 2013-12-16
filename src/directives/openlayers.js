@@ -50,6 +50,13 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
                 map.addLayer(layer);
             }
 
+            if (isDefined(defaults.controls.navigation.zoomWheelEnabled) && defaults.controls.navigation.zoomWheelEnabled === true) {
+                var controls = map.getControlsByClass('OpenLayers.Control.Navigation');
+                for (var i=0; i<controls.length; i++) {
+                    controls[i].disableZoomWheel();
+                }
+            }
+
             map.render(element[0]);
             if (!isDefined(attrs.center)) {
                 map.zoomToMaxExtent();

@@ -9,12 +9,9 @@
         app.controller("DemoController", [ "$scope", function($scope) {
             angular.extend($scope, {
                 defaults: {
-                    map: {
-                        zoomWheelEnabled: false
-                    },
                     controls: {
-                        zoom:{
-                            position: 'topright'
+                        navigation: {
+                            zoomWheelEnabled: false
                         }
                     },
                     tileLayer: {
