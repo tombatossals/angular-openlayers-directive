@@ -1,0 +1,19 @@
+div.olControlAttribution {
+    position: absolute;
+    font-size: 10px;
+    text-align: right;
+    color: #eeeeee;
+    bottom: 0;
+    right: 0;
+    background: #130085; /* fallback for IE - IE6 requires background shorthand*/
+    background: rgba(0, 60, 136, 0.3);
+    filter: alpha(opacity=30);
+    font-family: 'Lucida Grande', Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif;
+    padding: 2px 4px;
+    border-radius: 5px 0 0 0;
+}
+
+div.olControlAttribution a {
+   color: #eeeeee;
+   font-weight: bold;
+}

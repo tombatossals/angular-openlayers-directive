@@ -1,7 +1,10 @@
 angular.module("openlayers-directive").factory('olMapDefaults', function ($q, olHelpers) {
     function _getDefaults() {
         return {
-            tileLayer: 'OSM'
+            tileLayer: {
+                name: 'OpenStreetMap',
+                type: 'OSM'
+            }
         };
     }
     var isDefined = olHelpers.isDefined,

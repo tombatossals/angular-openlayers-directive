@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.5/angular.min.js"></script>
+    <script src="http://openlayers.org/api/OpenLayers.js"></script>
+    <script src="../dist/angular-openlayers-directive.min.js"></script>
+    <script>
+        var app = angular.module("demoapp", ['openlayers-directive']);
+        app.controller("DemoController", [ "$scope", function($scope) {
+            angular.extend($scope, {
+                defaults: {
+                    map: {
+                        zoomWheelEnabled: false
+                    },
+                    controls: {
+                        zoom:{
+                            position: 'topright'
+                        }
+                    },
+                    tileLayer: {
+                        type: 'OSM',
+                        url: ["http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
+                              "http://b.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
+                              "http://c.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png"]
+                    }
+                }
+            });
+        }]);
+    </script>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body ng-controller="DemoController">
+    <openlayers defaults="defaults" width="640px" height="400px"></openlayers>
+  </body>
+</html>

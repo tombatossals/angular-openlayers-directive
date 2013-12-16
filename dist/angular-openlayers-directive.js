@@ -85,6 +85,9 @@ angular.module("openlayers-directive").service('olData', function ($log, $q, olH
 });
 
 angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) {
+    var isDefined = function(value) {
+        return angular.isDefined(value);
+    };
 
     function _obtainEffectiveMapId(d, mapId) {
         var id, i;
@@ -126,9 +129,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 
     return {
         // Determine if a reference is defined
-        isDefined: function(value) {
-            return angular.isDefined(value);
-        },
+        isDefined: isDefined,
 
         // Determine if a reference is a number
         isNumber: function(value) {
@@ -205,9 +206,22 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         getLayerObject: function(layer) {
             var oLayer;
 
-            switch(layer) {
+            switch(layer.type) {
                 case 'OSM':
-                    oLayer = new OpenLayers.Layer.OSM();
+                    var name, url, options;
+                    if (layer.name) {
+                        name = layer.name;
+                    }
+                    if (layer.url) {
+                        url = layer.url;
+                        if (!isDefined(name)) {
+                            name = "OSM Layer";
+                        }
+                    }
+                    if (layer.options) {
+                        angular.copy(layer.options, options);
+                    }
+                    oLayer = new OpenLayers.Layer.OSM(name, url, options);
                     break;
             }
 
@@ -219,7 +233,10 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 angular.module("openlayers-directive").factory('olMapDefaults', function ($q, olHelpers) {
     function _getDefaults() {
         return {
-            tileLayer: 'OSM'
+            tileLayer: {
+                name: 'OpenStreetMap',
+                type: 'OSM'
+            }
         };
     }
     var isDefined = olHelpers.isDefined,
