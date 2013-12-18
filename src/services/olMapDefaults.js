@@ -3,7 +3,13 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
         return {
             tileLayer: {
                 name: 'OpenStreetMap',
-                type: 'OSM'
+                type: 'OSM',
+                projection: 'EPSG:4236'
+            },
+            center: {
+                lat: 0,
+                lon: 0,
+                zoom: 1
             },
             controls: {
                 navigation: {

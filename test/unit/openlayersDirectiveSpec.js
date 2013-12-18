@@ -37,7 +37,7 @@ describe('Directive: openlayers', function() {
         $rootScope.$digest();
         expect(leafletMap.getZoom()).toEqual(1);
         expect(leafletMap.getCenter().lat).toEqual(0);
-        expect(leafletMap.getCenter().lng).toEqual(0);
+        expect(leafletMap.getCenter().lon).toEqual(0);
     });
 
     xit('should set default tile if not tiles nor layers are provided', function() {
@@ -86,11 +86,11 @@ describe('Directive: openlayers', function() {
             maxBounds: {
                 southWest: {
                     lat: 47.200,
-                    lng: 15.200
+                    lon: 15.200
                 },
                 northEast: {
                     lat: 47.200,
-                    lng: 15.200
+                    lon: 15.200
                 }
             }
         });

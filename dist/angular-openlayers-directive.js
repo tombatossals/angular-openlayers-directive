@@ -62,12 +62,70 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
             }
 
             map.render(element[0]);
+            console.log(map.getProjection());
             if (!isDefined(attrs.center)) {
                 map.zoomToMaxExtent();
             }
 
             // Resolve the map object to the promises
             olData.setMap(map, attrs.id);
+        }
+    };
+});
+
+angular.module("openlayers-directive").directive('center', function ($log, $parse, olMapDefaults, olHelpers) {
+    return {
+        restrict: "A",
+        scope: false,
+        replace: false,
+        require: 'openlayers',
+
+        link: function(scope, element, attrs, controller) {
+            var safeApply     = olHelpers.safeApply,
+                isValidCenter = olHelpers.isValidCenter,
+                olScope       = controller.getOpenlayersScope(),
+                center        = olScope.center;
+
+            controller.getMap().then(function(map) {
+                var defaults = olMapDefaults.getDefaults(attrs.id);
+                if (!isValidCenter(center)) {
+                    map.setCenter([defaults.center.lon, defaults.center.lat], defaults.center.zoom);
+                    return;
+                }
+
+                var movingMap = false;
+                var centerModel = {
+                    lat:  $parse("center.lat"),
+                    lon:  $parse("center.lon"),
+                    zoom: $parse("center.zoom")
+                };
+
+                olScope.$watch("center", function(center) {
+                    if (!isValidCenter(center)) {
+                        $log.warn("[AngularJS - Openlayers] invalid 'center'");
+                        map.setCenter([defaults.center.lon, defaults.center.lat], defaults.center.zoom);
+                        return;
+                    }
+                    if (movingMap) {
+                        // Can't update. The map is moving.
+                        return;
+                    }
+                    map.setCenter([center.lon, center.lat], center.zoom);
+                }, true);
+
+                map.events.register("movestart", map, function() {
+                    movingMap = true;
+                });
+
+                map.events.register("moveend", map, function() {
+                    movingMap = false;
+                    safeApply(olScope, function(scope) {
+                        centerModel.lat.assign(scope, map.getCenter().lat);
+                        centerModel.lon.assign(scope, map.getCenter().lon);
+                        centerModel.zoom.assign(scope, map.getZoom());
+                    });
+                });
+            });
         }
     };
 });
@@ -170,7 +228,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 
         isValidCenter: function(center) {
             return angular.isDefined(center) && angular.isNumber(center.lat) &&
-                   angular.isNumber(center.lng) && angular.isNumber(center.zoom);
+                   angular.isNumber(center.lon) && angular.isNumber(center.zoom);
         },
 
         safeApply: function($scope, fn) {
@@ -225,8 +283,10 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                             name = "OSM Layer";
                         }
                     }
-                    if (layer.options) {
-                        angular.copy(layer.options, options);
+                    if (layer.projection) {
+                        options = {
+                            projection: new OpenLayers.Projection(layer.projection)
+                        };
                     }
                     oLayer = new OpenLayers.Layer.OSM(name, url, options);
                     break;
@@ -242,7 +302,13 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
         return {
             tileLayer: {
                 name: 'OpenStreetMap',
-                type: 'OSM'
+                type: 'OSM',
+                projection: 'EPSG:4236'
+            },
+            center: {
+                lat: 0,
+                lon: 0,
+                zoom: 1
             },
             controls: {
                 navigation: {

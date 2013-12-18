@@ -246,7 +246,7 @@ module.exports = function(grunt) {
                 },
                 src: [
                     'src/directives/openlayers.js',
-                    //'src/directives/center.js',
+                    'src/directives/center.js',
                     //'src/directives/tiles.js',
                     //'src/directives/legend.js',
                     //'src/directives/geojson.js',

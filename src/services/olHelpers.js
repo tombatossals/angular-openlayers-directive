@@ -77,7 +77,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 
         isValidCenter: function(center) {
             return angular.isDefined(center) && angular.isNumber(center.lat) &&
-                   angular.isNumber(center.lng) && angular.isNumber(center.zoom);
+                   angular.isNumber(center.lon) && angular.isNumber(center.zoom);
         },
 
         safeApply: function($scope, fn) {
@@ -132,8 +132,10 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                             name = "OSM Layer";
                         }
                     }
-                    if (layer.options) {
-                        angular.copy(layer.options, options);
+                    if (layer.projection) {
+                        options = {
+                            projection: new OpenLayers.Projection(layer.projection)
+                        };
                     }
                     oLayer = new OpenLayers.Layer.OSM(name, url, options);
                     break;
