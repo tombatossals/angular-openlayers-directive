@@ -49,7 +49,7 @@ interacting on the scope and on the leaflet map in two-way binding. Example:
 angular.extend($scope, {
     center: {
         lat: 51.505,
-        lng: -0.09,
+        lon: -0.09,
         zoom: 8
     }
 });
