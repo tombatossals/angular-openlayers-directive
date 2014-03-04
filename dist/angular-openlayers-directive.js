@@ -100,6 +100,20 @@ angular.module("openlayers-directive").directive('center', function ($log, $pars
                     zoom: $parse("center.zoom")
                 };
 
+                //Add a watch for defaults="" html tag.
+                olScope.$watch("defaults", function(defaults) {
+                    //If defaults changed 
+                    var originalDefaults = olMapDefaults.getDefaults(attrs.id);
+                    if(originalDefaults.tileLayer.layername !== defaults.tileLayer.layername){
+                        //set new datas
+                        olMapDefaults.setDefaults(scope.defaults, attrs.id);
+                        //remove old layer
+                        map.removeLayer(map.layers[0]);
+                        //add new layer
+                        map.addLayer(olHelpers.getLayerObject(defaults.tileLayer));                       
+                    }
+                }, true);
+
                 olScope.$watch("center", function(center) {
                     if (!isValidCenter(center)) {
                         $log.warn("[AngularJS - Openlayers] invalid 'center'");
