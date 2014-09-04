@@ -122,7 +122,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 
             switch(layer.type) {
                 case 'OSM':
-                    var name, url, options;
+                    var name, url, options = {};
                     if (layer.name) {
                         name = layer.name;
                     }
@@ -133,10 +133,12 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                         }
                     }
                     if (layer.projection) {
-                        options = {
-                            projection: new OpenLayers.Projection(layer.projection)
-                        };
+                        options.projection = new OpenLayers.Projection(layer.projection);
                     }
+                    if (layer.sphericalMercator === true) {
+                        options.sphericalMercator =  true;
+                    }
+
                     oLayer = new OpenLayers.Layer.OSM(name, url, options);
                     break;
             }

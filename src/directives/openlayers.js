@@ -58,7 +58,6 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
             }
 
             map.render(element[0]);
-            console.log(map.getProjection());
             if (!isDefined(attrs.center)) {
                 map.zoomToMaxExtent();
             }

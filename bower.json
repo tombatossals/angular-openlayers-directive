@@ -1,13 +1,35 @@
 {
-  "name": "angular-leaflet-directive",
+  "name": "angular-openlayers-directive",
+  "description": "AngularJS directive to embed an interact with maps managed by OpenLayers library",
+  "keywords": [
+    "angularjs",
+    "javascript",
+    "directive",
+    "openlayers"
+  ],
+  "main": [
+    "dist/angular-openlayers-directive.js"
+  ],
   "dependencies": {
-    "angular": "1.2.x",
-    "angular-route": "1.2.x",
-    "angular-animate": "1.2.x",
-    "angular-mocks": "1.2.x",
-    "openlayers": "2.13.x"
+    "angular": "latest",
+    "openlayers": "latest"
   },
-  "resolutions": {
-    "angular": "1.2.4"
-  }
+  "devDependencies": {
+    "jquery": "*",
+    "bootstrap": "*",
+    "angular-route": "*",
+    "angular-animate": "*",
+    "angular-mocks": "*"
+  },
+  "ignore": [
+    "**/.*",
+    "src",
+    "doc",
+    "examples",
+    "test",
+    "*.md",
+    "Gruntfile.js",
+    "package.json",
+    "bower.json"
+  ]
 }

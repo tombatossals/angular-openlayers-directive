@@ -4,6 +4,7 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
             tileLayer: {
                 name: 'OpenStreetMap',
                 type: 'OSM',
+                sphericalMercator: true,
                 projection: 'EPSG:4236'
             },
             center: {

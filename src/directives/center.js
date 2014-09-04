@@ -26,16 +26,23 @@ angular.module("openlayers-directive").directive('center', function ($log, $pars
                 };
 
                 olScope.$watch("center", function(center) {
+                    var point, proj;
                     if (!isValidCenter(center)) {
                         $log.warn("[AngularJS - Openlayers] invalid 'center'");
-                        map.setCenter([defaults.center.lon, defaults.center.lat], defaults.center.zoom);
+                        point = new OpenLayers.LonLat(defaults.center.lon, defaults.center.lat);
+                        proj = new OpenLayers.Projection("EPSG:4326");
+                        point.transform(proj, map.getProjectionObject());
+                        map.setCenter(point, defaults.center.zoom);
                         return;
                     }
                     if (movingMap) {
                         // Can't update. The map is moving.
                         return;
                     }
-                    map.setCenter([center.lon, center.lat], center.zoom);
+                    point = new OpenLayers.LonLat(center.lon, center.lat);
+                    proj = new OpenLayers.Projection("EPSG:4326");
+                    point.transform(proj, map.getProjectionObject());
+                    map.setCenter(point, center.zoom);
                 }, true);
 
                 map.events.register("movestart", map, function() {

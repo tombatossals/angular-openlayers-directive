@@ -2,7 +2,7 @@
 
 "use strict";
 
-angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q", "olHelpers", "olMapDefaults", "olData", function ($log, $q, olHelpers, olMapDefaults, olData) {
+angular.module("openlayers-directive", []).directive('openlayers', function ($log, $q, olHelpers, olMapDefaults, olData) {
     var _olMap;
     return {
         restrict: "EA",
@@ -12,7 +12,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
             defaults: '=defaults'
         },
         template: '<div class="angular-openlayers-map"></div>',
-        controller: ["$scope", function ($scope) {
+        controller: function ($scope) {
             _olMap = $q.defer();
             this.getMap = function () {
                 return _olMap.promise;
@@ -21,7 +21,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
             this.getOpenlayersScope = function() {
                 return $scope;
             };
-        }],
+        },
 
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined,
@@ -70,9 +70,9 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
             olData.setMap(map, attrs.id);
         }
     };
-}]);
+});
 
-angular.module("openlayers-directive").directive('center', ["$log", "$parse", "olMapDefaults", "olHelpers", function ($log, $parse, olMapDefaults, olHelpers) {
+angular.module("openlayers-directive").directive('center', function ($log, $parse, olMapDefaults, olHelpers) {
     return {
         restrict: "A",
         scope: false,
@@ -134,9 +134,9 @@ angular.module("openlayers-directive").directive('center', ["$log", "$parse", "o
             });
         }
     };
-}]);
+});
 
-angular.module("openlayers-directive").service('olData', ["$log", "$q", "olHelpers", function ($log, $q, olHelpers) {
+angular.module("openlayers-directive").service('olData', function ($log, $q, olHelpers) {
     var getDefer = olHelpers.getDefer,
         getUnresolvedDefer = olHelpers.getUnresolvedDefer,
         setResolvedDefer = olHelpers.setResolvedDefer;
@@ -153,9 +153,9 @@ angular.module("openlayers-directive").service('olData', ["$log", "$q", "olHelpe
         var defer = getDefer(maps, scopeId);
         return defer.promise;
     };
-}]);
+});
 
-angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", function ($q, $log) {
+angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) {
     var isDefined = function(value) {
         return angular.isDefined(value);
     };
@@ -303,9 +303,9 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             return oLayer;
         }
     };
-}]);
+});
 
-angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelpers", function ($q, olHelpers) {
+angular.module("openlayers-directive").factory('olMapDefaults', function ($q, olHelpers) {
     function _getDefaults() {
         return {
             tileLayer: {
@@ -352,7 +352,7 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
             return newDefaults;
         }
     };
-}]);
+});
 
 
 }());
