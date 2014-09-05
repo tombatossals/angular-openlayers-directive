@@ -12,7 +12,7 @@
   ],
   "dependencies": {
     "angular": "latest",
-    "openlayers3": "latest"
+    "openlayers3": "https://github.com/openlayers/ol3.git#v3.0.0-gamma.4"
   },
   "devDependencies": {
     "jquery": "*",
