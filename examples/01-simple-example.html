@@ -2,16 +2,15 @@
 <html ng-app="demoapp">
   <head>
     <script src="../bower_components/angular/angular.min.js"></script>
-    <script src="http://openlayers.org/en/v3.0.0/build/ol.js"></script>
-    <script src="../dist/angular-openlayers-directive.min.js"></script>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
     <script>
         var app = angular.module("demoapp", ['openlayers-directive']);
         app.controller("DemoController", [ "$scope", function($scope) {
             // Nothing here!
         }]);
     </script>
-    <link rel="stylesheet" href="../bower_components/openlayers3/css/ol.css" />
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
   </head>
   <body ng-controller="DemoController">
     <openlayers width="640px" height="400px"></openlayers>

@@ -123,23 +123,28 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             switch(layer.type) {
                 case 'OSM':
                     var name, url, options = {};
+
                     if (layer.name) {
                         name = layer.name;
                     }
+
                     if (layer.url) {
                         url = layer.url;
                         if (!isDefined(name)) {
                             name = "OSM Layer";
                         }
                     }
+
                     if (layer.projection) {
-                        options.projection = new ol.Projection(layer.projection);
+                        options.projection = new ol.proj.Projection({ code: layer.projection });
                     }
+
                     if (layer.sphericalMercator === true) {
                         options.sphericalMercator =  true;
                     }
 
-                    oLayer = new ol.Layer.OSM(name, url, options);
+                    var source = new ol.source.OSM();
+                    oLayer = new ol.layer.Tile({ source: source });
                     break;
             }
 

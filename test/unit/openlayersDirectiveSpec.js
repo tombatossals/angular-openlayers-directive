@@ -24,7 +24,8 @@ describe('Directive: openlayers', function() {
         var element = angular.element('<openlayers></openlayers>');
         element = $compile(element)($rootScope);
         $rootScope.$digest();
-        expect(element.text()).toEqual('+−© OpenStreetMap contributors');
+        console.log(element.text());
+        expect(element.text()).toEqual('Zoom in+Zoom out−Reset rotation⇧iAttributions');
     });
 
     xit('should set default center if not center is provided', function() {

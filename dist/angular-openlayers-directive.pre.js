@@ -36,6 +36,7 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
                     element.css('width', attrs.width + 'px');
                 }
             }
+
             if (isDefined(attrs.height)) {
                 if (isNaN(attrs.height)) {
                     element.css('height', attrs.height);
@@ -46,26 +47,30 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
 
             // Create the Openlayers Map Object with the options
             var map = new ol.Map({
-                target: element
+                target: element[0]
             });
+
             _olMap.resolve(map);
 
-            // If no layers nor tiles defined, set the default tileLayer
+            // If no layer is defined, set the default tileLayer
             if (!isDefined(attrs.layers)) {
                 var layer = getLayerObject(defaults.tileLayer);
                 map.addLayer(layer);
             }
 
-            if (isDefined(defaults.controls.navigation.zoomWheelEnabled) && defaults.controls.navigation.zoomWheelEnabled === true) {
-                var controls = map.getControlsByClass('OpenLayers.Control.Navigation');
+            if (isDefined(defaults.controls.navigation.zoomWheelEnabled) && defaults.controls.navigation.zoomWheelEnabled === false) {
+                var controls = map.getControls();
                 for (var i=0; i<controls.length; i++) {
                     controls[i].disableZoomWheel();
                 }
             }
 
-            map.render(element[0]);
             if (!isDefined(attrs.center)) {
-                map.zoomToMaxExtent();
+                map.setView(new ol.View({
+                    center: [0, 0],
+                    zoom: 1
+                }));
+                //map.zoomToMaxExtent();
             }
 
             // Resolve the map object to the promises
@@ -282,23 +287,28 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             switch(layer.type) {
                 case 'OSM':
                     var name, url, options = {};
+
                     if (layer.name) {
                         name = layer.name;
                     }
+
                     if (layer.url) {
                         url = layer.url;
                         if (!isDefined(name)) {
                             name = "OSM Layer";
                         }
                     }
+
                     if (layer.projection) {
-                        options.projection = new ol.Projection(layer.projection);
+                        options.projection = new ol.proj.Projection({ code: layer.projection });
                     }
+
                     if (layer.sphericalMercator === true) {
                         options.sphericalMercator =  true;
                     }
 
-                    oLayer = new ol.Layer.OSM(name, url, options);
+                    var source = new ol.source.OSM();
+                    oLayer = new ol.layer.Tile({ source: source });
                     break;
             }
 

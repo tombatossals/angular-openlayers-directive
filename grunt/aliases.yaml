@@ -45,7 +45,7 @@ build:
  - 'concat:dist'
  - 'ngAnnotate'
  - 'uglify'
-   # - 'test-unit'
+ - 'test-unit'
  - 'concat:license'
 
 travis:
