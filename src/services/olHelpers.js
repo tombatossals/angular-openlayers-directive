@@ -133,13 +133,13 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                         }
                     }
                     if (layer.projection) {
-                        options.projection = new OpenLayers.Projection(layer.projection);
+                        options.projection = new ol.Projection(layer.projection);
                     }
                     if (layer.sphericalMercator === true) {
                         options.sphericalMercator =  true;
                     }
 
-                    oLayer = new OpenLayers.Layer.OSM(name, url, options);
+                    oLayer = new ol.Layer.OSM(name, url, options);
                     break;
             }
 

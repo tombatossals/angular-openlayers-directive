@@ -12,7 +12,7 @@
   ],
   "dependencies": {
     "angular": "latest",
-    "openlayers": "latest"
+    "openlayers3": "latest"
   },
   "devDependencies": {
     "jquery": "*",

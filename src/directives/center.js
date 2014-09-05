@@ -29,8 +29,8 @@ angular.module("openlayers-directive").directive('center', function ($log, $pars
                     var point, proj;
                     if (!isValidCenter(center)) {
                         $log.warn("[AngularJS - Openlayers] invalid 'center'");
-                        point = new OpenLayers.LonLat(defaults.center.lon, defaults.center.lat);
-                        proj = new OpenLayers.Projection("EPSG:4326");
+                        point = new ol.LonLat(defaults.center.lon, defaults.center.lat);
+                        proj = new ol.Projection("EPSG:4326");
                         point.transform(proj, map.getProjectionObject());
                         map.setCenter(point, defaults.center.zoom);
                         return;
@@ -39,8 +39,8 @@ angular.module("openlayers-directive").directive('center', function ($log, $pars
                         // Can't update. The map is moving.
                         return;
                     }
-                    point = new OpenLayers.LonLat(center.lon, center.lat);
-                    proj = new OpenLayers.Projection("EPSG:4326");
+                    point = new ol.LonLat(center.lon, center.lat);
+                    proj = new ol.Projection("EPSG:4326");
                     point.transform(proj, map.getProjectionObject());
                     map.setCenter(point, center.zoom);
                 }, true);

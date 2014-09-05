@@ -45,11 +45,13 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
             }
 
             // Create the Openlayers Map Object with the options
-            var map = new OpenLayers.Map();
+            var map = new ol.Map({
+                target: element
+            });
             _olMap.resolve(map);
 
             // If no layers nor tiles defined, set the default tileLayer
-            if (!isDefined(attrs.tiles) && (!isDefined(attrs.layers))) {
+            if (!isDefined(attrs.layers)) {
                 var layer = getLayerObject(defaults.tileLayer);
                 map.addLayer(layer);
             }
@@ -103,8 +105,8 @@ angular.module("openlayers-directive").directive('center', function ($log, $pars
                     var point, proj;
                     if (!isValidCenter(center)) {
                         $log.warn("[AngularJS - Openlayers] invalid 'center'");
-                        point = new OpenLayers.LonLat(defaults.center.lon, defaults.center.lat);
-                        proj = new OpenLayers.Projection("EPSG:4326");
+                        point = new ol.LonLat(defaults.center.lon, defaults.center.lat);
+                        proj = new ol.Projection("EPSG:4326");
                         point.transform(proj, map.getProjectionObject());
                         map.setCenter(point, defaults.center.zoom);
                         return;
@@ -113,8 +115,8 @@ angular.module("openlayers-directive").directive('center', function ($log, $pars
                         // Can't update. The map is moving.
                         return;
                     }
-                    point = new OpenLayers.LonLat(center.lon, center.lat);
-                    proj = new OpenLayers.Projection("EPSG:4326");
+                    point = new ol.LonLat(center.lon, center.lat);
+                    proj = new ol.Projection("EPSG:4326");
                     point.transform(proj, map.getProjectionObject());
                     map.setCenter(point, center.zoom);
                 }, true);
@@ -290,13 +292,13 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                         }
                     }
                     if (layer.projection) {
-                        options.projection = new OpenLayers.Projection(layer.projection);
+                        options.projection = new ol.Projection(layer.projection);
                     }
                     if (layer.sphericalMercator === true) {
                         options.sphericalMercator =  true;
                     }
 
-                    oLayer = new OpenLayers.Layer.OSM(name, url, options);
+                    oLayer = new ol.Layer.OSM(name, url, options);
                     break;
             }
 

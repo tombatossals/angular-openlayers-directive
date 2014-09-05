@@ -21,7 +21,7 @@ module.exports = function (grunt, options) {
             smarttabs: true,
             globals: {
                 angular: false,
-                OpenLayers: false,
+                ol: false,
                 lvector: false,
                 cartodb: false,
                 // Jasmine

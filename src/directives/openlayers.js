@@ -41,11 +41,13 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
             }
 
             // Create the Openlayers Map Object with the options
-            var map = new OpenLayers.Map();
+            var map = new ol.Map({
+                target: element
+            });
             _olMap.resolve(map);
 
             // If no layers nor tiles defined, set the default tileLayer
-            if (!isDefined(attrs.tiles) && (!isDefined(attrs.layers))) {
+            if (!isDefined(attrs.layers)) {
                 var layer = getLayerObject(defaults.tileLayer);
                 map.addLayer(layer);
             }
