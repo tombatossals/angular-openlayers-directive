@@ -1,0 +1,14 @@
+{
+  "name": "openlayers3",
+  "homepage": "https://github.com/openlayers/ol3",
+  "version": "3.0.0-gamma.4",
+  "_release": "3.0.0-gamma.4",
+  "_resolution": {
+    "type": "version",
+    "tag": "v3.0.0-gamma.4",
+    "commit": "000f8a59006731f33df1675d136ec419ecd5c57e"
+  },
+  "_source": "https://github.com/openlayers/ol3.git",
+  "_target": "v3.0.0-gamma.4",
+  "_originalSource": "https://github.com/openlayers/ol3.git"
+}
