@@ -1,14 +1,15 @@
 # angular-openlayers-directive
 
-Work already in progress.
+Work in progress.
 
-[AngularJS](http://angularjs.org/) directive for the Leaflet Javascript
-Library. This software aims to easily embed maps managed by leaflet on your
+[AngularJS](http://angularjs.org/) directive for the OpenLayers (version 3) Javascript
+Library. This software aims to easily embed maps managed by openlayers on your
 [OpenLayers](http://openlayers.org/) project.
 
 See some basic examples:
 
-* [Basic example](http://tombatossals.github.io/angular-openlayers-directive/examples/simple-example.html)
+* [Basic example](http://tombatossals.github.io/angular-openlayers-directive/examples/01-simple-example.html)
+* [Center example](http://tombatossals.github.io/angular-openlayers-directive/examples/02-center-example.html)
 
 
 To see it in action, go to the main page where you can find more examples and
@@ -25,19 +26,14 @@ var app = angular.module("demoapp", ["openlayers-directive"]);
 ```
 
 After that, you can change the default values of the directive (if you want) on
-your angular controller. For example, you can change the tiles source, the
-maxzoom on the leaflet map or the polyline path properties.
+your angular controller. For example, you can change the tiles source or the
+maxzoom on the map. You can see all the customizable default options in the documentation.
 
 ```javascript
 angular.extend($scope, {
     defaults: {
         tileLayer: "http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png",
-        maxZoom: 14,
-        path: {
-            weight: 10,
-            color: '#800000',
-            opacity: 1
-        }
+        maxZoom: 14
     }
 });
 ```
