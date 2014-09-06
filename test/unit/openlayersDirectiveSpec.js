@@ -24,7 +24,6 @@ describe('Directive: openlayers', function() {
         var element = angular.element('<openlayers></openlayers>');
         element = $compile(element)($rootScope);
         $rootScope.$digest();
-        console.log(element.text());
         expect(element.text()).toEqual('Zoom in+Zoom out−Reset rotation⇧iAttributions');
     });
 

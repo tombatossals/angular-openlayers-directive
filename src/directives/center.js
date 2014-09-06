@@ -1,4 +1,4 @@
-angular.module("openlayers-directive").directive('center', function ($log, $parse, olMapDefaults, olHelpers) {
+angular.module("openlayers-directive").directive('center', function ($log, olMapDefaults, olHelpers) {
     return {
         restrict: "A",
         scope: false,
@@ -8,55 +8,58 @@ angular.module("openlayers-directive").directive('center', function ($log, $pars
         link: function(scope, element, attrs, controller) {
             var safeApply     = olHelpers.safeApply,
                 isValidCenter = olHelpers.isValidCenter,
-                olScope       = controller.getOpenlayersScope(),
-                center        = olScope.center;
+                equals         = olHelpers.equals,
+                olScope       = controller.getOpenlayersScope();
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
-                if (!isValidCenter(center)) {
-                    map.setCenter([defaults.center.lon, defaults.center.lat], defaults.center.zoom);
-                    return;
-                }
-
-                var movingMap = false;
-                var centerModel = {
-                    lat:  $parse("center.lat"),
-                    lon:  $parse("center.lon"),
-                    zoom: $parse("center.zoom")
-                };
+                var view = new ol.View({
+                    center: [0, 0]
+                });
+                map.setView(view);
 
                 olScope.$watch("center", function(center) {
-                    var point, proj;
                     if (!isValidCenter(center)) {
                         $log.warn("[AngularJS - Openlayers] invalid 'center'");
-                        point = new ol.LonLat(defaults.center.lon, defaults.center.lat);
-                        proj = new ol.Projection("EPSG:4326");
-                        point.transform(proj, map.getProjectionObject());
-                        map.setCenter(point, defaults.center.zoom);
-                        return;
+                        center = defaults.center;
                     }
-                    if (movingMap) {
-                        // Can't update. The map is moving.
-                        return;
+
+                    if (view.getCenter()) {
+                        var actualCenter = ol.proj.transform(view.getCenter(),
+                                                'EPSG:3857',
+                                                'EPSG:4326');
+
+                        if (!equals([ actualCenter[1], actualCenter[0] ], center)) {
+                            var proj = ol.proj.transform([ center.lon, center.lat ],
+                                                    'EPSG:4326',
+                                                    'EPSG:3857');
+                            view.setCenter(proj);
+                        }
                     }
-                    point = new ol.LonLat(center.lon, center.lat);
-                    proj = new ol.Projection("EPSG:4326");
-                    point.transform(proj, map.getProjectionObject());
-                    map.setCenter(point, center.zoom);
+
+
+                    if (view.getZoom() !== center.zoom) {
+                        view.setZoom(center.zoom);
+                    }
                 }, true);
 
-                map.events.register("movestart", map, function() {
-                    movingMap = true;
-                });
-
-                map.events.register("moveend", map, function() {
-                    movingMap = false;
+                view.on('change:resolution', function() {
                     safeApply(olScope, function(scope) {
-                        centerModel.lat.assign(scope, map.getCenter().lat);
-                        centerModel.lon.assign(scope, map.getCenter().lon);
-                        centerModel.zoom.assign(scope, map.getZoom());
+                        if (scope.center.zoom !== view.getZoom()) {
+                            scope.center.zoom = view.getZoom();
+                        }
                     });
                 });
+
+                view.on("change:center", function() {
+                    safeApply(olScope, function(scope) {
+                        var center = map.getView().getCenter();
+                        var proj = ol.proj.transform(center, 'EPSG:3857', 'EPSG:4326');
+                        scope.center.lat = proj[1];
+                        scope.center.lon = proj[0];
+                    });
+                });
+
             });
         }
     };

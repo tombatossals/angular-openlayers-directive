@@ -1,5 +1,5 @@
 angular.module("openlayers-directive", []).directive('openlayers', function ($log, $q, olHelpers, olMapDefaults, olData) {
-    var _olMap;
+    var _olMap = $q.defer();
     return {
         restrict: "EA",
         replace: true,
@@ -7,9 +7,10 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
             center: '=center',
             defaults: '=defaults'
         },
-        template: '<div class="angular-openlayers-map"></div>',
+        transclude: true,
+        template: '<div class="angular-openlayers-map"><div ng-transclude></div></div>',
         controller: function ($scope) {
-            _olMap = $q.defer();
+
             this.getMap = function () {
                 return _olMap.promise;
             };
@@ -46,15 +47,14 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
                 target: element[0]
             });
 
-            _olMap.resolve(map);
-
             // If no layer is defined, set the default tileLayer
             if (!isDefined(attrs.layers)) {
                 var layer = getLayerObject(defaults.tileLayer);
                 map.addLayer(layer);
             }
 
-            if (isDefined(defaults.controls.navigation.zoomWheelEnabled) && defaults.controls.navigation.zoomWheelEnabled === false) {
+            if (isDefined(defaults.controls.navigation.zoomWheelEnabled) &&
+                defaults.controls.navigation.zoomWheelEnabled === false) {
                 var controls = map.getControls();
                 for (var i=0; i<controls.length; i++) {
                     controls[i].disableZoomWheel();
@@ -63,14 +63,14 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
 
             if (!isDefined(attrs.center)) {
                 map.setView(new ol.View({
-                    center: [0, 0],
-                    zoom: 1
+                    center: [ defaults.center.lat, defaults.center.lon ],
+                    zoom: defaults.center.zoom
                 }));
-                //map.zoomToMaxExtent();
             }
 
             // Resolve the map object to the promises
             olData.setMap(map, attrs.id);
+            _olMap.resolve(map);
         }
     };
 });

@@ -46,4 +46,3 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
         }
     };
 });
-
