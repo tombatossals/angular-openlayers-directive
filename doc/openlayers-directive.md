@@ -1,21 +1,21 @@
 Openlayers directive Documentation
 ==================================
 
-This directive acts as an intermediary between the AngularJS framework and the Openlayers map management library. It's composed of a main directive **&lt;openlayers&gt;** and attributes (coded as sub-directives) of the main directive. For example, we could add to our HTML code:
+This directive acts as an intermediary between the AngularJS framework and the Openlayers (version 3) map management library. It's composed of a main directive **&lt;openlayers&gt;** and attributes (coded as sub-directives) of the main directive. For example, we could add to our HTML code:
 
 ```
 <openlayers center="center" width="640px" height="480px">
 ```
 
-Here we have the main **openlayers** directive, with the attribute **center** and two more attributes (without bi-directional binding) **width** and **height**.
+Here we have the main **openlayers** directive, with the attribute **center** and two more attributes **width** and **height**.
 
 Before detailing how to use the directive and its attributes, let's talk about initializing our web page to be able to work with the directive. We must load the required JS libraries and CSS in our HTML:
 
 ```
 <html>
   <head>
-     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.5/angular.min.js"></script>
-     <script src="http://openlayers.org/api/OpenLayers.js"></script>
+     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.23/angular.min.js"></script>
+     <script src="http://openlayers.org/en/v3.0.0/build/ol.js"></script>
      <script src="http://tombatossals.github.io/angular-openlayers-directive/dist/angular-openlayers-directive.min.js"></script>
   </head>
 </html>
@@ -57,14 +57,11 @@ Great, let's see now the complete HTML and inline javascript code needed to load
 <!DOCTYPE html>
 <html ng-app="demoapp">
   <head>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.5/angular.min.js"></script>
-    <script src="http://openlayers.org/api/OpenLayers.js"></script>
-    <script src="../dist/angular-openlayers-directive.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.23/angular.min.js"></script>
+    <script src="http://openlayers.org/en/v3.0.0/build/ol.js"></script>
+    <script src="http://tombatossals.github.io/angular-openlayers-directive/dist/angular-openlayers-directive.min.js"></script>
     <script>
         var app = angular.module("demoapp", ['openlayers-directive']);
-        app.controller("DemoController", [ "$scope", function($scope) {
-            // Nothing here!
-        }]);
     </script>
     <link rel="stylesheet" href="css/style.css" />
   </head>
@@ -74,7 +71,7 @@ Great, let's see now the complete HTML and inline javascript code needed to load
 </html>
 ```
 
-You can see this example in action on the [simple-example.html demo file](http://tombatossals.github.io/angular-openlayers-directive/examples/simple-example.html).
+You can see this example in action on the [simple-example demo file](http://tombatossals.github.io/angular-openlayers-directive/examples/01-simple-example.html).
 
 Take a look at the [AnguarJS controller documentation](http://docs.angularjs.org/guide/controller) if you want to learn more about Angular controller definition, or to the [AngularJS ngApp](http://docs.angularjs.org/api/ng.directive:ngApp) to know how to bootstrap an Angular application.
 
