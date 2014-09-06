@@ -93,9 +93,19 @@ angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaul
                 olScope       = controller.getOpenlayersScope();
 
             controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
+                var defaults = olMapDefaults.getDefaults(attrs.id),
+                    center = olScope.center;
+
+                if (!isValidCenter(center)) {
+                    $log.warn("[AngularJS - Openlayers] invalid 'center'");
+                    center = defaults.center;
+                }
+
+                var proj = ol.proj.transform([ center.lon, center.lat ],
+                                        'EPSG:4326',
+                                        'EPSG:3857');
                 var view = new ol.View({
-                    center: [0, 0]
+                    center: proj
                 });
                 map.setView(view);
 
@@ -126,7 +136,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaul
 
                 view.on('change:resolution', function() {
                     safeApply(olScope, function(scope) {
-                        if (scope.center.zoom !== view.getZoom()) {
+                        if (scope.center && scope.center.zoom !== view.getZoom()) {
                             scope.center.zoom = view.getZoom();
                         }
                     });
@@ -136,8 +146,10 @@ angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaul
                     safeApply(olScope, function(scope) {
                         var center = map.getView().getCenter();
                         var proj = ol.proj.transform(center, 'EPSG:3857', 'EPSG:4326');
-                        scope.center.lat = proj[1];
-                        scope.center.lon = proj[0];
+                        if (scope.center) {
+                            scope.center.lat = proj[1];
+                            scope.center.lon = proj[0];
+                        }
                     });
                 });
 

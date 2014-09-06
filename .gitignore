@@ -12,3 +12,4 @@ dist/angular-openlayers-directive.min.no-header.js
 selenium
 coverage
 bower_components
+dist/angular-openlayers-directive.pre.js
