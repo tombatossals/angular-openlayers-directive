@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+        angular.module("demoapp", ["openlayers-directive"]);
+        function DemoController($scope) {
+            var tilesDict = {
+                openstreetmap: {
+                    type: 'OSM'
+                },
+                opencyclemap: {
+                    type: 'OSM',
+                    url: 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
+                    attribution: 'All maps &copy; <a href="http://www.opencyclemap.org/">OpenCycleMap</a>'
+                },
+                mapbox_streets: {
+                    type: 'TileJSON',
+                    url: 'https://api.tiles.mapbox.com/v3/tombatossals.map-fmyyujjl.jsonp'
+                },
+                mapbox_terrain: {
+                    type: 'TileJSON',
+                    url: 'https://api.tiles.mapbox.com/v3/tombatossals.jbn2nnon.jsonp'
+                },
+                mapbox_geographyclass: {
+                    type: 'TileJSON',
+                    url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
+                }
+            };
+
+            angular.extend($scope, {
+                london: {
+                    lat: 51.505,
+                    lon: -0.09,
+                    zoom: 8
+                },
+                tiles: tilesDict.opencyclemap
+            });
+
+            $scope.changeTiles = function(tiles) {
+                $scope.tiles = tilesDict[tiles];
+            };
+        };
+    </script>
+    <style>
+        .angular-leaflet-map {
+            width: 640px;
+            height: 400px;
+        }
+    </style>
+  </head>
+  <body>
+  <div class="container">
+      <div ng-controller="DemoController">
+        <openlayers center="london" tiles="tiles" height="400px"></openlayers>
+
+        <h1>Tiles example</h1>
+        <p>This is a map that can change tiles by demand</p>
+
+        <p>
+            <button ng-click="changeTiles('opencyclemap')" class="btn btn-default">OpenCycleMaps</button>
+            <button ng-click="changeTiles('openstreetmap')" class="btn btn-default">OpenStreetMaps</button>
+            <button ng-click="changeTiles('mapbox_streets')" class="btn btn-default">Mapbox Streets</button>
+            <button ng-click="changeTiles('mapbox_terrain')" class="btn btn-default">Mapbox Terrain</button>
+            <button ng-click="changeTiles('mapbox_geographyclass')" class="btn btn-default">Mapbox Geography Class</button>
+        </p>
+        <p>Current TileLayer Url:
+            <pre>{{ tiles | json }}</pre>
+        </p>
+
+      </div>
+  </div>
+
+  </body>
+</html>

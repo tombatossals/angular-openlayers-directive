@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+        angular.module("demoapp", ["openlayers-directive"]);
+        function DemoController($scope) {
+            angular.extend($scope, {
+                london: {
+                    lat: 51.505,
+                    lon: -0.09,
+                    zoom: 8
+                },
+                defaults: {
+                    tileLayer: {
+                        type: 'OSM',
+                        url: 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
+                        attribution: 'All maps &copy; <a href="http://www.opencyclemap.org/">OpenCycleMap</a>'
+                    },
+                    controls: {
+                        zoom: {
+                            mouseWheelEnabled: false
+                        }
+                    }
+                }
+            });
+        };
+    </script>
+  </head>
+  <body ng-controller="DemoController">
+    <openlayers center="london" defaults="defaults" width="100%" height="400px"></openlayers>
+    <h1>Custom parameters example</h1>
+    <p>These are the custom properties applied in this map:</p>
+    <pre ng-bind="defaults | json"></pre>
+  </body>
+</html>
