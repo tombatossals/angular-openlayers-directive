@@ -10,6 +10,8 @@ See some basic examples:
 
 * [Basic example](http://tombatossals.github.io/angular-openlayers-directive/examples/01-simple-example.html)
 * [Center example](http://tombatossals.github.io/angular-openlayers-directive/examples/02-center-example.html)
+* [Custom parameters example](http://tombatossals.github.io/angular-openlayers-directive/examples/03-custom-parameters-example.html)
+* [Tiles example](http://tombatossals.github.io/angular-openlayers-directive/examples/04-tiles-example.html)
 
 
 To see it in action, go to the main page where you can find more examples and
