@@ -27,21 +27,21 @@ describe('Directive: openlayers', function() {
         expect(element.text()).toEqual('Zoom in+Zoom out−Reset rotation⇧iAttributions');
     });
 
-    xit('should set default center if not center is provided', function() {
-        var element = angular.element('<leaflet></leaflet>');
+    it('should set default center if not center is provided', function() {
+        var element = angular.element('<openlayers></openlayers>');
         element = $compile(element)($rootScope);
-        var leafletMap;
-        leafletData.getMap().then(function(map) {
-            leafletMap = map;
+        var map;
+        olData.getMap().then(function(olMap) {
+            map = olMap;
         });
         $rootScope.$digest();
-        expect(leafletMap.getZoom()).toEqual(1);
-        expect(leafletMap.getCenter().lat).toEqual(0);
-        expect(leafletMap.getCenter().lon).toEqual(0);
+        expect(map.getView().getZoom()).toEqual(1);
+        expect(map.getView().getCenter()[1]).toEqual(0);
+        expect(map.getView().getCenter()[0]).toEqual(0);
     });
 
     xit('should set default tile if not tiles nor layers are provided', function() {
-        var element = angular.element('<leaflet></leaflet>');
+        var element = angular.element('<openlayers></openlayers>');
         element = $compile(element)($rootScope);
         var leafletTiles, defaults;
         leafletData.getTiles().then(function(tiles) {

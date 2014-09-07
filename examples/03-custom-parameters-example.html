@@ -29,15 +29,11 @@
             });
         };
     </script>
-    <style>
-        .ol-zoom {
-            top: 1em;
-            right: 1em;
-            left: auto;
-        }
-    </style>
   </head>
   <body ng-controller="DemoController">
-    <openlayers center="london" defaults="defaults" width="100%" height="100%"></openlayers>
+    <openlayers center="london" defaults="defaults" width="100%" height="400px"></openlayers>
+    <h1>Custom parameters example</h1>
+    <p>These are the custom properties applied in this map:</p>
+    <pre ng-bind="defaults | json"></pre>
   </body>
 </html>

@@ -5,7 +5,8 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
         replace: true,
         scope: {
             center: '=center',
-            defaults: '=defaults'
+            defaults: '=defaults',
+            tiles: '=tiles'
         },
         transclude: true,
         template: '<div class="angular-openlayers-map"><div ng-transclude></div></div>',

@@ -3,7 +3,8 @@ angular.module("openlayers-directive").service('olData', function ($log, $q, olH
         getUnresolvedDefer = olHelpers.getUnresolvedDefer,
         setResolvedDefer = olHelpers.setResolvedDefer;
 
-    var maps = {};
+    var maps = {},
+        tiles = {};
 
     this.setMap = function(olMap, scopeId) {
         var defer = getUnresolvedDefer(maps, scopeId);
@@ -15,4 +16,16 @@ angular.module("openlayers-directive").service('olData', function ($log, $q, olH
         var defer = getDefer(maps, scopeId);
         return defer.promise;
     };
+
+    this.setTiles = function(leafletTiles, scopeId) {
+        var defer = getUnresolvedDefer(tiles, scopeId);
+        defer.resolve(leafletTiles);
+        setResolvedDefer(tiles, scopeId);
+    };
+
+    this.getTiles = function(scopeId) {
+        var defer = getDefer(tiles, scopeId);
+        return defer.promise;
+    };
+
 });

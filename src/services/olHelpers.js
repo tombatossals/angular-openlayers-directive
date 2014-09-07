@@ -128,11 +128,10 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         },
 
         getLayerObject: function(layer) {
-            var oLayer;
+            var oLayer, source;
 
             switch(layer.type) {
                 case 'OSM':
-                    var source;
                     if (layer.attribution) {
                         source = new ol.source.OSM({
                             attributions: [
@@ -150,6 +149,14 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                         source.setUrl(layer.url);
                     }
 
+                    break;
+                case 'TileJSON':
+                    source = new ol.source.TileJSON({
+                        url: layer.url,
+                        crossOrigin: 'anonymous'
+                    });
+
+                    oLayer = new ol.layer.Tile({ source: source });
                     break;
             }
 
