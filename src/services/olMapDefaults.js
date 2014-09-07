@@ -2,10 +2,7 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
     function _getDefaults() {
         return {
             tileLayer: {
-                name: 'OpenStreetMap',
-                type: 'OSM',
-                sphericalMercator: true,
-                projection: 'EPSG:4236'
+                type: 'OSM'
             },
             center: {
                 lat: 0,
@@ -13,11 +10,9 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 zoom: 1
             },
             controls: {
-                navigation: {
-                    zoomWheelEnabled: true
-                },
                 zoom: {
-                    position: 'topright'
+                    position: 'topright',
+                    mouseWheelEnabled: true
                 }
             }
         };
@@ -38,6 +33,12 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
 
             if (isDefined(userDefaults)) {
                 newDefaults.tileLayer = isDefined(userDefaults.tileLayer) ? userDefaults.tileLayer : newDefaults.tileLayer;
+
+                if (isDefined(userDefaults.controls)) {
+                    if (isDefined(userDefaults.controls.zoom)) {
+                        newDefaults.controls.zoom.mouseWheelEnabled = isDefined(userDefaults.controls.zoom.mouseWheelEnabled) ? userDefaults.controls.zoom.mouseWheelEnabled : newDefaults.controls.zoom.mouseWheelEnabled;
+                    }
+                }
             }
 
             var mapId = obtainEffectiveMapId(defaults, scopeId);

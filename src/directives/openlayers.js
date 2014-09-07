@@ -23,6 +23,7 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined,
                 getLayerObject = olHelpers.getLayerObject,
+                disableMouseWheelZoom = olHelpers.disableMouseWheelZoom,
                 defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
@@ -53,12 +54,9 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
                 map.addLayer(layer);
             }
 
-            if (isDefined(defaults.controls.navigation.zoomWheelEnabled) &&
-                defaults.controls.navigation.zoomWheelEnabled === false) {
-                var controls = map.getControls();
-                for (var i=0; i<controls.length; i++) {
-                    controls[i].disableZoomWheel();
-                }
+            if (isDefined(defaults.controls.zoom.mouseWheelEnabled) &&
+                defaults.controls.zoom.mouseWheelEnabled === false) {
+                    disableMouseWheelZoom(map);
             }
 
             if (!isDefined(attrs.center)) {

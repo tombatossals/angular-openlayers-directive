@@ -27,6 +27,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined,
                 getLayerObject = olHelpers.getLayerObject,
+                disableMouseWheelZoom = olHelpers.disableMouseWheelZoom,
                 defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
@@ -57,12 +58,9 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
                 map.addLayer(layer);
             }
 
-            if (isDefined(defaults.controls.navigation.zoomWheelEnabled) &&
-                defaults.controls.navigation.zoomWheelEnabled === false) {
-                var controls = map.getControls();
-                for (var i=0; i<controls.length; i++) {
-                    controls[i].disableZoomWheel();
-                }
+            if (isDefined(defaults.controls.zoom.mouseWheelEnabled) &&
+                defaults.controls.zoom.mouseWheelEnabled === false) {
+                    disableMouseWheelZoom(map);
             }
 
             if (!isDefined(attrs.center)) {
@@ -296,34 +294,39 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             d[id].resolvedDefer = true;
         },
 
+        disableMouseWheelZoom: function(map) {
+            var interactions = map.getInteractions();
+
+            interactions.forEach(function(interaction) {
+                if (interaction instanceof ol.interaction.MouseWheelZoom) {
+                    map.removeInteraction(interaction);
+                }
+            });
+        },
+
         getLayerObject: function(layer) {
             var oLayer;
 
             switch(layer.type) {
                 case 'OSM':
-                    var name, url, options = {};
-
-                    if (layer.name) {
-                        name = layer.name;
+                    var source;
+                    if (layer.attribution) {
+                        source = new ol.source.OSM({
+                            attributions: [
+                              new ol.Attribution({ html: layer.attribution }),
+                              ol.source.OSM.DATA_ATTRIBUTION
+                            ]
+                        });
+                    } else {
+                        source = new ol.source.OSM();
                     }
+
+                    oLayer = new ol.layer.Tile({ source: source });
 
                     if (layer.url) {
-                        url = layer.url;
-                        if (!isDefined(name)) {
-                            name = "OSM Layer";
-                        }
+                        source.setUrl(layer.url);
                     }
 
-                    if (layer.projection) {
-                        options.projection = new ol.proj.Projection({ code: layer.projection });
-                    }
-
-                    if (layer.sphericalMercator === true) {
-                        options.sphericalMercator =  true;
-                    }
-
-                    var source = new ol.source.OSM();
-                    oLayer = new ol.layer.Tile({ source: source });
                     break;
             }
 
@@ -336,10 +339,7 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
     function _getDefaults() {
         return {
             tileLayer: {
-                name: 'OpenStreetMap',
-                type: 'OSM',
-                sphericalMercator: true,
-                projection: 'EPSG:4236'
+                type: 'OSM'
             },
             center: {
                 lat: 0,
@@ -347,11 +347,9 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                 zoom: 1
             },
             controls: {
-                navigation: {
-                    zoomWheelEnabled: true
-                },
                 zoom: {
-                    position: 'topright'
+                    position: 'topright',
+                    mouseWheelEnabled: true
                 }
             }
         };
@@ -372,6 +370,12 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
 
             if (isDefined(userDefaults)) {
                 newDefaults.tileLayer = isDefined(userDefaults.tileLayer) ? userDefaults.tileLayer : newDefaults.tileLayer;
+
+                if (isDefined(userDefaults.controls)) {
+                    if (isDefined(userDefaults.controls.zoom)) {
+                        newDefaults.controls.zoom.mouseWheelEnabled = isDefined(userDefaults.controls.zoom.mouseWheelEnabled) ? userDefaults.controls.zoom.mouseWheelEnabled : newDefaults.controls.zoom.mouseWheelEnabled;
+                    }
+                }
             }
 
             var mapId = obtainEffectiveMapId(defaults, scopeId);

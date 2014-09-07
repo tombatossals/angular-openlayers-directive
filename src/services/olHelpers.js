@@ -117,34 +117,39 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             d[id].resolvedDefer = true;
         },
 
+        disableMouseWheelZoom: function(map) {
+            var interactions = map.getInteractions();
+
+            interactions.forEach(function(interaction) {
+                if (interaction instanceof ol.interaction.MouseWheelZoom) {
+                    map.removeInteraction(interaction);
+                }
+            });
+        },
+
         getLayerObject: function(layer) {
             var oLayer;
 
             switch(layer.type) {
                 case 'OSM':
-                    var name, url, options = {};
-
-                    if (layer.name) {
-                        name = layer.name;
+                    var source;
+                    if (layer.attribution) {
+                        source = new ol.source.OSM({
+                            attributions: [
+                              new ol.Attribution({ html: layer.attribution }),
+                              ol.source.OSM.DATA_ATTRIBUTION
+                            ]
+                        });
+                    } else {
+                        source = new ol.source.OSM();
                     }
+
+                    oLayer = new ol.layer.Tile({ source: source });
 
                     if (layer.url) {
-                        url = layer.url;
-                        if (!isDefined(name)) {
-                            name = "OSM Layer";
-                        }
+                        source.setUrl(layer.url);
                     }
 
-                    if (layer.projection) {
-                        options.projection = new ol.proj.Projection({ code: layer.projection });
-                    }
-
-                    if (layer.sphericalMercator === true) {
-                        options.sphericalMercator =  true;
-                    }
-
-                    var source = new ol.source.OSM();
-                    oLayer = new ol.layer.Tile({ source: source });
                     break;
             }
 
