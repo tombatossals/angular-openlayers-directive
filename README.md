@@ -12,6 +12,7 @@ See some basic examples:
 * [Center example](http://tombatossals.github.io/angular-openlayers-directive/examples/02-center-example.html)
 * [Custom parameters example](http://tombatossals.github.io/angular-openlayers-directive/examples/03-custom-parameters-example.html)
 * [Tiles example](http://tombatossals.github.io/angular-openlayers-directive/examples/04-tiles-example.html)
+* [Tiles zoom changer example](http://tombatossals.github.io/angular-openlayers-directive/examples/05-tiles-zoom-changer-example.html)
 
 
 To see it in action, go to the main page where you can find more examples and
