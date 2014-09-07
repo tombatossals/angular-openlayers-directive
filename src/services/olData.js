@@ -1,10 +1,40 @@
 angular.module("openlayers-directive").service('olData', function ($log, $q, olHelpers) {
-    var getDefer = olHelpers.getDefer,
-        getUnresolvedDefer = olHelpers.getUnresolvedDefer,
-        setResolvedDefer = olHelpers.setResolvedDefer;
+    var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
 
     var maps = {},
         tiles = {};
+
+    var setResolvedDefer = function(d, mapId) {
+        var id = obtainEffectiveMapId(d, mapId);
+        d[id].resolvedDefer = true;
+    };
+
+    var getUnresolvedDefer = function(d, mapId) {
+        var id = obtainEffectiveMapId(d, mapId),
+            defer;
+
+        if (!angular.isDefined(d[id]) || d[id].resolvedDefer === true) {
+            defer = $q.defer();
+            d[id] = {
+                defer: defer,
+                resolvedDefer: false
+            };
+        } else {
+            defer = d[id].defer;
+        }
+        return defer;
+    };
+
+    var getDefer = function(d, mapId) {
+        var id = obtainEffectiveMapId(d, mapId),
+            defer;
+        if (!angular.isDefined(d[id]) || d[id].resolvedDefer === false) {
+            defer = getUnresolvedDefer(d, mapId);
+        } else {
+            defer = d[id].defer;
+        }
+        return defer;
+    };
 
     this.setMap = function(olMap, scopeId) {
         var defer = getUnresolvedDefer(maps, scopeId);
@@ -17,9 +47,9 @@ angular.module("openlayers-directive").service('olData', function ($log, $q, olH
         return defer.promise;
     };
 
-    this.setTiles = function(leafletTiles, scopeId) {
+    this.setTiles = function(olTiles, scopeId) {
         var defer = getUnresolvedDefer(tiles, scopeId);
-        defer.resolve(leafletTiles);
+        defer.resolve(olTiles);
         setResolvedDefer(tiles, scopeId);
     };
 

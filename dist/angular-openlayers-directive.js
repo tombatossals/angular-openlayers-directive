@@ -170,22 +170,25 @@ angular.module("openlayers-directive").directive('tiles', ["$log", "olData", "ol
                 getLayerObject = olHelpers.getLayerObject;
 
             controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
-                var tileLayerObj;
+                var defaults = olMapDefaults.getDefaults(attrs.id),
+                    tileLayerObj = [];
+
                 olScope.$watch("tiles", function(tiles) {
                     if (!isDefined(tiles) || !isDefined(tiles.type)) {
                         $log.warn("[AngularJS - OpenLayers] The 'tiles' definition doesn't have the 'type' property.");
                         tiles = defaults.tileLayer;
                     }
 
-                    if (isDefined(tileLayerObj)) {
-                        map.removeLayer(tileLayerObj);
+                    if (isDefined(tileLayerObj) && tileLayerObj.length === 1) {
+                        map.removeLayer(tileLayerObj[0]);
+                        tileLayerObj.pop();
                     }
 
-                    tileLayerObj = getLayerObject(tiles);
-                    map.addLayer(tileLayerObj);
+                    var l = getLayerObject(tiles);
+                    map.addLayer(l);
+                    tileLayerObj.push(l);
+
                     olData.setTiles(tileLayerObj, attrs.id);
-                    return;
                 }, true);
             });
         }
@@ -193,12 +196,42 @@ angular.module("openlayers-directive").directive('tiles', ["$log", "olData", "ol
 }]);
 
 angular.module("openlayers-directive").service('olData', ["$log", "$q", "olHelpers", function ($log, $q, olHelpers) {
-    var getDefer = olHelpers.getDefer,
-        getUnresolvedDefer = olHelpers.getUnresolvedDefer,
-        setResolvedDefer = olHelpers.setResolvedDefer;
+    var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
 
     var maps = {},
         tiles = {};
+
+    var setResolvedDefer = function(d, mapId) {
+        var id = obtainEffectiveMapId(d, mapId);
+        d[id].resolvedDefer = true;
+    };
+
+    var getUnresolvedDefer = function(d, mapId) {
+        var id = obtainEffectiveMapId(d, mapId),
+            defer;
+
+        if (!angular.isDefined(d[id]) || d[id].resolvedDefer === true) {
+            defer = $q.defer();
+            d[id] = {
+                defer: defer,
+                resolvedDefer: false
+            };
+        } else {
+            defer = d[id].defer;
+        }
+        return defer;
+    };
+
+    var getDefer = function(d, mapId) {
+        var id = obtainEffectiveMapId(d, mapId),
+            defer;
+        if (!angular.isDefined(d[id]) || d[id].resolvedDefer === false) {
+            defer = getUnresolvedDefer(d, mapId);
+        } else {
+            defer = d[id].defer;
+        }
+        return defer;
+    };
 
     this.setMap = function(olMap, scopeId) {
         var defer = getUnresolvedDefer(maps, scopeId);
@@ -211,9 +244,9 @@ angular.module("openlayers-directive").service('olData', ["$log", "$q", "olHelpe
         return defer.promise;
     };
 
-    this.setTiles = function(leafletTiles, scopeId) {
+    this.setTiles = function(olTiles, scopeId) {
         var defer = getUnresolvedDefer(tiles, scopeId);
-        defer.resolve(leafletTiles);
+        defer.resolve(olTiles);
         setResolvedDefer(tiles, scopeId);
     };
 
@@ -228,44 +261,6 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
     var isDefined = function(value) {
         return angular.isDefined(value);
     };
-
-    function _obtainEffectiveMapId(d, mapId) {
-        var id, i;
-        if (!angular.isDefined(mapId)) {
-            if (Object.keys(d).length === 1) {
-                for (i in d) {
-                    if (d.hasOwnProperty(i)) {
-                        id = i;
-                    }
-                }
-            } else if (Object.keys(d).length === 0) {
-                id = "main";
-            } else {
-                $log.error("[AngularJS - Openlayers] - You have more than 1 map on the DOM, you must provide the map ID to the olData.getXXX call");
-            }
-        } else {
-            id = mapId;
-        }
-
-        return id;
-    }
-
-    function _getUnresolvedDefer(d, mapId) {
-        var id = _obtainEffectiveMapId(d, mapId),
-            defer;
-
-        if (!angular.isDefined(d[id]) || d[id].resolvedDefer === true) {
-            defer = $q.defer();
-            d[id] = {
-                defer: defer,
-                resolvedDefer: false
-            };
-        } else {
-            defer = d[id].defer;
-        }
-
-        return defer;
-    }
 
     return {
         // Determine if a reference is defined
@@ -315,32 +310,32 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             }
         },
 
+        obtainEffectiveMapId: function(d, mapId) {
+            var id, i;
+            if (!angular.isDefined(mapId)) {
+                if (Object.keys(d).length === 1) {
+                    for (i in d) {
+                        if (d.hasOwnProperty(i)) {
+                            id = i;
+                        }
+                    }
+                } else if (Object.keys(d).length === 0) {
+                    id = "main";
+                } else {
+                    $log.error("[AngularJS - Openlayers] - You have more than 1 map on the DOM, you must provide the map ID to the olData.getXXX call");
+                }
+            } else {
+                id = mapId;
+            }
+            return id;
+        },
+
         generateUniqueUID: function() {
             function s4() {
                 return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
             }
 
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-        },
-
-        obtainEffectiveMapId: _obtainEffectiveMapId,
-
-        getDefer: function(d, mapId) {
-            var id = _obtainEffectiveMapId(d, mapId),
-                defer;
-            if (!angular.isDefined(d[id]) || d[id].resolvedDefer === false) {
-                defer = _getUnresolvedDefer(d, mapId);
-            } else {
-                defer = d[id].defer;
-            }
-            return defer;
-        },
-
-        getUnresolvedDefer: _getUnresolvedDefer,
-
-        setResolvedDefer: function(d, mapId) {
-            var id = _obtainEffectiveMapId(d, mapId);
-            d[id].resolvedDefer = true;
         },
 
         disableMouseWheelZoom: function(map) {

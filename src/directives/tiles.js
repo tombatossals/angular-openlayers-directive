@@ -11,22 +11,25 @@ angular.module("openlayers-directive").directive('tiles', function ($log, olData
                 getLayerObject = olHelpers.getLayerObject;
 
             controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
-                var tileLayerObj;
+                var defaults = olMapDefaults.getDefaults(attrs.id),
+                    tileLayerObj = [];
+
                 olScope.$watch("tiles", function(tiles) {
                     if (!isDefined(tiles) || !isDefined(tiles.type)) {
                         $log.warn("[AngularJS - OpenLayers] The 'tiles' definition doesn't have the 'type' property.");
                         tiles = defaults.tileLayer;
                     }
 
-                    if (isDefined(tileLayerObj)) {
-                        map.removeLayer(tileLayerObj);
+                    if (isDefined(tileLayerObj) && tileLayerObj.length === 1) {
+                        map.removeLayer(tileLayerObj[0]);
+                        tileLayerObj.pop();
                     }
 
-                    tileLayerObj = getLayerObject(tiles);
-                    map.addLayer(tileLayerObj);
+                    var l = getLayerObject(tiles);
+                    map.addLayer(l);
+                    tileLayerObj.push(l);
+
                     olData.setTiles(tileLayerObj, attrs.id);
-                    return;
                 }, true);
             });
         }
