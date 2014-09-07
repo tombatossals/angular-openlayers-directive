@@ -17,20 +17,14 @@
             });
        }]);
     </script>
-    <style>
-        input {
-            width: 120px;
-            margin-right: 10px;
-        }
-    </style>
   </head>
   <body ng-controller="DemoController">
+    <openlayers center="london" height="400"></openlayers>
     <h1>Center map example</h1>
     <form>
         Latitude : <input type="number" step="any" ng-model="london.lat" />
         Longitude : <input type="number" step="any" ng-model="london.lon" />
         Zoom : <input type="number" step="any" ng-model="london.zoom" />
     </form>
-    <openlayers center="london" width="640" height="400"></openlayers>
   </body>
 </html>
