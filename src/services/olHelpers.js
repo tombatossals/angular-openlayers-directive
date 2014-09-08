@@ -38,8 +38,13 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         },
 
         isValidCenter: function(center) {
-            return angular.isDefined(center) && angular.isNumber(center.lat) &&
-                   angular.isNumber(center.lon) && angular.isNumber(center.zoom);
+            return angular.isDefined(center) &&
+                   (angular.isArray(center.coord) && center.coord.length === 2 &&
+                   angular.isNumber(center.coord[0]) && angular.isNumber(center.coord[1])) ||
+                   (angular.isBoolean(center.autodiscover)) ||
+                   (angular.isArray(center.bounds) && center.bounds.length === 4 &&
+                   angular.isNumber(center.bounds[0]) && angular.isNumber(center.bounds[1]) &&
+                   angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2])
         },
 
         safeApply: function($scope, fn) {
