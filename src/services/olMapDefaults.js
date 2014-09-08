@@ -5,8 +5,13 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 type: 'OSM'
             },
             center: {
-                coord: [ 0, 0],
-                zoom: 1
+                coord: {
+                  lat: 0,
+                  lon: 0
+                },
+                zoom: 1,
+                autoDiscover: false,
+                bounds: []
             },
             controls: {
                 zoom: {

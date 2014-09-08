@@ -40,7 +40,10 @@ describe('Directive: openlayers center', function() {
     it('should update the map center if the initial center scope properties are set', function() {
 
         var center = {
-            coord: [ 0.96658, 2.02 ],
+            coord: {
+              lat: 0.96658,
+              lon: 2.02
+            },
             zoom: 4
         };
 
@@ -53,17 +56,20 @@ describe('Directive: openlayers center', function() {
         olData.getMap().then(function(map) {
             var zoom = map.getView().getZoom();
             var center = map.getView().getCenter();
-            center = ol.proj.transform([ center[0], center[1] ], 'EPSG:3857', 'EPSG:4326');
+            center = ol.proj.transform([ center[1], center[0] ], 'EPSG:3857', 'EPSG:4326');
             expect(zoom).toEqual(4);
-            expect(center[0]).toBeCloseTo(0.96658, 4);
-            expect(center[1]).toBeCloseTo(2.02, 2);
+            expect(center[0]).toBeCloseTo(0.96658);
+            expect(center[1]).toBeCloseTo(2.02);
         });
     });
 
     it('should update the map center if the scope center properties changes', function() {
 
         var center = {
-            coord: [ 0.96658, 2.02 ],
+            coord: {
+              lat: 0.96658,
+              lon: 2.02
+            },
             zoom: 4
         };
 
@@ -79,19 +85,22 @@ describe('Directive: openlayers center', function() {
         scope.$digest();
 
         var mapCenter = map.getView().getCenter();
-        mapCenter = ol.proj.transform([ mapCenter[0], mapCenter[1] ], 'EPSG:3857', 'EPSG:4326');
-        expect(mapCenter[0]).toBeCloseTo(0.96658, 4);
-        expect(mapCenter[1]).toBeCloseTo(2.02, 4);
+        mapCenter = ol.proj.transform([ mapCenter[1], mapCenter[0] ], 'EPSG:3857', 'EPSG:4326');
+        expect(mapCenter[0]).toBeCloseTo(0.96658);
+        expect(mapCenter[1]).toBeCloseTo(2.01958);
         expect(map.getView().getZoom()).toEqual(4);
 
-        center.coord = [ 2.02999, 4.04 ];
+        center.coord = {
+          lat: 2.0304,
+          lon: 4.04
+        };
         center.zoom = 8;
         scope.$digest();
 
         mapCenter = map.getView().getCenter();
-        mapCenter = ol.proj.transform([ mapCenter[0], mapCenter[1] ], 'EPSG:3857', 'EPSG:4326');
-        expect(mapCenter[0]).toBeCloseTo(2.02999, 4);
-        expect(mapCenter[1]).toBeCloseTo(4.04, 4);
+        mapCenter = ol.proj.transform([ mapCenter[1], mapCenter[0] ], 'EPSG:3857', 'EPSG:4326');
+        expect(mapCenter[0]).toBeCloseTo(2.0304);
+        expect(mapCenter[1]).toBeCloseTo(4.0366);
         expect(map.getView().getZoom()).toEqual(8);
     });
 });

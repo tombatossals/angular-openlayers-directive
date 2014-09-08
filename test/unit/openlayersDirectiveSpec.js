@@ -37,7 +37,6 @@ describe('Directive: openlayers', function() {
             map = olMap;
         });
         $rootScope.$digest();
-        console.log(map.getView().getCenter());
         expect(map.getView().getZoom()).toEqual(1);
         expect(map.getView().getCenter()[0]).toEqual(0);
         expect(map.getView().getCenter()[1]).toEqual(0);

@@ -46,7 +46,10 @@ For example, we could show the user map position on start, or conditionally when
 ```
 angular.extend($scope, {
     center: {
-        coord: [ 0, 0 ],
+        coord: {
+          lat: 0,
+          lon: 0
+        },
         zoom: 4,
         autoDiscover: true
     }
@@ -61,7 +64,10 @@ Center position coded on a hash URL param
 We can use a special feature of the center attribute which will allow us to synchronize the center position of the map with the URL of the browser, adding to it a special GET parameter where the center is coded. This way, we can persist the map position on the browser URL.
 ```
 center: {
-    coord: [ 51.505, -0.09 ],
+    coord: {
+      lat: 51.505,
+      lon: -0.09
+    },
     zoom: 4,
     urlHash: true
 }
@@ -86,7 +92,10 @@ Projection
 We can change the default projection of our center coordinates if we want. The default projection will be 'EPSG:3857', but we can use another one if we want, for example:
 ```
 center: {
-    coord: [ 51.505, -0.09 ],
+    coord: {
+      lat: 51.505,
+      lon: -0.09
+    },
     zoom: 4,
     projection: 'EPSG:4326'
 }

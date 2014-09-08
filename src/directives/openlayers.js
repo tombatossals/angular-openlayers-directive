@@ -62,7 +62,7 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
 
             if (!isDefined(attrs.center)) {
                 map.setView(new ol.View({
-                    center: defaults.center.coord,
+                    center: [ defaults.center.coord.lon, defaults.center.coord.lat ],
                     zoom: defaults.center.zoom
                 }));
             }
