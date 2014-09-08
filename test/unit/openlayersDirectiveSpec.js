@@ -5,7 +5,7 @@
 /* jasmine specs for directives go here */
 
 describe('Directive: openlayers', function() {
-    var $compile = null, $rootScope = null, $timeout, olData = null, olMapDefaults = null;
+    var $compile = null, $rootScope = null, $timeout, olData = null, olMapDefaults = null, scope;
 
     beforeEach(module('openlayers-directive'));
     beforeEach(inject(function(_$compile_, _$rootScope_, _$timeout_, _olData_, _olMapDefaults_) {
@@ -14,6 +14,8 @@ describe('Directive: openlayers', function() {
         $timeout = _$timeout_;
         olData = _olData_;
         olMapDefaults = _olMapDefaults_;
+
+        scope = $rootScope.$new();
     }));
 
     afterEach(inject(function($rootScope) {
@@ -22,27 +24,28 @@ describe('Directive: openlayers', function() {
 
     it('should have loaded openlayers library inside the directive', function() {
         var element = angular.element('<openlayers></openlayers>');
-        element = $compile(element)($rootScope);
-        $rootScope.$digest();
+        element = $compile(element)(scope);
+        scope.$digest();
         expect(element.text()).toEqual('Zoom in+Zoom out−Reset rotation⇧iAttributions');
     });
 
     it('should set default center if not center is provided', function() {
         var element = angular.element('<openlayers></openlayers>');
-        element = $compile(element)($rootScope);
+        element = $compile(element)(scope);
         var map;
         olData.getMap().then(function(olMap) {
             map = olMap;
         });
         $rootScope.$digest();
+        console.log(map.getView().getCenter());
         expect(map.getView().getZoom()).toEqual(1);
-        expect(map.getView().getCenter()[1]).toEqual(0);
         expect(map.getView().getCenter()[0]).toEqual(0);
+        expect(map.getView().getCenter()[1]).toEqual(0);
     });
 
     xit('should set default tile if not tiles nor layers are provided', function() {
         var element = angular.element('<openlayers></openlayers>');
-        element = $compile(element)($rootScope);
+        element = $compile(element)(scope);
         var leafletTiles, defaults;
         leafletData.getTiles().then(function(tiles) {
             leafletTiles = tiles;
@@ -55,9 +58,9 @@ describe('Directive: openlayers', function() {
     });
 
     xit('should set the max zoom if specified', function() {
-        angular.extend($rootScope, { defaults: { maxZoom: 15 } });
+        angular.extend(scope, { defaults: { maxZoom: 15 } });
         var element = angular.element('<leaflet defaults="defaults"></leaflet>');
-        element = $compile(element)($rootScope);
+        element = $compile(element)(scope);
         var leafletMap;
         leafletData.getMap().then(function(map) {
             leafletMap = map;
@@ -69,7 +72,7 @@ describe('Directive: openlayers', function() {
     xit('should set the min zoom if specified', function() {
         angular.extend($rootScope, { defaults: { minZoom: 4 } });
         var element = angular.element('<leaflet defaults="defaults"></leaflet>');
-        element = $compile(element)($rootScope);
+        element = $compile(element)(scope);
         var leafletMap;
         leafletData.getMap().then(function(map) {
             leafletMap = map;

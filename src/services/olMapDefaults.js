@@ -5,8 +5,7 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 type: 'OSM'
             },
             center: {
-                lat: 0,
-                lon: 0,
+                coord: [ 0, 0],
                 zoom: 1
             },
             controls: {

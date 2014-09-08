@@ -66,7 +66,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
 
             if (!isDefined(attrs.center)) {
                 map.setView(new ol.View({
-                    center: [ defaults.center.lat, defaults.center.lon ],
+                    center: defaults.center.coord,
                     zoom: defaults.center.zoom
                 }));
             }
@@ -100,7 +100,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaul
                     center = defaults.center;
                 }
 
-                var proj = ol.proj.transform([ center.lon, center.lat ],
+                var proj = ol.proj.transform([ center.coord[1], center.coord[0] ],
                                         'EPSG:4326',
                                         'EPSG:3857');
                 var view = new ol.View({
@@ -119,8 +119,8 @@ angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaul
                                                 'EPSG:3857',
                                                 'EPSG:4326');
 
-                        if (!equals([ actualCenter[1], actualCenter[0] ], center)) {
-                            var proj = ol.proj.transform([ center.lon, center.lat ],
+                        if (!equals([ actualCenter[1], actualCenter[0] ], center.coord)) {
+                            var proj = ol.proj.transform([ center.coord[1], center.coord[0] ],
                                                     'EPSG:4326',
                                                     'EPSG:3857');
                             view.setCenter(proj);
@@ -146,8 +146,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaul
                         var center = map.getView().getCenter();
                         var proj = ol.proj.transform(center, 'EPSG:3857', 'EPSG:4326');
                         if (scope.center) {
-                            scope.center.lat = proj[1];
-                            scope.center.lon = proj[0];
+                            scope.center.coord = proj;
                         }
                     });
                 });
@@ -297,8 +296,13 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
         },
 
         isValidCenter: function(center) {
-            return angular.isDefined(center) && angular.isNumber(center.lat) &&
-                   angular.isNumber(center.lon) && angular.isNumber(center.zoom);
+            return angular.isDefined(center) &&
+                   (angular.isArray(center.coord) && center.coord.length === 2 &&
+                   angular.isNumber(center.coord[0]) && angular.isNumber(center.coord[1])) ||
+                   (typeof center.autodiscover === "boolean") ||
+                   (angular.isArray(center.bounds) && center.bounds.length === 4 &&
+                   angular.isNumber(center.bounds[0]) && angular.isNumber(center.bounds[1]) &&
+                   angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2]));
         },
 
         safeApply: function($scope, fn) {
@@ -393,8 +397,7 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                 type: 'OSM'
             },
             center: {
-                lat: 0,
-                lon: 0,
+                coord: [ 0, 0],
                 zoom: 1
             },
             controls: {

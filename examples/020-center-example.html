@@ -10,8 +10,7 @@
         app.controller('DemoController', [ '$scope', function($scope) {
             angular.extend($scope, {
                 london: {
-                    lat: 51.505,
-                    lon: -0.09,
+                    coord: [ 51.505, -0.09 ],
                     zoom: 4
                 }
             });
@@ -22,8 +21,8 @@
     <openlayers center="london" height="400"></openlayers>
     <h1>Center map example</h1>
     <form>
-        Latitude : <input type="number" step="any" ng-model="london.lat" />
-        Longitude : <input type="number" step="any" ng-model="london.lon" />
+        Latitude : <input type="number" step="any" ng-model="london.coord[0]" />
+        Longitude : <input type="number" step="any" ng-model="london.coord[1]" />
         Zoom : <input type="number" step="any" ng-model="london.zoom" />
     </form>
   </body>
