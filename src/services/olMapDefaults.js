@@ -11,7 +11,8 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 },
                 zoom: 1,
                 autoDiscover: false,
-                bounds: []
+                bounds: [],
+                centerUrlHash: false
             },
             controls: {
                 zoom: {

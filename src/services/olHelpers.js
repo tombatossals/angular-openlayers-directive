@@ -40,11 +40,11 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         isValidCenter: function(center) {
             return angular.isDefined(center) &&
                    (angular.isDefined(center.coord) && angular.isNumber(center.coord.lat) &&
-                   angular.isNumber(center.coord.lon)) ||
+                   angular.isNumber(center.coord.lon) ||
                    (typeof center.autodiscover === "boolean") ||
                    (angular.isArray(center.bounds) && center.bounds.length === 4 &&
                    angular.isNumber(center.bounds[0]) && angular.isNumber(center.bounds[1]) &&
-                   angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2]));
+                   angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2])));
         },
 
         safeApply: function($scope, fn) {
@@ -54,6 +54,17 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             } else {
                 $scope.$apply(fn);
             }
+        },
+
+        isSameCenterOnMap: function(center, map) {
+            var mapCenter = map.getView().getCenter();
+            var zoom = map.getView().getZoom();
+            if (mapCenter[1].toFixed(4) === center.coord.lat.toFixed(4) &&
+                mapCenter[1].toFixed(4) === center.coord.lng.toFixed(4) &&
+                zoom === center.zoom) {
+                  return true;
+            }
+            return false;
         },
 
         obtainEffectiveMapId: function(d, mapId) {

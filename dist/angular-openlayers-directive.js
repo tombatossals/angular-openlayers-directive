@@ -78,7 +78,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
     };
 }]);
 
-angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaults", "olHelpers", function ($log, olMapDefaults, olHelpers) {
+angular.module("openlayers-directive").directive('center', ["$log", "$location", "olMapDefaults", "olHelpers", function ($log, $location, olMapDefaults, olHelpers) {
     return {
         restrict: "A",
         scope: false,
@@ -88,6 +88,8 @@ angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaul
         link: function(scope, element, attrs, controller) {
             var safeApply     = olHelpers.safeApply,
                 isValidCenter = olHelpers.isValidCenter,
+                isDefined = olHelpers.isDefined,
+                isSameCenterOnMap = olHelpers.isSameCenterOnMap,
                 equals         = olHelpers.equals,
                 olScope       = controller.getOpenlayersScope();
 
@@ -95,18 +97,60 @@ angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaul
                 var defaults = olMapDefaults.getDefaults(attrs.id),
                     center = olScope.center;
 
+                if (attrs.center.search("-") !== -1) {
+                    $log.error('[AngularJS - Openlayers] The "center" variable can\'t use a "-" on his key name: "' + attrs.center + '".');
+                    map.setView(new ol.View({
+                        center: ol.proj.transform([ defaults.center.coord.lon, defaults.center.coord.lat ], 'EPSG:4326', 'EPSG:3857')
+                    }));
+
+                    return;
+                }
+
                 if (!isValidCenter(center)) {
                     $log.warn("[AngularJS - Openlayers] invalid 'center'");
                     center = defaults.center;
                 }
 
-                var proj = ol.proj.transform([ center.coord.lon, center.coord.lat ],
-                                        'EPSG:4326',
-                                        'EPSG:3857');
                 var view = new ol.View({
-                    center: proj
+                    center: ol.proj.transform([ center.coord.lon, center.coord.lat ], 'EPSG:4326', 'EPSG:3857')
                 });
                 map.setView(view);
+
+                var centerUrlHash;
+                if (center.centerUrlHash === true) {
+                    var extractCenterFromUrl = function() {
+                        var search = $location.search();
+                        var centerParam;
+                        if (isDefined(search.c)) {
+                            var cParam = search.c.split(":");
+                            if (cParam.length === 3) {
+                                centerParam = {
+                                    coord: {
+                                        lat: parseFloat(cParam[0]),
+                                        lon: parseFloat(cParam[1])
+                                    },
+                                    zoom: parseInt(cParam[2], 10)
+                                };
+                            }
+                        }
+                        return centerParam;
+                    };
+                    centerUrlHash = extractCenterFromUrl();
+
+                    olScope.$on('$locationChangeSuccess', function(event) {
+                        var scope = event.currentScope;
+                        var urlCenter = extractCenterFromUrl();
+                        if (isDefined(urlCenter) && !isSameCenterOnMap(urlCenter, map)) {
+                            scope.center = {
+                                coord: {
+                                  lat: urlCenter.coord.lat,
+                                  lon: urlCenter.coord.lon
+                                },
+                                zoom: urlCenter.zoom
+                            };
+                        }
+                    });
+                }
 
                 olScope.$watch("center", function(center) {
                     if (!isValidCenter(center)) {
@@ -301,11 +345,11 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
         isValidCenter: function(center) {
             return angular.isDefined(center) &&
                    (angular.isDefined(center.coord) && angular.isNumber(center.coord.lat) &&
-                   angular.isNumber(center.coord.lon)) ||
+                   angular.isNumber(center.coord.lon) ||
                    (typeof center.autodiscover === "boolean") ||
                    (angular.isArray(center.bounds) && center.bounds.length === 4 &&
                    angular.isNumber(center.bounds[0]) && angular.isNumber(center.bounds[1]) &&
-                   angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2]));
+                   angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2])));
         },
 
         safeApply: function($scope, fn) {
@@ -315,6 +359,17 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             } else {
                 $scope.$apply(fn);
             }
+        },
+
+        isSameCenterOnMap: function(center, map) {
+            var mapCenter = map.getView().getCenter();
+            var zoom = map.getView().getZoom();
+            if (mapCenter[1].toFixed(4) === center.coord.lat.toFixed(4) &&
+                mapCenter[1].toFixed(4) === center.coord.lng.toFixed(4) &&
+                zoom === center.zoom) {
+                  return true;
+            }
+            return false;
         },
 
         obtainEffectiveMapId: function(d, mapId) {
@@ -406,7 +461,8 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                 },
                 zoom: 1,
                 autoDiscover: false,
-                bounds: []
+                bounds: [],
+                centerUrlHash: false
             },
             controls: {
                 zoom: {

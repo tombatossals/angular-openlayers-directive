@@ -9,7 +9,7 @@
         var app = angular.module('demoapp', ['openlayers-directive']);
         app.controller('DemoController', [ '$scope', function($scope) {
             angular.extend($scope, {
-                london: {
+                'london-calling': {
                     coord: {
                       lat: 51.505,
                       lon: -0.09
@@ -21,11 +21,11 @@
     </script>
   </head>
   <body ng-controller="DemoController">
-    <openlayers center="london" height="400"></openlayers>
+    <openlayers center="london-calling" height="400"></openlayers>
     <h1>Center map example</h1>
     <form>
-        Latitude : <input type="number" step="any" ng-model="london.coord[0]" />
-        Longitude : <input type="number" step="any" ng-model="london.coord[1]" />
+        Latitude : <input type="number" step="any" ng-model="london.coord.lat" />
+        Longitude : <input type="number" step="any" ng-model="london.coord.lon" />
         Zoom : <input type="number" step="any" ng-model="london.zoom" />
     </form>
   </body>

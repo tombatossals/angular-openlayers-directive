@@ -11,12 +11,15 @@ It will map an object _center_ of our controller scope with the corresponding ob
 
 ```
 $scope.center = {
-    coord: [ 51.505, -0.09 ],
+    coord: {
+        lat: 51.505,
+        lon: -0.09
+    },
     zoom: 4
 }
 ```
 
-We can see that a center is conformed by two required attributes: _lat_, _lng_ and _zoom_. When we associate that object with our _openlayers-directive_ the bi-directional relation will start.
+We can see that a center is conformed by two required attributes: _lat_, _lon_ and _zoom_. When we associate that object with our _openlayers-directive_ the bi-directional relation will start.
 
 
 Let's see a complete example of how to use this. We must create a center object in our controller, pass its name to our directive _center_ attribute, an that's all.
@@ -24,7 +27,10 @@ Let's see a complete example of how to use this. We must create a center object 
 ```
 angular.extend($scope, {
     center: {
-        coord: [ 51.505, -0.09 ],
+        coord: {
+            lat: 51.505,
+            lon: -0.09
+        },
         zoom: 4
     }
 });
@@ -73,7 +79,7 @@ center: {
 }
 ```
 
-Adding that attribute to our center object will synchronize the map center with a GET parameter on the URL of this form `?c=lat:lng:zoom`. Furthermore, whenever the map center is changed a new event `centerUrlHashChanged` will be emitted to the parent scope so you can update your `$location.search` with the new info (if you want).
+Adding that attribute to our center object will synchronize the map center with a GET parameter on the URL of this form `?c=lat:lon:zoom`. Furthermore, whenever the map center is changed a new event `centerUrlHashChanged` will be emitted to the parent scope so you can update your `$location.search` with the new info (if you want).
 
 You can take a look of this feature on this [demo](http://tombatossals.github.io/angular-openlayers-directive/examples/022-url-hash-center-example.html).
 
