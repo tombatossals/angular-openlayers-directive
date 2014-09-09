@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html ng-app="demoapp">
   <head>
-<script src="../bower_components/angular/angular.min.js"></script>
-<script src="../bower_components/openlayers3/build/ol.js"></script>
-<script src="../dist/angular-openlayers-directive.js"></script>
-<link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <script>
         var app = angular.module('demoapp', ['openlayers-directive']);
         app.controller('DemoController', [ '$scope', '$location', function($scope, $location) {
@@ -24,12 +24,6 @@
             });
         }]);
     </script>
-    <style>
-        input {
-            width: 120px;
-            margin-right: 10px;
-        }
-    </style>
   </head>
   <body ng-controller="DemoController">
     <openlayers center="london" url-hash-center="yes" height="400"></openlayers>

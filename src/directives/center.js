@@ -26,9 +26,13 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                     return;
                 }
 
+                if (center.autoDiscover) {
+                    center = angular.copy(defaults.center);
+                }
+
                 if (!isValidCenter(center)) {
                     $log.warn("[AngularJS - Openlayers] invalid 'center'");
-                    center = defaults.center;
+                    center = angular.copy(defaults.center);
                 }
 
                 var view = new ol.View({
@@ -73,6 +77,10 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                 }
 
                 olScope.$watch("center", function(center) {
+                    if (center.autoDiscover) {
+                        center = angular.copy(defaults.center);
+                    }
+
                     if (!isValidCenter(center)) {
                         $log.warn("[AngularJS - Openlayers] invalid 'center'");
                         center = defaults.center;
