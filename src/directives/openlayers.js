@@ -24,7 +24,6 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined,
                 getLayerObject = olHelpers.getLayerObject,
-                disableMouseWheelZoom = olHelpers.disableMouseWheelZoom,
                 defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
@@ -44,20 +43,20 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
                 }
             }
 
+            var controls = ol.control.defaults(defaults.control);
+            var interactions = ol.interaction.defaults(defaults.interactions);
+
             // Create the Openlayers Map Object with the options
             var map = new ol.Map({
-                target: element[0]
+                target: element[0],
+                controls: controls,
+                interactions: interactions
             });
 
             // If no layer is defined, set the default tileLayer
             if (!isDefined(attrs.layers)) {
                 var layer = getLayerObject(defaults.tileLayer);
                 map.addLayer(layer);
-            }
-
-            if (isDefined(defaults.controls.zoom.mouseWheelEnabled) &&
-                defaults.controls.zoom.mouseWheelEnabled === false) {
-                    disableMouseWheelZoom(map);
             }
 
             if (!isDefined(attrs.center)) {

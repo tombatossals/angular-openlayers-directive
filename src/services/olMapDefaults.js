@@ -1,6 +1,17 @@
 angular.module("openlayers-directive").factory('olMapDefaults', function ($q, olHelpers) {
-    function _getDefaults() {
+    var _getDefaults = function() {
         return {
+            interaction: {
+                dragRotate: true,
+                doubleClickZoom: true,
+                dragPan: true,
+                pinchRotate: true,
+                pinchZoom: true,
+                keyboardPan: true,
+                keyboardZoom: true,
+                mouseWheelZoom: true,
+                dragZoom: true
+            },
             tileLayer: {
                 type: 'OSM'
             },
@@ -13,13 +24,13 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 centerUrlHash: false
             },
             controls: {
-                zoom: {
-                    position: 'topright',
-                    mouseWheelEnabled: true
-                }
+                attribution: true,
+                rotate: false,
+                zoom: true
             }
         };
-    }
+    };
+
     var isDefined = olHelpers.isDefined,
         obtainEffectiveMapId = olHelpers.obtainEffectiveMapId,
         defaults = {};
@@ -37,10 +48,8 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
             if (isDefined(userDefaults)) {
                 newDefaults.tileLayer = isDefined(userDefaults.tileLayer) ? userDefaults.tileLayer : newDefaults.tileLayer;
 
-                if (isDefined(userDefaults.controls)) {
-                    if (isDefined(userDefaults.controls.zoom)) {
-                        newDefaults.controls.zoom.mouseWheelEnabled = isDefined(userDefaults.controls.zoom.mouseWheelEnabled) ? userDefaults.controls.zoom.mouseWheelEnabled : newDefaults.controls.zoom.mouseWheelEnabled;
-                    }
+                if (isDefined(userDefaults.mouseWheelEnabled)) {
+                    newDefaults.controls.zoom.mouseWheelEnabled = isDefined(userDefaults.mouseWheelEnabled) ? userDefaults.mouseWheelEnabled : newDefaults.mouseWheelEnabled;
                 }
             }
 

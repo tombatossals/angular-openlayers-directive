@@ -20,10 +20,12 @@
                         url: 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
                         attribution: 'All maps &copy; <a href="http://www.opencyclemap.org/">OpenCycleMap</a>'
                     },
+                    interactions: {
+                      mouseWheelZoom: false
+                    },
                     controls: {
-                        zoom: {
-                            mouseWheelEnabled: false
-                        }
+                        zoom: false,
+                        attribution: false                        
                     }
                 }
             });

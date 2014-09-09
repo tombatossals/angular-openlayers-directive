@@ -28,7 +28,6 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined,
                 getLayerObject = olHelpers.getLayerObject,
-                disableMouseWheelZoom = olHelpers.disableMouseWheelZoom,
                 defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
@@ -48,20 +47,20 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
                 }
             }
 
+            var controls = ol.control.defaults(defaults.control);
+            var interactions = ol.interaction.defaults(defaults.interactions);
+
             // Create the Openlayers Map Object with the options
             var map = new ol.Map({
-                target: element[0]
+                target: element[0],
+                controls: controls,
+                interactions: interactions
             });
 
             // If no layer is defined, set the default tileLayer
             if (!isDefined(attrs.layers)) {
                 var layer = getLayerObject(defaults.tileLayer);
                 map.addLayer(layer);
-            }
-
-            if (isDefined(defaults.controls.zoom.mouseWheelEnabled) &&
-                defaults.controls.zoom.mouseWheelEnabled === false) {
-                    disableMouseWheelZoom(map);
             }
 
             if (!isDefined(attrs.center)) {
@@ -399,16 +398,6 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
-        disableMouseWheelZoom: function(map) {
-            var interactions = map.getInteractions();
-
-            interactions.forEach(function(interaction) {
-                if (interaction instanceof ol.interaction.MouseWheelZoom) {
-                    map.removeInteraction(interaction);
-                }
-            });
-        },
-
         getLayerObject: function(layer) {
             var oLayer, source;
 
@@ -448,8 +437,19 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
 }]);
 
 angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelpers", function ($q, olHelpers) {
-    function _getDefaults() {
+    var _getDefaults = function() {
         return {
+            interaction: {
+                dragRotate: true,
+                doubleClickZoom: true,
+                dragPan: true,
+                pinchRotate: true,
+                pinchZoom: true,
+                keyboardPan: true,
+                keyboardZoom: true,
+                mouseWheelZoom: true,
+                dragZoom: true
+            },
             tileLayer: {
                 type: 'OSM'
             },
@@ -462,13 +462,13 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                 centerUrlHash: false
             },
             controls: {
-                zoom: {
-                    position: 'topright',
-                    mouseWheelEnabled: true
-                }
+                attribution: true,
+                rotate: false,
+                zoom: true
             }
         };
-    }
+    };
+
     var isDefined = olHelpers.isDefined,
         obtainEffectiveMapId = olHelpers.obtainEffectiveMapId,
         defaults = {};
@@ -486,10 +486,8 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
             if (isDefined(userDefaults)) {
                 newDefaults.tileLayer = isDefined(userDefaults.tileLayer) ? userDefaults.tileLayer : newDefaults.tileLayer;
 
-                if (isDefined(userDefaults.controls)) {
-                    if (isDefined(userDefaults.controls.zoom)) {
-                        newDefaults.controls.zoom.mouseWheelEnabled = isDefined(userDefaults.controls.zoom.mouseWheelEnabled) ? userDefaults.controls.zoom.mouseWheelEnabled : newDefaults.controls.zoom.mouseWheelEnabled;
-                    }
+                if (isDefined(userDefaults.mouseWheelEnabled)) {
+                    newDefaults.controls.zoom.mouseWheelEnabled = isDefined(userDefaults.mouseWheelEnabled) ? userDefaults.mouseWheelEnabled : newDefaults.mouseWheelEnabled;
                 }
             }
 

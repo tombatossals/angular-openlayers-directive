@@ -94,16 +94,6 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
-        disableMouseWheelZoom: function(map) {
-            var interactions = map.getInteractions();
-
-            interactions.forEach(function(interaction) {
-                if (interaction instanceof ol.interaction.MouseWheelZoom) {
-                    map.removeInteraction(interaction);
-                }
-            });
-        },
-
         getLayerObject: function(layer) {
             var oLayer, source;
 
