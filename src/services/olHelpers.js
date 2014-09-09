@@ -39,9 +39,8 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 
         isValidCenter: function(center) {
             return angular.isDefined(center) &&
-                   (angular.isDefined(center.coord) && angular.isNumber(center.coord.lat) &&
-                   angular.isNumber(center.coord.lon) ||
-                   (typeof center.autodiscover === "boolean") ||
+                   (angular.isNumber(center.lat) && angular.isNumber(center.lon) ||
+                   typeof center.autodiscover === "boolean" ||
                    (angular.isArray(center.bounds) && center.bounds.length === 4 &&
                    angular.isNumber(center.bounds[0]) && angular.isNumber(center.bounds[1]) &&
                    angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2])));
@@ -59,8 +58,8 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         isSameCenterOnMap: function(center, map) {
             var mapCenter = map.getView().getCenter();
             var zoom = map.getView().getZoom();
-            if (mapCenter[1].toFixed(4) === center.coord.lat.toFixed(4) &&
-                mapCenter[1].toFixed(4) === center.coord.lng.toFixed(4) &&
+            if (mapCenter[1].toFixed(4) === center.lat.toFixed(4) &&
+                mapCenter[1].toFixed(4) === center.lon.toFixed(4) &&
                 zoom === center.zoom) {
                   return true;
             }

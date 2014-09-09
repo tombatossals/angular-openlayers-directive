@@ -40,10 +40,8 @@ describe('Directive: openlayers center', function() {
     it('should update the map center if the initial center scope properties are set', function() {
 
         var center = {
-            coord: {
-              lat: 0.96658,
-              lon: 2.02
-            },
+            lat: 0.96658,
+            lon: 2.02,
             zoom: 4
         };
 
@@ -65,15 +63,11 @@ describe('Directive: openlayers center', function() {
 
     it('should update the map center if the scope center properties changes', function() {
 
-        var center = {
-            coord: {
-              lat: 0.96658,
-              lon: 2.02
-            },
+        scope.center = {
+            lat: 0.96658,
+            lon: 2.02,
             zoom: 4
         };
-
-        scope.center = center;
 
         var element = angular.element('<openlayers center="center"></openlayers>');
         element = $compile(element)(scope);
@@ -90,11 +84,12 @@ describe('Directive: openlayers center', function() {
         expect(mapCenter[1]).toBeCloseTo(2.01958);
         expect(map.getView().getZoom()).toEqual(4);
 
-        center.coord = {
-          lat: 2.0304,
-          lon: 4.04
+        scope.center = {
+            lat: 2.0304,
+            lon: 4.04,
+            zoom: 8
         };
-        center.zoom = 8;
+
         scope.$digest();
 
         mapCenter = map.getView().getCenter();

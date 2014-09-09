@@ -11,10 +11,8 @@ It will map an object _center_ of our controller scope with the corresponding ob
 
 ```
 $scope.center = {
-    coord: {
-        lat: 51.505,
-        lon: -0.09
-    },
+    lat: 51.505,
+    lon: -0.09
     zoom: 4
 }
 ```
@@ -27,10 +25,8 @@ Let's see a complete example of how to use this. We must create a center object 
 ```
 angular.extend($scope, {
     center: {
-        coord: {
-            lat: 51.505,
-            lon: -0.09
-        },
+        lat: 51.505,
+        lon: -0.09
         zoom: 4
     }
 });
@@ -52,12 +48,7 @@ For example, we could show the user map position on start, or conditionally when
 ```
 angular.extend($scope, {
     center: {
-        coord: {
-          lat: 0,
-          lon: 0
-        },
-        zoom: 4,
-        autoDiscover: true
+        autodiscover: true
     }
 });
 ```
@@ -70,10 +61,8 @@ Center position coded on a hash URL param
 We can use a special feature of the center attribute which will allow us to synchronize the center position of the map with the URL of the browser, adding to it a special GET parameter where the center is coded. This way, we can persist the map position on the browser URL.
 ```
 center: {
-    coord: {
-      lat: 51.505,
-      lon: -0.09
-    },
+    lat: 51.505,
+    lon: -0.09
     zoom: 4,
     urlHash: true
 }
@@ -90,19 +79,5 @@ This is another way to set the center view of our map, stablishing the bounds co
 ```
 center {
     extent: [ 0, 0, 51.505, -0.09 ]
-}
-```
-
-Projection
-----------
-We can change the default projection of our center coordinates if we want. The default projection will be 'EPSG:3857', but we can use another one if we want, for example:
-```
-center: {
-    coord: {
-      lat: 51.505,
-      lon: -0.09
-    },
-    zoom: 4,
-    projection: 'EPSG:4326'
 }
 ```
