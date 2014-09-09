@@ -26,10 +26,6 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                     return;
                 }
 
-                if (center.autodiscover) {
-                    center = angular.copy(defaults.center);
-                }
-
                 if (!isValidCenter(center)) {
                     $log.warn("[AngularJS - Openlayers] invalid 'center'");
                     center = angular.copy(defaults.center);
@@ -72,9 +68,32 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                     });
                 }
 
+                var geolocation;
                 olScope.$watch("center", function(center) {
+
                     if (center.autodiscover) {
-                        center = angular.copy(defaults.center);
+                        if (!geolocation) {
+                            geolocation = new ol.Geolocation({
+                                projection: ol.proj.get('EPSG:4326')
+                            });
+
+                            geolocation.on('change', function() {
+                                console.log('change');
+                                if (center.autodiscover) {
+                                    var location = geolocation.getPosition();
+                                    safeApply(olScope, function(scope) {
+                                        scope.center.lat = location[1];
+                                        scope.center.lon = location[0];
+                                        scope.center.zoom = 12;
+                                        scope.center.autodiscover = false;
+                                        geolocation.setTracking(false);
+                                    });
+                                }
+                            });
+                        }
+                        console.log("settracking");
+                        geolocation.setTracking(true);
+                        return;
                     }
 
                     if (!isValidCenter(center)) {

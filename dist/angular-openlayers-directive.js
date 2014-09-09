@@ -47,7 +47,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
                 }
             }
 
-            var controls = ol.control.defaults(defaults.control);
+            var controls = ol.control.defaults(defaults.controls);
             var interactions = ol.interaction.defaults(defaults.interactions);
 
             // Create the Openlayers Map Object with the options
@@ -105,10 +105,6 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                     return;
                 }
 
-                if (center.autodiscover) {
-                    center = angular.copy(defaults.center);
-                }
-
                 if (!isValidCenter(center)) {
                     $log.warn("[AngularJS - Openlayers] invalid 'center'");
                     center = angular.copy(defaults.center);
@@ -151,9 +147,32 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                     });
                 }
 
+                var geolocation;
                 olScope.$watch("center", function(center) {
+
                     if (center.autodiscover) {
-                        center = angular.copy(defaults.center);
+                        if (!geolocation) {
+                            geolocation = new ol.Geolocation({
+                                projection: ol.proj.get('EPSG:4326')
+                            });
+
+                            geolocation.on('change', function() {
+                                console.log('change');
+                                if (center.autodiscover) {
+                                    var location = geolocation.getPosition();
+                                    safeApply(olScope, function(scope) {
+                                        scope.center.lat = location[1];
+                                        scope.center.lon = location[0];
+                                        scope.center.zoom = 12;
+                                        scope.center.autodiscover = false;
+                                        geolocation.setTracking(false);
+                                    });
+                                }
+                            });
+                        }
+                        console.log("settracking");
+                        geolocation.setTracking(true);
+                        return;
                     }
 
                     if (!isValidCenter(center)) {
@@ -439,7 +458,7 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
 angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelpers", function ($q, olHelpers) {
     var _getDefaults = function() {
         return {
-            interaction: {
+            interactions: {
                 dragRotate: true,
                 doubleClickZoom: true,
                 dragPan: true,
@@ -486,8 +505,12 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
             if (isDefined(userDefaults)) {
                 newDefaults.tileLayer = isDefined(userDefaults.tileLayer) ? userDefaults.tileLayer : newDefaults.tileLayer;
 
-                if (isDefined(userDefaults.mouseWheelEnabled)) {
-                    newDefaults.controls.zoom.mouseWheelEnabled = isDefined(userDefaults.mouseWheelEnabled) ? userDefaults.mouseWheelEnabled : newDefaults.mouseWheelEnabled;
+                if (isDefined(userDefaults.controls)) {
+                    newDefaults.controls = angular.copy(userDefaults.controls);
+                }
+
+                if (isDefined(userDefaults.interactions)) {
+                    newDefaults.interactions = angular.copy(userDefaults.interactions);
                 }
             }
 

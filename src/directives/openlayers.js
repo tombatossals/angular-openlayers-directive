@@ -43,7 +43,7 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
                 }
             }
 
-            var controls = ol.control.defaults(defaults.control);
+            var controls = ol.control.defaults(defaults.controls);
             var interactions = ol.interaction.defaults(defaults.interactions);
 
             // Create the Openlayers Map Object with the options

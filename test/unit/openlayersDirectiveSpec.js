@@ -26,7 +26,7 @@ describe('Directive: openlayers', function() {
         var element = angular.element('<openlayers></openlayers>');
         element = $compile(element)(scope);
         scope.$digest();
-        expect(element.text()).toEqual('Zoom in+Zoom out−Reset rotation⇧iAttributions');
+        expect(element.text()).toEqual('Zoom in+Zoom out−iAttributions');
     });
 
     it('should set default center if not center is provided', function() {

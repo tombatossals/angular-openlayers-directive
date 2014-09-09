@@ -9,6 +9,7 @@ This is an attribute of the **openlayers** main directive, and we will use it li
 
 It will map an object _center_ of our controller scope with the corresponding object on our directive isolated scope. It's a bidirectional relationship, so a change in this object on the controller scope will affect the map center position, or an interaction on the map which changes the map center will update our _center_ values. Let's define the center model with an example:
 
+
 ```
 $scope.center = {
     lat: 51.505,
@@ -17,7 +18,7 @@ $scope.center = {
 }
 ```
 
-We can see that a center is conformed by two required attributes: _lat_, _lon_ and _zoom_. When we associate that object with our _openlayers-directive_ the bi-directional relation will start.
+It uses the projection EPSG:4326 by default, and we can see that a center is conformed by two required attributes: _lat_, _lon_ and _zoom_. When we associate that object with our _openlayers-directive_ the bi-directional relation will start.
 
 
 Let's see a complete example of how to use this. We must create a center object in our controller, pass its name to our directive _center_ attribute, an that's all.
@@ -41,7 +42,7 @@ And that's all. A full example of using this attribute can be found [here](http:
 
 Autodiscover
 ------------
-The _coord_, and _center_ properties are mandatory to make the center work, but we have an optional property which we can use to auto-discover the position of the user browsing our page using the [W3C Geolocation API](http://dev.w3.org/geo/api/spec-source.html) using the corresponding methods defined on the [Leaflet API](http://leafletjs.com/reference.html#map-locate).
+The _coord_, and _center_ properties are mandatory to make the center work, but we have an optional property which we can use to auto-discover the position of the user browsing our page using the [W3C Geolocation API](http://dev.w3.org/geo/api/spec-source.html) using the corresponding methods defined in the [Openlayers API](http://openlayers.org/en/v3.0.0/apidoc/ol.Geolocation.html).
 
 For example, we could show the user map position on start, or conditionally when he press a button. This property is defined like this:
 

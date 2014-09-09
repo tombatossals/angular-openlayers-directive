@@ -1,7 +1,7 @@
 angular.module("openlayers-directive").factory('olMapDefaults', function ($q, olHelpers) {
     var _getDefaults = function() {
         return {
-            interaction: {
+            interactions: {
                 dragRotate: true,
                 doubleClickZoom: true,
                 dragPan: true,
@@ -48,8 +48,12 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
             if (isDefined(userDefaults)) {
                 newDefaults.tileLayer = isDefined(userDefaults.tileLayer) ? userDefaults.tileLayer : newDefaults.tileLayer;
 
-                if (isDefined(userDefaults.mouseWheelEnabled)) {
-                    newDefaults.controls.zoom.mouseWheelEnabled = isDefined(userDefaults.mouseWheelEnabled) ? userDefaults.mouseWheelEnabled : newDefaults.mouseWheelEnabled;
+                if (isDefined(userDefaults.controls)) {
+                    newDefaults.controls = angular.copy(userDefaults.controls);
+                }
+
+                if (isDefined(userDefaults.interactions)) {
+                    newDefaults.interactions = angular.copy(userDefaults.interactions);
                 }
             }
 
