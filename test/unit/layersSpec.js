@@ -4,7 +4,7 @@
 /*jshint globalstrict: true*/
 /* jasmine specs for directives go here */
 
-describe('Directive: openlayers tiles', function() {
+describe('Directive: openlayers layers', function() {
     var $compile = null, $rootScope = null, $timeout, olData = null, olMapDefaults = null, scope;
 
     beforeEach(module('openlayers-directive'));
@@ -22,16 +22,20 @@ describe('Directive: openlayers tiles', function() {
         $rootScope.$apply();
     }));
 
-    it('should set default tiles if bad tiles structure is provided', function() {
-        angular.extend(scope, { tiles: {} });
-        var element = angular.element('<openlayers tiles="tiles"></openlayers>');
+    it('should set main layer with default tiles if bad layers structure is provided', function() {
+        angular.extend(scope, { layers: {} });
+        var element = angular.element('<openlayers layers="layers"></openlayers>');
         element = $compile(element)(scope);
-        olData.getTiles().then(function(olTiles) {
-            expect(olTiles[0].getSource() instanceof ol.source.OSM).toBe(true);
+        var layers;
+        olData.getLayers().then(function(olLayers) {
+            layers = olLayers;
         });
+        scope.$digest();
+        console.log(layers);
+        expect(layers.main.getSource() instanceof ol.source.OSM).toBe(true);
     });
 
-    it('should update the map tiles if the scope tiles properties changes', function() {
+    xit('should update the map tiles if the scope tiles properties changes', function() {
         angular.extend(scope, { tiles: { type: 'OSM' } });
         var element = angular.element('<openlayers tiles="tiles"></openlayers>');
         element = $compile(element)(scope);
@@ -59,7 +63,7 @@ describe('Directive: openlayers tiles', function() {
         expect(tiles[0].getSource() instanceof ol.source.TileJSON).toBe(true);
     });
 
-    it('should remove the map tiles if the scope tiles are changed into an empty value', function() {
+    xit('should remove the map tiles if the scope tiles are changed into an empty value', function() {
         var initTiles = {
             type: 'TileJSON',
             url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'

@@ -20,31 +20,24 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
                 createLayer = olHelpers.createLayer;
 
             controller.getMap().then(function(map) {
-                // Do we have a baselayers property?
                 if (!isDefined(layers) || !isDefined(layers.main) || !isDefined(layers.main.type)) {
                     $log.error('[AngularJS - OpenLayers] At least one main layer has to be defined');
                     return;
                 }
 
-                olLayers.baselayers = {};
-                olLayers.overlays = {};
-
                 var defaults = olMapDefaults.getDefaults(attrs.id);
-
                 olScope.$watch("layers", function(layers) {
                     if (!isDefined(layers) || !isDefined(layers.main) || !isDefined(layers.main.type)) {
-                        $log.warn("[AngularJS - OpenLayers] The 'layers' definition isn't defined correctly.");
+                        $log.warn("[AngularJS - OpenLayers] At least one main layer has to be defined.");
                         layers = angular.copy(defaults.layers);
                     }
 
                     var l = createLayer(layers.main);
                     map.addLayer(l);
                     olLayers.main = l;
+                    _olLayers.resolve(olLayers);
+                    olData.setLayers(olLayers, attrs.id);
                 });
-
-                _olLayers.resolve(olLayers);
-                olData.setLayers(olLayers, attrs.id);
-
             });
         }
     };

@@ -23,7 +23,7 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
 
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined,
-                getLayerObject = olHelpers.getLayerObject,
+                createLayer = olHelpers.createLayer,
                 defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
@@ -55,7 +55,7 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
 
             // If no layer is defined, set the default tileLayer
             if (!isDefined(attrs.layers)) {
-                var layer = getLayerObject(defaults.tileLayer);
+                var layer = createLayer(defaults.layers.main);
                 map.addLayer(layer);
             }
 
