@@ -48,7 +48,10 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
             var newDefaults = _getDefaults();
 
             if (isDefined(userDefaults)) {
-                newDefaults.tileLayer = isDefined(userDefaults.tileLayer) ? userDefaults.tileLayer : newDefaults.tileLayer;
+
+                if (isDefined(userDefaults.layers)) {
+                    newDefaults.layers = angular.copy(userDefaults.layers);
+                }
 
                 if (isDefined(userDefaults.controls)) {
                     newDefaults.controls = angular.copy(userDefaults.controls);

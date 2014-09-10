@@ -8,7 +8,7 @@
     <script>
         angular.module("demoapp", ["openlayers-directive"]);
         function DemoController($scope) {
-            var tilesDict = {
+            var layersDict = {
                 openstreetmap: {
                     type: 'OSM'
                 },
@@ -37,11 +37,13 @@
                     lon: -0.09,
                     zoom: 3
                 },
-                tiles: tilesDict.opencyclemap
+                layers: {
+                    main: layersDict.opencyclemap
+                }
             });
 
-            $scope.changeTiles = function(tiles) {
-                $scope.tiles = tilesDict[tiles];
+            $scope.changeLayer = function(layer) {
+                $scope.layers.main = layersDict[layer];
             };
         };
     </script>
@@ -55,20 +57,20 @@
   <body>
   <div class="container">
       <div ng-controller="DemoController">
-        <openlayers center="london" tiles="tiles" height="400px"></openlayers>
+        <openlayers center="london" layers="layers" height="400px"></openlayers>
 
-        <h1>Tiles example</h1>
-        <p>This is a map that can change tiles by demand</p>
+        <h1>Layers change tiles example</h1>
+        <p>This is a map that can change the tiles of the main layer by demand</p>
 
         <p>
-            <button ng-click="changeTiles('opencyclemap')" class="btn btn-default">OpenCycleMaps</button>
-            <button ng-click="changeTiles('openstreetmap')" class="btn btn-default">OpenStreetMaps</button>
-            <button ng-click="changeTiles('mapbox_streets')" class="btn btn-default">Mapbox Streets</button>
-            <button ng-click="changeTiles('mapbox_terrain')" class="btn btn-default">Mapbox Terrain</button>
-            <button ng-click="changeTiles('mapbox_geographyclass')" class="btn btn-default">Mapbox Geography Class</button>
+            <button ng-click="changeLayer('opencyclemap')" class="btn btn-default">OpenCycleMaps</button>
+            <button ng-click="changeLayer('openstreetmap')" class="btn btn-default">OpenStreetMaps</button>
+            <button ng-click="changeLayer('mapbox_streets')" class="btn btn-default">Mapbox Streets</button>
+            <button ng-click="changeLayer('mapbox_terrain')" class="btn btn-default">Mapbox Terrain</button>
+            <button ng-click="changeLayer('mapbox_geographyclass')" class="btn btn-default">Mapbox Geography Class</button>
         </p>
         <p>Current TileLayer Url:
-            <pre>{{ tiles | json }}</pre>
+            <pre>{{ layers | json }}</pre>
         </p>
 
       </div>

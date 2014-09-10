@@ -10,7 +10,7 @@ module.exports = function (grunt, options) {
             src: [
                 'src/directives/openlayers.js',
                 'src/directives/center.js',
-                'src/directives/tiles.js',
+                'src/directives/layers.js',
                 'src/services/*.js'
             ],
             dest: 'dist/angular-openlayers-directive.pre.js',

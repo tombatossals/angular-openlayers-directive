@@ -3,7 +3,7 @@
   <head>
     <script src="../bower_components/angular/angular.min.js"></script>
     <script src="../bower_components/openlayers3/build/ol.js"></script>
-    <script src="../dist/angular-openlayers-directive.js"></script>
+    <script src="../dist/angular-openlayers-directive.min.js"></script>
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <script>
         var app = angular.module("demoapp", ["openlayers-directive"]);
@@ -14,13 +14,15 @@
                     lon: -0.09,
                     zoom: 10
                 },
-                tiles: {
-                    type: "OSM"
+                layers: {
+                    main: {
+                        type: "OSM"
+                    }
                 }
             });
 
             $scope.$watch("london.zoom", function(zoom) {
-                $scope.tiles.url = (zoom > 12)
+                $scope.layers.main.url = (zoom > 12)
                         ? "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         : "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
             });
@@ -28,7 +30,7 @@
     </script>
   </head>
   <body ng-controller="DemoZoomLevelController">
-      <openlayers center="london" tiles="tiles" height="400px"></openlayers>
+      <openlayers center="london" layers="layers" height="400px"></openlayers>
       <h1>Tiles zoom changer example</h1>
       <p>This is a map with dynamic tile change depending on zoom level</p>
       <p>Current TileLayer Url: <pre>{{ tiles | json }}</pre></p>

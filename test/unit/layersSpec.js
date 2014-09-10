@@ -31,7 +31,6 @@ describe('Directive: openlayers layers', function() {
             layers = olLayers;
         });
         scope.$digest();
-        console.log(layers);
         expect(layers.main.getSource() instanceof ol.source.OSM).toBe(true);
     });
 
