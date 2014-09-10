@@ -94,7 +94,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
-        getLayerObject: function(layer) {
+        createLayer: function(layer) {
             var oLayer, source;
 
             switch(layer.type) {

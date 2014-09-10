@@ -221,49 +221,11 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
     };
 }]);
 
-angular.module("openlayers-directive").directive('tiles', ["$log", "olData", "olMapDefaults", "olHelpers", function ($log, olData, olMapDefaults, olHelpers) {
-    return {
-        restrict: "A",
-        scope: false,
-        replace: false,
-        require: 'openlayers',
-
-        link: function(scope, element, attrs, controller) {
-            var isDefined = olHelpers.isDefined,
-                olScope  = controller.getOpenlayersScope(),
-                getLayerObject = olHelpers.getLayerObject;
-
-            controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id),
-                    tileLayerObj = [];
-
-                olScope.$watch("tiles", function(tiles) {
-                    if (!isDefined(tiles) || !isDefined(tiles.type)) {
-                        $log.warn("[AngularJS - OpenLayers] The 'tiles' definition doesn't have the 'type' property.");
-                        tiles = defaults.tileLayer;
-                    }
-
-                    if (isDefined(tileLayerObj) && tileLayerObj.length === 1) {
-                        map.removeLayer(tileLayerObj[0]);
-                        tileLayerObj.pop();
-                    }
-
-                    var l = getLayerObject(tiles);
-                    map.addLayer(l);
-                    tileLayerObj.push(l);
-
-                    olData.setTiles(tileLayerObj, attrs.id);
-                }, true);
-            });
-        }
-    };
-}]);
-
 angular.module("openlayers-directive").service('olData', ["$log", "$q", "olHelpers", function ($log, $q, olHelpers) {
     var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
 
     var maps = {},
-        tiles = {};
+        layers = {};
 
     var setResolvedDefer = function(d, mapId) {
         var id = obtainEffectiveMapId(d, mapId);
@@ -308,15 +270,15 @@ angular.module("openlayers-directive").service('olData', ["$log", "$q", "olHelpe
         return defer.promise;
     };
 
-    this.setTiles = function(olTiles, scopeId) {
-        var defer = getUnresolvedDefer(tiles, scopeId);
-        defer.resolve(olTiles);
-        setResolvedDefer(tiles, scopeId);
+    this.getLayers = function(scopeId) {
+        var defer = getDefer(layers, scopeId);
+        return defer.promise;
     };
 
-    this.getTiles = function(scopeId) {
-        var defer = getDefer(tiles, scopeId);
-        return defer.promise;
+    this.setLayers = function(olLayers, scopeId) {
+        var defer = getUnresolvedDefer(layers, scopeId);
+        defer.resolve(olLayers);
+        setResolvedDefer(layers, scopeId);
     };
 
 }]);
@@ -417,7 +379,7 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
-        getLayerObject: function(layer) {
+        createLayer: function(layer) {
             var oLayer, source;
 
             switch(layer.type) {
@@ -469,8 +431,10 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                 mouseWheelZoom: true,
                 dragZoom: true
             },
-            tileLayer: {
-                type: 'OSM'
+            layers: {
+                main: {
+                  type: 'OSM'
+                }
             },
             center: {
                 lat: 0,

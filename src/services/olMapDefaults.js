@@ -12,8 +12,10 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 mouseWheelZoom: true,
                 dragZoom: true
             },
-            tileLayer: {
-                type: 'OSM'
+            layers: {
+                main: {
+                  type: 'OSM'
+                }
             },
             center: {
                 lat: 0,
