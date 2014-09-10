@@ -17,6 +17,8 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                   type: 'OSM'
                 }
             },
+            minZoom: undefined,
+            maxZoom: undefined,
             center: {
                 lat: 0,
                 lon: 0,
@@ -60,6 +62,15 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 if (isDefined(userDefaults.interactions)) {
                     newDefaults.interactions = angular.copy(userDefaults.interactions);
                 }
+
+                if (isDefined(userDefaults.minZoom)) {
+                    newDefaults.minZoom = userDefaults.minZoom;
+                }
+
+                if (isDefined(userDefaults.maxZoom)) {
+                    newDefaults.maxZoom = userDefaults.maxZoom;
+                }
+
             }
 
             var mapId = obtainEffectiveMapId(defaults, scopeId);

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+        var app = angular.module('demoapp', ['openlayers-directive']);
+        app.controller('DemoController', [ '$scope', function($scope) {
+            angular.extend($scope, {
+                london: {
+                    lat: 51.505,
+                    lon: -0.09,
+                    zoom: 4
+                },
+                maxZoom: 6,
+                minZoom: 3
+            });
+       }]);
+    </script>
+  </head>
+  <body ng-controller="DemoController">
+    <openlayers center="london" height="400"></openlayers>
+    <h1>Constrain zoom map example</h1>
+    <form>
+        Max Zoom : <input type="number" step="any" ng-model="maxZoom" />
+        Min Zoom : <input type="number" step="any" ng-model="minZoom" />
+        Zoom : <input type="number" step="any" ng-model="london.zoom" />
+    </form>
+  </body>
+</html>

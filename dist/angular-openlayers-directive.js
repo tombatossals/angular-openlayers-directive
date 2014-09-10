@@ -66,7 +66,9 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
             if (!isDefined(attrs.center)) {
                 map.setView(new ol.View({
                     center: [ defaults.center.lon, defaults.center.lat ],
-                    zoom: defaults.center.zoom
+                    zoom: defaults.center.zoom,
+                    maxZoom: defaults.center.maxZoom,
+                    minZoom: defaults.center.minZoom
                 }));
             }
 
@@ -111,7 +113,10 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                 }
 
                 var view = new ol.View({
-                    center: ol.proj.transform([ center.lon, center.lat ], 'EPSG:4326', 'EPSG:3857')
+                    center: ol.proj.transform([ center.lon, center.lat ], 'EPSG:4326', 'EPSG:3857'),
+                    zoom: center.zoom,
+                    maxZoom: center.maxZoom,
+                    minZoom: center.minZoom
                 });
                 map.setView(view);
 
@@ -489,6 +494,8 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                   type: 'OSM'
                 }
             },
+            minZoom: undefined,
+            maxZoom: undefined,
             center: {
                 lat: 0,
                 lon: 0,
@@ -532,6 +539,15 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                 if (isDefined(userDefaults.interactions)) {
                     newDefaults.interactions = angular.copy(userDefaults.interactions);
                 }
+
+                if (isDefined(userDefaults.minZoom)) {
+                    newDefaults.minZoom = userDefaults.minZoom;
+                }
+
+                if (isDefined(userDefaults.maxZoom)) {
+                    newDefaults.maxZoom = userDefaults.maxZoom;
+                }
+
             }
 
             var mapId = obtainEffectiveMapId(defaults, scopeId);
