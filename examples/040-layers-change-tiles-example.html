@@ -37,13 +37,19 @@
                     lon: -0.09,
                     zoom: 3
                 },
-                layers: {
-                    main: layersDict.opencyclemap
-                }
+                layers: [
+                    {
+                        source: layersDict.opencyclemap
+                    }
+                ]
             });
 
             $scope.changeLayer = function(layer) {
-                $scope.layers.main = layersDict[layer];
+                $scope.layers = [
+                    {
+                        source: layersDict[layer]
+                    }
+                ];
             };
         };
     </script>

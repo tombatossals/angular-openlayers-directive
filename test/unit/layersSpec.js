@@ -31,11 +31,11 @@ describe('Directive: openlayers layers', function() {
             layers = olLayers;
         });
         scope.$digest();
-        expect(layers.main.getSource() instanceof ol.source.OSM).toBe(true);
+        expect(layers[0].getSource() instanceof ol.source.OSM).toBe(true);
     });
 
     xit('should update the map tiles if the scope tiles properties changes', function() {
-        angular.extend(scope, { tiles: { type: 'OSM' } });
+        angular.extend(scope, { tiles: { source: { type: 'OSM' } } });
         var element = angular.element('<openlayers tiles="tiles"></openlayers>');
         element = $compile(element)(scope);
 

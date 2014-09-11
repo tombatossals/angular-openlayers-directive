@@ -12,11 +12,13 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 mouseWheelZoom: true,
                 dragZoom: true
             },
-            layers: {
-                main: {
-                  type: 'OSM'
+            layers: [
+                {
+                    source: {
+                        type: 'OSM'
+                    }
                 }
-            },
+            ],
             minZoom: undefined,
             maxZoom: undefined,
             center: {

@@ -14,11 +14,13 @@
                     lon: -0.09,
                     zoom: 10
                 },
-                layers: {
-                    main: {
-                        type: "OSM"
+                layers: [
+                    {
+                        source: {
+                            type: "OSM"
+                        }
                     }
-                }
+                ]
             });
 
             $scope.$watch("london.zoom", function(zoom) {

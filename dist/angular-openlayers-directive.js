@@ -59,7 +59,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
 
             // If no layer is defined, set the default tileLayer
             if (!isDefined(attrs.layers)) {
-                var layer = createLayer(defaults.layers.main);
+                var layer = createLayer(defaults.layers[0]);
                 map.addLayer(layer);
             }
 
@@ -242,29 +242,36 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
         },
         link: function(scope, element, attrs, controller) {
             var isDefined   = olHelpers.isDefined,
+                isArray     = olHelpers.isArray,
                 equals      = olHelpers.equals,
-                olLayers    = {},
+                olLayers    = [],
                 olScope     = controller.getOpenlayersScope(),
                 createLayer = olHelpers.createLayer;
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
                 olScope.$watch("layers", function(layers, oldLayers) {
-                    if (!isDefined(layers) || !isDefined(layers.main) || !isDefined(layers.main.type)) {
-                        $log.warn("[AngularJS - OpenLayers] At least one main layer has to be defined.");
+                    if (!isArray(layers) || layers.length === 0 || !isDefined(layers[0].source) || !isDefined(layers[0].source.type)) {
+                        $log.warn("[AngularJS - OpenLayers] At least one layer has to be defined.");
                         layers = angular.copy(defaults.layers);
                     }
 
-                    if (!isDefined(olLayers.main) || !equals(layers.main, oldLayers.main)) {
-                        if (isDefined(olLayers.main) && oldLayers.main.type !== layers.main.type) {
-                            map.removeLayer(olLayers.main);
+                    for (var i=0; i<layers.length; i++) {
+                        var layer = layers[i];
+                        var oldLayer = oldLayers[i];
+                        var olLayer = olLayers[i];
+                        if (!equals(layer, oldLayer)) {
+                            if (isDefined(olLayer)) {
+                                map.removeLayer(olLayer);
+                                olLayers.pop(olLayer);
+                            }
                         }
-                        var l = createLayer(layers.main);
+                        var l = createLayer(layer);
                         map.addLayer(l);
-                        olLayers.main = l;
+                        olLayers.push(l);
                     }
-                    _olLayers.resolve(olLayers);
                 }, true);
+                _olLayers.resolve(olLayers);
                 olData.setLayers(olLayers, attrs.id);
             });
         }
@@ -430,35 +437,35 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
         },
 
         createLayer: function(layer) {
-            var oLayer, source;
+            var oLayer, oSource;
 
-            switch(layer.type) {
+            switch(layer.source.type) {
                 case 'OSM':
-                    if (layer.attribution) {
-                        source = new ol.source.OSM({
+                    if (layer.source.attribution) {
+                        oSource = new ol.source.OSM({
                             attributions: [
-                              new ol.Attribution({ html: layer.attribution }),
+                              new ol.Attribution({ html: layer.source.attribution }),
                               ol.source.OSM.DATA_ATTRIBUTION
                             ]
                         });
                     } else {
-                        source = new ol.source.OSM();
+                        oSource = new ol.source.OSM();
                     }
 
-                    oLayer = new ol.layer.Tile({ source: source });
+                    oLayer = new ol.layer.Tile({ source: oSource });
 
-                    if (layer.url) {
-                        source.setUrl(layer.url);
+                    if (layer.source.url) {
+                        oSource.setUrl(layer.source.url);
                     }
 
                     break;
                 case 'TileJSON':
-                    source = new ol.source.TileJSON({
-                        url: layer.url,
+                    oSource = new ol.source.TileJSON({
+                        url: layer.source.url,
                         crossOrigin: 'anonymous'
                     });
 
-                    oLayer = new ol.layer.Tile({ source: source });
+                    oLayer = new ol.layer.Tile({ source: oSource });
                     break;
             }
 
@@ -481,11 +488,13 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                 mouseWheelZoom: true,
                 dragZoom: true
             },
-            layers: {
-                main: {
-                  type: 'OSM'
+            layers: [
+                {
+                    source: {
+                        type: 'OSM'
+                    }
                 }
-            },
+            ],
             minZoom: undefined,
             maxZoom: undefined,
             center: {

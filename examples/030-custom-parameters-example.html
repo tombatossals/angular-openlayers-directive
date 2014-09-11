@@ -15,12 +15,14 @@
                     zoom: 8
                 },
                 defaults: {
-                    layers: {
-                        main: {
-                            type: 'OSM',
-                            url: 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png'
+                    layers: [
+                        {
+                            source: {
+                                type: 'OSM',
+                                url: 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png'
+                            }
                         }
-                    },
+                    ],
                     interactions: {
                       mouseWheelZoom: false
                     },

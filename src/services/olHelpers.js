@@ -95,35 +95,35 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         },
 
         createLayer: function(layer) {
-            var oLayer, source;
+            var oLayer, oSource;
 
-            switch(layer.type) {
+            switch(layer.source.type) {
                 case 'OSM':
-                    if (layer.attribution) {
-                        source = new ol.source.OSM({
+                    if (layer.source.attribution) {
+                        oSource = new ol.source.OSM({
                             attributions: [
-                              new ol.Attribution({ html: layer.attribution }),
+                              new ol.Attribution({ html: layer.source.attribution }),
                               ol.source.OSM.DATA_ATTRIBUTION
                             ]
                         });
                     } else {
-                        source = new ol.source.OSM();
+                        oSource = new ol.source.OSM();
                     }
 
-                    oLayer = new ol.layer.Tile({ source: source });
+                    oLayer = new ol.layer.Tile({ source: oSource });
 
-                    if (layer.url) {
-                        source.setUrl(layer.url);
+                    if (layer.source.url) {
+                        oSource.setUrl(layer.source.url);
                     }
 
                     break;
                 case 'TileJSON':
-                    source = new ol.source.TileJSON({
-                        url: layer.url,
+                    oSource = new ol.source.TileJSON({
+                        url: layer.source.url,
                         crossOrigin: 'anonymous'
                     });
 
-                    oLayer = new ol.layer.Tile({ source: source });
+                    oLayer = new ol.layer.Tile({ source: oSource });
                     break;
             }
 
