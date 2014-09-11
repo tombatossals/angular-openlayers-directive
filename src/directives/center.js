@@ -34,8 +34,8 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                 var view = new ol.View({
                     center: ol.proj.transform([ center.lon, center.lat ], 'EPSG:4326', 'EPSG:3857'),
                     zoom: center.zoom,
-                    maxZoom: center.maxZoom,
-                    minZoom: center.minZoom
+                    maxZoom: defaults.maxZoom,
+                    minZoom: defaults.minZoom
                 });
                 map.setView(view);
 
