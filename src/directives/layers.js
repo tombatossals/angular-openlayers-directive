@@ -27,14 +27,6 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
                         layers = angular.copy(defaults.layers);
                     }
 
-                    // Check if the main layer is the same type but different URL
-                    if (isDefined(layers.main) && isDefined(layers.main.type) &&
-                        isDefined(oldLayers.main) && isDefined(oldLayers.main.type) &&
-                        layers.main.type === oldLayers.main.type && layers.main.url !== oldLayers.main.url) {
-                            olLayers.main.getSource().setUrl(layers.main.url);
-                            return;
-                    }
-
                     if (!isDefined(olLayers.main) || !equals(layers.main, oldLayers.main)) {
                         if (isDefined(olLayers.main) && oldLayers.main.type !== layers.main.type) {
                             map.removeLayer(olLayers.main);
