@@ -14,37 +14,32 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
         },
         link: function(scope, element, attrs, controller) {
             var isDefined   = olHelpers.isDefined,
-                isArray     = olHelpers.isArray,
                 equals      = olHelpers.equals,
-                olLayers    = [],
+                olLayers    = {},
                 olScope     = controller.getOpenlayersScope(),
                 createLayer = olHelpers.createLayer;
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
                 olScope.$watch("layers", function(layers, oldLayers) {
-                    if (!isArray(layers) || layers.length === 0 || !isDefined(layers[0].source) || !isDefined(layers[0].source.type)) {
+                    if (!isDefined(layers.main) ||
+                        !isDefined(layers.main.source) || !isDefined(layers.main.source.type)) {
                         $log.warn("[AngularJS - OpenLayers] At least one layer has to be defined.");
                         layers = angular.copy(defaults.layers);
                     }
 
-                    for (var i=0; i<layers.length; i++) {
-                        var layer = layers[i];
-                        var oldLayer = oldLayers[i];
-                        var olLayer = olLayers[i];
-                        if (!equals(layer, oldLayer)) {
-                            if (isDefined(olLayer)) {
-                                map.removeLayer(olLayer);
-                                olLayers.pop(olLayer);
-                            }
+                    if (!equals(layers.main, oldLayers.main)) {
+                        if (isDefined(olLayers.main)) {
+                            map.removeLayer(olLayers.main);
+                            delete olLayers.main;
                         }
-                        var l = createLayer(layer);
+                        var l = createLayer(layers.main);
                         map.addLayer(l);
-                        olLayers.push(l);
+                        olLayers.main = l;
+                        olData.setLayers(olLayers, attrs.id);
+                        _olLayers.resolve(olLayers);
                     }
                 }, true);
-                _olLayers.resolve(olLayers);
-                olData.setLayers(olLayers, attrs.id);
             });
         }
     };

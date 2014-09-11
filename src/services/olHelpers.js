@@ -40,7 +40,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         isValidCenter: function(center) {
             return angular.isDefined(center) &&
                    (angular.isNumber(center.lat) && angular.isNumber(center.lon) ||
-                   typeof center.autodiscover === "boolean" ||
+                   typeof center.autodiscover === "boolean" && center.autodiscover === true ||
                    (angular.isArray(center.bounds) && center.bounds.length === 4 &&
                    angular.isNumber(center.bounds[0]) && angular.isNumber(center.bounds[1]) &&
                    angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2])));

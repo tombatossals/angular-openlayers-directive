@@ -37,16 +37,17 @@
                     lon: -0.09,
                     zoom: 3
                 },
-                layers: [
-                    {
+                layers: {
+                    main: {
                         source: layersDict.opencyclemap
                     }
-                ]
+                }
             });
 
             $scope.changeLayer = function(layer) {
                 $scope.layers = [
                     {
+                        type: "tile",
                         source: layersDict[layer]
                     }
                 ];

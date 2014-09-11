@@ -55,7 +55,7 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
 
             // If no layer is defined, set the default tileLayer
             if (!isDefined(attrs.layers)) {
-                var layer = createLayer(defaults.layers[0]);
+                var layer = createLayer(defaults.layers.main);
                 map.addLayer(layer);
             }
 

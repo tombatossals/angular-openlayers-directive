@@ -81,7 +81,6 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                             });
 
                             geolocation.on('change', function() {
-                                console.log('change');
                                 if (center.autodiscover) {
                                     var location = geolocation.getPosition();
                                     safeApply(olScope, function(scope) {
@@ -94,7 +93,6 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                                 }
                             });
                         }
-                        console.log("settracking");
                         geolocation.setTracking(true);
                         return;
                     }

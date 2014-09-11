@@ -31,21 +31,32 @@ describe('Directive: openlayers layers', function() {
             layers = olLayers;
         });
         scope.$digest();
-        expect(layers[0].getSource() instanceof ol.source.OSM).toBe(true);
+        expect(layers.main.getSource() instanceof ol.source.OSM).toBe(true);
     });
 
-    xit('should update the map tiles if the scope tiles properties changes', function() {
-        angular.extend(scope, { tiles: { source: { type: 'OSM' } } });
-        var element = angular.element('<openlayers tiles="tiles"></openlayers>');
+    it('should update the map tiles if the scope tiles properties changes', function() {
+        angular.extend(scope, {
+            layers: {
+                main: {
+                    type: 'tile',
+                    source: {
+                        type: 'OSM'
+                    }
+                }
+            }
+        });
+
+        var element = angular.element('<openlayers layers="layers"></openlayers>');
         element = $compile(element)(scope);
 
-        var tiles;
-        olData.getTiles().then(function(olTiles) {
-            tiles = olTiles;
+        var layers;
+        olData.getLayers().then(function(olLayers) {
+            console.log(layers);
+            layers = olLayers;
         });
 
         scope.$digest();
-        expect(tiles[0].getSource() instanceof ol.source.OSM).toBe(true);
+        expect(layers.main.getSource() instanceof ol.source.OSM).toBe(true);
 
         scope.tiles = {
             type: 'TileJSON',
@@ -54,12 +65,12 @@ describe('Directive: openlayers layers', function() {
 
         scope.$digest();
 
-        olData.getTiles().then(function(olTiles) {
-            tiles = olTiles;
+        olData.getLayers().then(function(olLayers) {
+            layers = olLayers;
         });
 
         scope.$digest();
-        expect(tiles[0].getSource() instanceof ol.source.TileJSON).toBe(true);
+        expect(layers.main.getSource() instanceof ol.source.TileJSON).toBe(true);
     });
 
     xit('should remove the map tiles if the scope tiles are changed into an empty value', function() {
