@@ -10,7 +10,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
         scope: {
             center: '=center',
             defaults: '=defaults',
-            tiles: '=tiles'
+            layers: '=layers'
         },
         transclude: true,
         template: '<div class="angular-openlayers-map"><div ng-transclude></div></div>',
@@ -27,8 +27,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
 
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined,
-                getLayerObject = olHelpers.getLayerObject,
-                disableMouseWheelZoom = olHelpers.disableMouseWheelZoom,
+                createLayer = olHelpers.createLayer,
                 defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
@@ -48,26 +47,28 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
                 }
             }
 
+            var controls = ol.control.defaults(defaults.controls);
+            var interactions = ol.interaction.defaults(defaults.interactions);
+
             // Create the Openlayers Map Object with the options
             var map = new ol.Map({
-                target: element[0]
+                target: element[0],
+                controls: controls,
+                interactions: interactions
             });
 
             // If no layer is defined, set the default tileLayer
             if (!isDefined(attrs.layers)) {
-                var layer = getLayerObject(defaults.tileLayer);
+                var layer = createLayer(defaults.layers.main);
                 map.addLayer(layer);
-            }
-
-            if (isDefined(defaults.controls.zoom.mouseWheelEnabled) &&
-                defaults.controls.zoom.mouseWheelEnabled === false) {
-                    disableMouseWheelZoom(map);
             }
 
             if (!isDefined(attrs.center)) {
                 map.setView(new ol.View({
-                    center: [ defaults.center.lat, defaults.center.lon ],
-                    zoom: defaults.center.zoom
+                    center: [ defaults.center.lon, defaults.center.lat ],
+                    zoom: defaults.center.zoom,
+                    maxZoom: defaults.center.maxZoom,
+                    minZoom: defaults.center.minZoom
                 }));
             }
 
@@ -78,7 +79,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
     };
 }]);
 
-angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaults", "olHelpers", function ($log, olMapDefaults, olHelpers) {
+angular.module("openlayers-directive").directive('center', ["$log", "$location", "olMapDefaults", "olHelpers", function ($log, $location, olMapDefaults, olHelpers) {
     return {
         restrict: "A",
         scope: false,
@@ -88,6 +89,8 @@ angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaul
         link: function(scope, element, attrs, controller) {
             var safeApply     = olHelpers.safeApply,
                 isValidCenter = olHelpers.isValidCenter,
+                isDefined = olHelpers.isDefined,
+                isSameCenterOnMap = olHelpers.isSameCenterOnMap,
                 equals         = olHelpers.equals,
                 olScope       = controller.getOpenlayersScope();
 
@@ -95,20 +98,86 @@ angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaul
                 var defaults = olMapDefaults.getDefaults(attrs.id),
                     center = olScope.center;
 
-                if (!isValidCenter(center)) {
-                    $log.warn("[AngularJS - Openlayers] invalid 'center'");
-                    center = defaults.center;
+                if (attrs.center.search("-") !== -1) {
+                    $log.error('[AngularJS - Openlayers] The "center" variable can\'t use a "-" on his key name: "' + attrs.center + '".');
+                    map.setView(new ol.View({
+                        center: ol.proj.transform([ defaults.center.lon, defaults.center.lat ], 'EPSG:4326', 'EPSG:3857')
+                    }));
+
+                    return;
                 }
 
-                var proj = ol.proj.transform([ center.lon, center.lat ],
-                                        'EPSG:4326',
-                                        'EPSG:3857');
+                if (!isValidCenter(center)) {
+                    $log.warn("[AngularJS - Openlayers] invalid 'center'");
+                    center = angular.copy(defaults.center);
+                }
+
                 var view = new ol.View({
-                    center: proj
+                    center: ol.proj.transform([ center.lon, center.lat ], 'EPSG:4326', 'EPSG:3857'),
+                    zoom: center.zoom,
+                    maxZoom: defaults.maxZoom,
+                    minZoom: defaults.minZoom
                 });
                 map.setView(view);
 
+                var centerUrlHash;
+                if (center.centerUrlHash === true) {
+                    var extractCenterFromUrl = function() {
+                        var search = $location.search();
+                        var centerParam;
+                        if (isDefined(search.c)) {
+                            var cParam = search.c.split(":");
+                            if (cParam.length === 3) {
+                                centerParam = {
+                                    lat: parseFloat(cParam[0]),
+                                    lon: parseFloat(cParam[1]),
+                                    zoom: parseInt(cParam[2], 10)
+                                };
+                            }
+                        }
+                        return centerParam;
+                    };
+                    centerUrlHash = extractCenterFromUrl();
+
+                    olScope.$on('$locationChangeSuccess', function(event) {
+                        var scope = event.currentScope;
+                        var urlCenter = extractCenterFromUrl();
+                        if (isDefined(urlCenter) && !isSameCenterOnMap(urlCenter, map)) {
+                            scope.center = {
+                                lat: urlCenter.lat,
+                                lon: urlCenter.lon,
+                                zoom: urlCenter.zoom
+                            };
+                        }
+                    });
+                }
+
+                var geolocation;
                 olScope.$watch("center", function(center) {
+
+                    if (center.autodiscover) {
+                        if (!geolocation) {
+                            geolocation = new ol.Geolocation({
+                                projection: ol.proj.get('EPSG:4326')
+                            });
+
+                            geolocation.on('change', function() {
+                                if (center.autodiscover) {
+                                    var location = geolocation.getPosition();
+                                    safeApply(olScope, function(scope) {
+                                        scope.center.lat = location[1];
+                                        scope.center.lon = location[0];
+                                        scope.center.zoom = 12;
+                                        scope.center.autodiscover = false;
+                                        geolocation.setTracking(false);
+                                    });
+                                }
+                            });
+                        }
+                        geolocation.setTracking(true);
+                        return;
+                    }
+
                     if (!isValidCenter(center)) {
                         $log.warn("[AngularJS - Openlayers] invalid 'center'");
                         center = defaults.center;
@@ -119,10 +188,8 @@ angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaul
                                                 'EPSG:3857',
                                                 'EPSG:4326');
 
-                        if (!equals([ actualCenter[1], actualCenter[0] ], center)) {
-                            var proj = ol.proj.transform([ center.lon, center.lat ],
-                                                    'EPSG:4326',
-                                                    'EPSG:3857');
+                        if (!equals({ lat: actualCenter[1], lon: actualCenter[1] }, { lat: center.lat, lon: center.lon })) {
+                            var proj = ol.proj.transform([ center.lon, center.lat ], 'EPSG:4326', 'EPSG:3857');
                             view.setCenter(proj);
                         }
                     }
@@ -157,39 +224,75 @@ angular.module("openlayers-directive").directive('center', ["$log", "olMapDefaul
     };
 }]);
 
-angular.module("openlayers-directive").directive('tiles', ["$log", "olData", "olMapDefaults", "olHelpers", function ($log, olData, olMapDefaults, olHelpers) {
+angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function ($log, $q, olData, olMapDefaults, olHelpers) {
+    var _olLayers;
+
     return {
         restrict: "A",
         scope: false,
         replace: false,
         require: 'openlayers',
-
+        controller: function () {
+            _olLayers = $q.defer();
+            this.getLayers = function() {
+                return _olLayers.promise;
+            };
+        },
         link: function(scope, element, attrs, controller) {
-            var isDefined = olHelpers.isDefined,
-                olScope  = controller.getOpenlayersScope(),
-                getLayerObject = olHelpers.getLayerObject;
+            var isDefined   = olHelpers.isDefined,
+                equals      = olHelpers.equals,
+                olLayers    = {},
+                olScope     = controller.getOpenlayersScope(),
+                createLayer = olHelpers.createLayer;
 
             controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id),
-                    tileLayerObj = [];
-
-                olScope.$watch("tiles", function(tiles) {
-                    if (!isDefined(tiles) || !isDefined(tiles.type)) {
-                        $log.warn("[AngularJS - OpenLayers] The 'tiles' definition doesn't have the 'type' property.");
-                        tiles = defaults.tileLayer;
+                var defaults = olMapDefaults.getDefaults(attrs.id);
+                olScope.$watch("layers", function(layers, oldLayers) {
+                    var name, layer = layers[Object.keys(layers)[0]];
+                    if (!isDefined(layer) || !isDefined(layer.source) || !isDefined(layer.source.type)) {
+                        $log.warn("[AngularJS - OpenLayers] At least one layer has to be defined.");
+                        layers = angular.copy(defaults.layers);
                     }
 
-                    if (isDefined(tileLayerObj) && tileLayerObj.length === 1) {
-                        map.removeLayer(tileLayerObj[0]);
-                        tileLayerObj.pop();
+                    // Delete non existent layers from the map
+                    for (name in olLayers) {
+                        layer = olLayers[name];
+                        if (!layers.hasOwnProperty(name)) {
+                            // Remove from the map if it's on it
+                            var activeLayers = map.getLayers();
+                            for (var i in activeLayers) {
+                                if (activeLayers[i] === layer) {
+                                    map.removeLayer(layers);
+                                }
+                            }
+                            delete olLayers[name];
+                        }
                     }
 
-                    var l = getLayerObject(tiles);
-                    map.addLayer(l);
-                    tileLayerObj.push(l);
-
-                    olData.setTiles(tileLayerObj, attrs.id);
+                    // add new layers
+                    for (name in layers) {
+                        if (!olLayers.hasOwnProperty(name)) {
+                            layer = createLayer(layers[name]);
+                            if (isDefined(layer)) {
+                                olLayers[name] = layer;
+                                map.addLayer(olLayers[name]);
+                            }
+                        } else {
+                            layer = layers[name];
+                            var oldLayer = oldLayers[name];
+                            if (isDefined(oldLayer) && !equals(layer, oldLayer)) {
+                                if (layer.opacity && layer.opacity !== oldLayer.opacity) {
+                                    var olLayer = olLayers[name];
+                                    olLayer.setOpacity(layer.opacity);
+                                }
+                            }
+                        }
+                    }
                 }, true);
+                // We can resolve the layer promises
+                _olLayers.resolve(olLayers);
+                olData.setLayers(olLayers, attrs.id);
+
             });
         }
     };
@@ -199,7 +302,7 @@ angular.module("openlayers-directive").service('olData', ["$log", "$q", "olHelpe
     var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
 
     var maps = {},
-        tiles = {};
+        layers = {};
 
     var setResolvedDefer = function(d, mapId) {
         var id = obtainEffectiveMapId(d, mapId);
@@ -244,15 +347,15 @@ angular.module("openlayers-directive").service('olData', ["$log", "$q", "olHelpe
         return defer.promise;
     };
 
-    this.setTiles = function(olTiles, scopeId) {
-        var defer = getUnresolvedDefer(tiles, scopeId);
-        defer.resolve(olTiles);
-        setResolvedDefer(tiles, scopeId);
+    this.getLayers = function(scopeId) {
+        var defer = getDefer(layers, scopeId);
+        return defer.promise;
     };
 
-    this.getTiles = function(scopeId) {
-        var defer = getDefer(tiles, scopeId);
-        return defer.promise;
+    this.setLayers = function(olLayers, scopeId) {
+        var defer = getUnresolvedDefer(layers, scopeId);
+        defer.resolve(olLayers);
+        setResolvedDefer(layers, scopeId);
     };
 
 }]);
@@ -297,8 +400,12 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
         },
 
         isValidCenter: function(center) {
-            return angular.isDefined(center) && angular.isNumber(center.lat) &&
-                   angular.isNumber(center.lon) && angular.isNumber(center.zoom);
+            return angular.isDefined(center) &&
+                   (angular.isNumber(center.lat) && angular.isNumber(center.lon) ||
+                   typeof center.autodiscover === "boolean" && center.autodiscover === true ||
+                   (angular.isArray(center.bounds) && center.bounds.length === 4 &&
+                   angular.isNumber(center.bounds[0]) && angular.isNumber(center.bounds[1]) &&
+                   angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2])));
         },
 
         safeApply: function($scope, fn) {
@@ -308,6 +415,17 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             } else {
                 $scope.$apply(fn);
             }
+        },
+
+        isSameCenterOnMap: function(center, map) {
+            var mapCenter = map.getView().getCenter();
+            var zoom = map.getView().getZoom();
+            if (mapCenter[1].toFixed(4) === center.lat.toFixed(4) &&
+                mapCenter[1].toFixed(4) === center.lon.toFixed(4) &&
+                zoom === center.zoom) {
+                  return true;
+            }
+            return false;
         },
 
         obtainEffectiveMapId: function(d, mapId) {
@@ -338,73 +456,87 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
-        disableMouseWheelZoom: function(map) {
-            var interactions = map.getInteractions();
+        createLayer: function(layer) {
+            var oLayer, oSource;
 
-            interactions.forEach(function(interaction) {
-                if (interaction instanceof ol.interaction.MouseWheelZoom) {
-                    map.removeInteraction(interaction);
-                }
-            });
-        },
-
-        getLayerObject: function(layer) {
-            var oLayer, source;
-
-            switch(layer.type) {
+            switch(layer.source.type) {
                 case 'OSM':
-                    if (layer.attribution) {
-                        source = new ol.source.OSM({
+                    if (layer.source.attribution) {
+                        oSource = new ol.source.OSM({
                             attributions: [
-                              new ol.Attribution({ html: layer.attribution }),
+                              new ol.Attribution({ html: layer.source.attribution }),
                               ol.source.OSM.DATA_ATTRIBUTION
                             ]
                         });
                     } else {
-                        source = new ol.source.OSM();
+                        oSource = new ol.source.OSM();
                     }
 
-                    oLayer = new ol.layer.Tile({ source: source });
+                    oLayer = new ol.layer.Tile({ source: oSource });
 
-                    if (layer.url) {
-                        source.setUrl(layer.url);
+                    if (layer.source.url) {
+                        oSource.setUrl(layer.source.url);
                     }
 
                     break;
                 case 'TileJSON':
-                    source = new ol.source.TileJSON({
-                        url: layer.url,
+                    oSource = new ol.source.TileJSON({
+                        url: layer.source.url,
                         crossOrigin: 'anonymous'
                     });
 
-                    oLayer = new ol.layer.Tile({ source: source });
+                    oLayer = new ol.layer.Tile({ source: oSource });
                     break;
             }
 
+            if (angular.isNumber(layer.opacity)) {
+                oLayer.setOpacity(layer.opacity);
+            }
             return oLayer;
         }
     };
 }]);
 
 angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelpers", function ($q, olHelpers) {
-    function _getDefaults() {
+    var _getDefaults = function() {
         return {
-            tileLayer: {
-                type: 'OSM'
+            interactions: {
+                dragRotate: true,
+                doubleClickZoom: true,
+                dragPan: true,
+                pinchRotate: true,
+                pinchZoom: true,
+                keyboardPan: true,
+                keyboardZoom: true,
+                mouseWheelZoom: true,
+                dragZoom: true
             },
+            layers: {
+                main: {
+                    type: 'tile',
+                    source: {
+                        type: 'OSM'
+                    }
+                }
+            },
+            minZoom: undefined,
+            maxZoom: undefined,
             center: {
                 lat: 0,
                 lon: 0,
-                zoom: 1
+                zoom: 1,
+                autodiscover: false,
+                bounds: [],
+                centerUrlHash: false
             },
             controls: {
-                zoom: {
-                    position: 'topright',
-                    mouseWheelEnabled: true
-                }
+                attribution: true,
+                rotate: false,
+                zoom: true
             }
         };
-    }
+    };
+
     var isDefined = olHelpers.isDefined,
         obtainEffectiveMapId = olHelpers.obtainEffectiveMapId,
         defaults = {};
@@ -420,13 +552,27 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
             var newDefaults = _getDefaults();
 
             if (isDefined(userDefaults)) {
-                newDefaults.tileLayer = isDefined(userDefaults.tileLayer) ? userDefaults.tileLayer : newDefaults.tileLayer;
+
+                if (isDefined(userDefaults.layers)) {
+                    newDefaults.layers = angular.copy(userDefaults.layers);
+                }
 
                 if (isDefined(userDefaults.controls)) {
-                    if (isDefined(userDefaults.controls.zoom)) {
-                        newDefaults.controls.zoom.mouseWheelEnabled = isDefined(userDefaults.controls.zoom.mouseWheelEnabled) ? userDefaults.controls.zoom.mouseWheelEnabled : newDefaults.controls.zoom.mouseWheelEnabled;
-                    }
+                    newDefaults.controls = angular.copy(userDefaults.controls);
                 }
+
+                if (isDefined(userDefaults.interactions)) {
+                    newDefaults.interactions = angular.copy(userDefaults.interactions);
+                }
+
+                if (isDefined(userDefaults.minZoom)) {
+                    newDefaults.minZoom = userDefaults.minZoom;
+                }
+
+                if (isDefined(userDefaults.maxZoom)) {
+                    newDefaults.maxZoom = userDefaults.maxZoom;
+                }
+
             }
 
             var mapId = obtainEffectiveMapId(defaults, scopeId);
