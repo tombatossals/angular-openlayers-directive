@@ -34,7 +34,7 @@ describe('Directive: openlayers layers', function() {
         expect(layers.main.getSource() instanceof ol.source.OSM).toBe(true);
     });
 
-    xit('should update the main layer if the main layer source changes', function() {
+    it('should update the main layer if the main layer source changes', function() {
         angular.extend(scope, {
             layers: {
                 main: {
@@ -71,7 +71,7 @@ describe('Directive: openlayers layers', function() {
         expect(layers.main.getSource() instanceof ol.source.TileJSON).toBe(true);
     });
 
-    xit('should remove the map layer and add the default mpty value', function() {
+    it('should remove the map layer and add the default mpty value', function() {
         var initLayers = {
             main: {
               type: "tile",

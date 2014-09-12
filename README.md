@@ -15,7 +15,7 @@ See some basic examples:
 * [Center constrain zoom example](http://tombatossals.github.io/angular-openlayers-directive/examples/023-center-constrain-zoom-example.html)
 * [Custom parameters example](http://tombatossals.github.io/angular-openlayers-directive/examples/030-custom-parameters-example.html)
 * [Layers change tiles example](http://tombatossals.github.io/angular-openlayers-directive/examples/040-layers-change-tiles-example.html)
-* [Layers zoom tiles changer example](http://tombatossals.github.io/angular-openlayers-directive/examples/041-layers-change-tiles-example.html)
+* [Layers zoom tiles changer example](http://tombatossals.github.io/angular-openlayers-directive/examples/041-layers-zoom-tiles-changer-example.html)
 * [Layers opacity example](http://tombatossals.github.io/angular-openlayers-directive/examples/042-layers-opacity-example.html)
 
 
