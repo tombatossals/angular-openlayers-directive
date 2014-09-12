@@ -254,7 +254,7 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
                         layers = angular.copy(defaults.layers);
                     }
 
-                    if (!equals(layers.main, oldLayers.main)) {
+                    if (!isDefined(olLayers.main) || !equals(layers.main, oldLayers.main)) {
                         if (isDefined(olLayers.main)) {
                             map.removeLayer(olLayers.main);
                             delete olLayers.main;

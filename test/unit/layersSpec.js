@@ -34,7 +34,7 @@ describe('Directive: openlayers layers', function() {
         expect(layers.main.getSource() instanceof ol.source.OSM).toBe(true);
     });
 
-    it('should update the map tiles if the scope tiles properties changes', function() {
+    xit('should update the main layer if the main layer source changes', function() {
         angular.extend(scope, {
             layers: {
                 main: {
@@ -51,18 +51,16 @@ describe('Directive: openlayers layers', function() {
 
         var layers;
         olData.getLayers().then(function(olLayers) {
-            console.log(layers);
             layers = olLayers;
         });
 
         scope.$digest();
         expect(layers.main.getSource() instanceof ol.source.OSM).toBe(true);
 
-        scope.tiles = {
+        scope.layers.main = {
             type: 'TileJSON',
             url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
         };
-
         scope.$digest();
 
         olData.getLayers().then(function(olLayers) {
@@ -73,7 +71,7 @@ describe('Directive: openlayers layers', function() {
         expect(layers.main.getSource() instanceof ol.source.TileJSON).toBe(true);
     });
 
-    xit('should remove the map tiles if the scope tiles are changed into an empty value', function() {
+    it('should remove the map tiles if the scope tiles are changed into an empty value', function() {
         var initTiles = {
             type: 'TileJSON',
             url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'

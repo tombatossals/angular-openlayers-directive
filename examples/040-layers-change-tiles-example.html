@@ -39,18 +39,17 @@
                 },
                 layers: {
                     main: {
+                        type: "tile",
                         source: layersDict.opencyclemap
                     }
                 }
             });
 
             $scope.changeLayer = function(layer) {
-                $scope.layers = [
-                    {
-                        type: "tile",
-                        source: layersDict[layer]
-                    }
-                ];
+                $scope.layers.main = {
+                    type: "tile",
+                    source: layersDict[layer]
+                };
             };
         };
     </script>
