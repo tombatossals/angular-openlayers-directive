@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+        var app = angular.module('demoapp', ['openlayers-directive']);
+        app.controller('DemoController', [ '$scope', function($scope) {
+            angular.extend($scope, {
+                center: {
+                    autodiscover: false
+                }
+            });
+       }]);
+    </script>
+  </head>
+  <body ng-controller="DemoController">
+    <openlayers center="center"  height="400px"></openlayers>
+    <h1>Center autodiscover example</h1>
+    <form>
+        Latitude : <input type="number" step="any" ng-model="center.lat" />
+        Longitude : <input type="number" step="any" ng-model="center.lon" />
+        Zoom : <input type="number" step="any" ng-model="center.zoom" />
+        <button ng-click="center.autodiscover=true">Discover position</button>
+    </form>
+  </body>
+</html>

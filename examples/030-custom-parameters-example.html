@@ -15,15 +15,22 @@
                     zoom: 8
                 },
                 defaults: {
-                    tileLayer: {
-                        type: 'OSM',
-                        url: 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
-                        attribution: 'All maps &copy; <a href="http://www.opencyclemap.org/">OpenCycleMap</a>'
+                    layers: {
+                        main: {
+                            type: "tile",
+                            source: {
+                                type: 'OSM',
+                                url: 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png'
+                            }
+                        }
+                    },
+                    interactions: {
+                      mouseWheelZoom: false
                     },
                     controls: {
-                        zoom: {
-                            mouseWheelEnabled: false
-                        }
+                        zoom: false,
+                        rotate: false,
+                        attribution: false
                     }
                 }
             });

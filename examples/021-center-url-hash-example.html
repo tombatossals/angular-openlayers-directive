@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+        var app = angular.module('demoapp', ['openlayers-directive']);
+        app.controller('DemoController', [ '$scope', '$location', function($scope, $location) {
+            angular.extend($scope, {
+                london: {
+                    lat: 51.505,
+                    lon: -0.09,
+                    zoom: 4,
+                    centerUrlHash: true
+                }
+            });
+            $scope.$on("centerUrlHash", function(event, centerHash) {
+                console.log("url", centerHash);
+                $location.search({ c: centerHash });
+            });
+        }]);
+    </script>
+  </head>
+  <body ng-controller="DemoController">
+    <openlayers center="london" url-hash-center="yes" height="400"></openlayers>
+    <h1>Center map with URL synchronization example</h1>
+    <p>This demo syncs the map center position with the URL, and viceversa, using the <strong>center-url-params</strong> property.</p>
+    <form>
+        Latitude : <input type="number" step="any" ng-model="london.lat" />
+        Longitude : <input type="number" step="any" ng-model="london.lon" />
+        Zoom : <input type="number" step="any" ng-model="london.zoom" />
+    </form>
+    <ul style="display: inline;">
+        <li><a href="#/?c=36.8899:-121.8008:12">Watsonville</a>
+        <li><a href="#/?c=34.0078:-118.8060:14">Malibu</a>
+        <li><a href="#/?c=33.7717:-117.9458:12">Garden Grove</a>
+        <li><a href="#/?c=32.5290:-117.0442:13">Tijuana</a>
+    </ul>
+  </body>
+</html>
