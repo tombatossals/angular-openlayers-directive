@@ -280,9 +280,17 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
                         } else {
                             layer = layers[name];
                             var oldLayer = oldLayers[name];
+                            var olLayer = olLayers[name];
                             if (isDefined(oldLayer) && !equals(layer, oldLayer)) {
+                                if (!equals(layer.source, oldLayer.source)) {
+                                    map.removeLayer(olLayer);
+                                    delete olLayers[name];
+                                    var l = createLayer(layer);
+                                    map.addLayer(l);
+                                    olLayers[name] = l;
+                                }
+
                                 if (layer.opacity && layer.opacity !== oldLayer.opacity) {
-                                    var olLayer = olLayers[name];
                                     olLayer.setOpacity(layer.opacity);
                                 }
                             }
