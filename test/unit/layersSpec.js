@@ -34,7 +34,7 @@ describe('Directive: openlayers layers', function() {
         expect(layers.main.getSource() instanceof ol.source.OSM).toBe(true);
     });
 
-    xit('should update the main layer if the main layer source changes', function() {
+    it('should update the main layer if the main layer source changes', function() {
         angular.extend(scope, {
             layers: {
                 main: {
@@ -57,7 +57,7 @@ describe('Directive: openlayers layers', function() {
         scope.$digest();
         expect(layers.main.getSource() instanceof ol.source.OSM).toBe(true);
 
-        scope.layers.main = {
+        scope.layers.main.source = {
             type: 'TileJSON',
             url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
         };
@@ -71,13 +71,18 @@ describe('Directive: openlayers layers', function() {
         expect(layers.main.getSource() instanceof ol.source.TileJSON).toBe(true);
     });
 
-    it('should remove the map tiles if the scope tiles are changed into an empty value', function() {
-        var initTiles = {
-            type: 'TileJSON',
-            url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
+    it('should remove the map layer and add the default mpty value', function() {
+        var initLayers = {
+            main: {
+              type: "tile",
+              source: {
+                type: 'TileJSON',
+                url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
+              }
+            }
         };
-        angular.extend(scope, { tiles: initTiles });
-        var element = angular.element('<openlayers tiles="tiles"></openlayers>');
+        angular.extend(scope, { layers: initLayers });
+        var element = angular.element('<openlayers layers="layers"></openlayers>');
         element = $compile(element)(scope);
 
         var map;
@@ -85,19 +90,19 @@ describe('Directive: openlayers layers', function() {
             map = olMap;
         });
 
-        var tiles;
-        olData.getTiles().then(function(olTiles) {
-            tiles = olTiles;
+        var layers;
+        olData.getLayers().then(function(olLayers) {
+            layers = olLayers;
         });
         scope.$digest();
 
-        expect(tiles[0].getSource() instanceof ol.source.TileJSON).toBe(true);
-        scope.tiles = {};
+        expect(layers.main.getSource() instanceof ol.source.TileJSON).toBe(true);
+        scope.layers = {};
         scope.$digest();
-        olData.getTiles().then(function(olTiles) {
-            tiles = olTiles;
+        olData.getLayers().then(function(olLayers) {
+            layers = olLayers;
         });
         scope.$digest();
-        expect(tiles[0].getSource() instanceof ol.source.OSM).toBe(true);
+        expect(layers.main.getSource() instanceof ol.source.OSM).toBe(true);
     });
 });
