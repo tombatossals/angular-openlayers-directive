@@ -8,11 +8,15 @@ Library. This software aims to easily embed maps managed by openlayers on your
 
 See some basic examples:
 
-* [Basic example](http://tombatossals.github.io/angular-openlayers-directive/examples/01-simple-example.html)
-* [Center example](http://tombatossals.github.io/angular-openlayers-directive/examples/02-center-example.html)
-* [Custom parameters example](http://tombatossals.github.io/angular-openlayers-directive/examples/03-custom-parameters-example.html)
-* [Tiles example](http://tombatossals.github.io/angular-openlayers-directive/examples/04-tiles-example.html)
-* [Tiles zoom changer example](http://tombatossals.github.io/angular-openlayers-directive/examples/05-tiles-zoom-changer-example.html)
+* [Basic example](http://tombatossals.github.io/angular-openlayers-directive/examples/010-simple-example.html)
+* [Center example](http://tombatossals.github.io/angular-openlayers-directive/examples/020-center-example.html)
+* [Center url hash example](http://tombatossals.github.io/angular-openlayers-directive/examples/021-center-url-hash-example.html)
+* [Center autodiscover example](http://tombatossals.github.io/angular-openlayers-directive/examples/022-center-autodiscover-example.html)
+* [Center constrain zoom example](http://tombatossals.github.io/angular-openlayers-directive/examples/023-center-constrain-zoom-example.html)
+* [Custom parameters example](http://tombatossals.github.io/angular-openlayers-directive/examples/030-custom-parameters-example.html)
+* [Layers change tiles example](http://tombatossals.github.io/angular-openlayers-directive/examples/040-layers-change-tiles-example.html)
+* [Layers zoom tiles changer example](http://tombatossals.github.io/angular-openlayers-directive/examples/041-layers-change-tiles-example.html)
+* [Layers opacity example](http://tombatossals.github.io/angular-openlayers-directive/examples/042-layers-opacity-example.html)
 
 
 To see it in action, go to the main page where you can find more examples and
@@ -35,7 +39,14 @@ maxzoom on the map. You can see all the customizable default options in the docu
 ```javascript
 angular.extend($scope, {
     defaults: {
-        tileLayer: "http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png",
+        layers: {
+            main: {
+                source: {
+                    type; "OSM",
+                    url: "http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png",
+                }
+            }
+        },
         maxZoom: 14
     }
 });

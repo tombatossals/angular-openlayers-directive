@@ -248,24 +248,51 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
                 olScope.$watch("layers", function(layers, oldLayers) {
-                    if (!isDefined(layers.main) ||
-                        !isDefined(layers.main.source) || !isDefined(layers.main.source.type)) {
+                    var name, layer = layers[Object.keys(layers)[0]];
+                    if (!isDefined(layer) || !isDefined(layer.source) || !isDefined(layer.source.type)) {
                         $log.warn("[AngularJS - OpenLayers] At least one layer has to be defined.");
                         layers = angular.copy(defaults.layers);
                     }
 
-                    if (!isDefined(olLayers.main) || !equals(layers.main, oldLayers.main)) {
-                        if (isDefined(olLayers.main)) {
-                            map.removeLayer(olLayers.main);
-                            delete olLayers.main;
+                    // Delete non existent layers from the map
+                    for (name in olLayers) {
+                        layer = olLayers[name];
+                        if (!layers.hasOwnProperty(name)) {
+                            // Remove from the map if it's on it
+                            var activeLayers = map.getLayers();
+                            for (var i in activeLayers) {
+                                if (activeLayers[i] === layer) {
+                                    map.removeLayer(layers);
+                                }
+                            }
+                            delete olLayers[name];
                         }
-                        var l = createLayer(layers.main);
-                        map.addLayer(l);
-                        olLayers.main = l;
-                        olData.setLayers(olLayers, attrs.id);
-                        _olLayers.resolve(olLayers);
+                    }
+
+                    // add new layers
+                    for (name in layers) {
+                        if (!olLayers.hasOwnProperty(name)) {
+                            layer = createLayer(layers[name]);
+                            if (isDefined(layer)) {
+                                olLayers[name] = layer;
+                                map.addLayer(olLayers[name]);
+                            }
+                        } else {
+                            layer = layers[name];
+                            var oldLayer = oldLayers[name];
+                            if (isDefined(oldLayer) && !equals(layer, oldLayer)) {
+                                if (layer.opacity && layer.opacity !== oldLayer.opacity) {
+                                    var olLayer = olLayers[name];
+                                    olLayer.setOpacity(layer.opacity);
+                                }
+                            }
+                        }
                     }
                 }, true);
+                // We can resolve the layer promises
+                _olLayers.resolve(olLayers);
+                olData.setLayers(olLayers, attrs.id);
+
             });
         }
     };
@@ -462,6 +489,9 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                     break;
             }
 
+            if (angular.isNumber(layer.opacity)) {
+                oLayer.setOpacity(layer.opacity);
+            }
             return oLayer;
         }
     };

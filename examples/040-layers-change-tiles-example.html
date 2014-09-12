@@ -10,24 +10,39 @@
         function DemoController($scope) {
             var layersDict = {
                 openstreetmap: {
-                    type: 'OSM'
+                    type: "tile",
+                    source: {
+                        type: 'OSM'
+                    }
                 },
                 opencyclemap: {
-                    type: 'OSM',
-                    url: 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
-                    attribution: 'All maps &copy; <a href="http://www.opencyclemap.org/">OpenCycleMap</a>'
+                    type: "tile",
+                    source: {
+                        type: 'OSM',
+                        url: 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
+                        attribution: 'All maps &copy; <a href="http://www.opencyclemap.org/">OpenCycleMap</a>'
+                    }
                 },
                 mapbox_streets: {
-                    type: 'TileJSON',
-                    url: 'https://api.tiles.mapbox.com/v3/tombatossals.map-fmyyujjl.jsonp'
+                    type: "tile",
+                    source: {
+                        type: 'TileJSON',
+                        url: 'https://api.tiles.mapbox.com/v3/tombatossals.map-fmyyujjl.jsonp'
+                    }
                 },
                 mapbox_terrain: {
-                    type: 'TileJSON',
-                    url: 'https://api.tiles.mapbox.com/v3/tombatossals.jbn2nnon.jsonp'
+                    type: "tile",
+                    source: {
+                        type: 'TileJSON',
+                        url: 'https://api.tiles.mapbox.com/v3/tombatossals.jbn2nnon.jsonp'
+                    }
                 },
                 mapbox_geographyclass: {
-                    type: 'TileJSON',
-                    url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
+                    type: "tile",
+                    source: {
+                        type: 'TileJSON',
+                        url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
+                    }
                 }
             };
 
@@ -53,12 +68,6 @@
             };
         };
     </script>
-    <style>
-        .angular-leaflet-map {
-            width: 640px;
-            height: 400px;
-        }
-    </style>
   </head>
   <body>
   <div class="container">

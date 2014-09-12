@@ -127,6 +127,9 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                     break;
             }
 
+            if (angular.isNumber(layer.opacity)) {
+                oLayer.setOpacity(layer.opacity);
+            }
             return oLayer;
         }
     };

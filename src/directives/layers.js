@@ -14,24 +14,24 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
         },
         link: function(scope, element, attrs, controller) {
             var isDefined   = olHelpers.isDefined,
+                equals      = olHelpers.equals,
                 olLayers    = {},
                 olScope     = controller.getOpenlayersScope(),
                 createLayer = olHelpers.createLayer;
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
-                olScope.$watch("layers", function(layers) {
-                    if (!isDefined(layers.main) ||
-                        !isDefined(layers.main.source) || !isDefined(layers.main.source.type)) {
+                olScope.$watch("layers", function(layers, oldLayers) {
+                    var name, layer = layers[Object.keys(layers)[0]];
+                    if (!isDefined(layer) || !isDefined(layer.source) || !isDefined(layer.source.type)) {
                         $log.warn("[AngularJS - OpenLayers] At least one layer has to be defined.");
                         layers = angular.copy(defaults.layers);
                     }
 
                     // Delete non existent layers from the map
-                    var name, layer;
                     for (name in olLayers) {
                         layer = olLayers[name];
-                        if (!layers.hasOwnProperty[name]) {
+                        if (!layers.hasOwnProperty(name)) {
                             // Remove from the map if it's on it
                             var activeLayers = map.getLayers();
                             for (var i in activeLayers) {
@@ -45,45 +45,28 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
 
                     // add new layers
                     for (name in layers) {
-                        if (!layers.hasOwnProperty[name]) {
+                        if (!olLayers.hasOwnProperty(name)) {
                             layer = createLayer(layers[name]);
                             if (isDefined(layer)) {
                                 olLayers[name] = layer;
-                                // Only add the visible layer to the map
-                                if (layers[name].visible === true) {
-                                    map.addLayer(olLayers[name]);
+                                map.addLayer(olLayers[name]);
+                            }
+                        } else {
+                            layer = layers[name];
+                            var oldLayer = oldLayers[name];
+                            if (isDefined(oldLayer) && !equals(layer, oldLayer)) {
+                                if (layer.opacity && layer.opacity !== oldLayer.opacity) {
+                                    var olLayer = olLayers[name];
+                                    olLayer.setOpacity(layer.opacity);
                                 }
                             }
                         }
                     }
-
-                    if (Object.keys(olLayers).length === 0) {
-                        $log.error('[AngularJS - Leaflet] At least one "main" layer has to be defined');
-                        return;
-                    }
-
-                    //we have layers, so we need to make, at least, one visible
-                    var found = false;
-                    // search for an active layer
-                    for (var key in olLayers) {
-                        layer = olLayers[key];
-                        if (layer.getVisible()) {
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    // If there is no active layer make the main layer active
-                    if (!found) {
-                        if (olLayers.hasOwnProperty("main")) {
-                            olLayers.main.setVisible(true);
-                        } else {
-                            olLayers[Object.keys(olLayers)[0]].setVisible(true);
-                        }
-
-                    }
-
                 }, true);
+                // We can resolve the layer promises
+                _olLayers.resolve(olLayers);
+                olData.setLayers(olLayers, attrs.id);
+
             });
         }
     };
