@@ -3,37 +3,39 @@
 Work in progress.
 
 [AngularJS](http://angularjs.org/) directive for the OpenLayers (version 3) Javascript
-Library. This software aims to easily embed maps managed by openlayers on your
-[OpenLayers](http://openlayers.org/) project.
+Library. This software allows you to embed maps managed by openlayers on your [AnguarJS](http://angularjs.org/) or [OpenLayers](http://openlayers.org/) project. It's a good starting point to learn the ***Openlayers API*** too.
 
-See some basic examples:
+Let's start with some basic examples. Look at the source code of the example to see all the code you need to embed a similar interactive map on our page.
 
 * [Basic example](http://tombatossals.github.io/angular-openlayers-directive/examples/010-simple-example.html)
 * [Center example](http://tombatossals.github.io/angular-openlayers-directive/examples/020-center-example.html)
 * [Center url hash example](http://tombatossals.github.io/angular-openlayers-directive/examples/021-center-url-hash-example.html)
 * [Center autodiscover example](http://tombatossals.github.io/angular-openlayers-directive/examples/022-center-autodiscover-example.html)
 * [Center constrain zoom example](http://tombatossals.github.io/angular-openlayers-directive/examples/023-center-constrain-zoom-example.html)
+* [Center with updated bounds example](http://tombatossals.github.io/angular-openlayers-directive/examples/024-center-bounds-example.html)
 * [Custom parameters example](http://tombatossals.github.io/angular-openlayers-directive/examples/030-custom-parameters-example.html)
 * [Layers change tiles example](http://tombatossals.github.io/angular-openlayers-directive/examples/040-layers-change-tiles-example.html)
 * [Layers zoom tiles changer example](http://tombatossals.github.io/angular-openlayers-directive/examples/041-layers-zoom-tiles-changer-example.html)
 * [Layers opacity example](http://tombatossals.github.io/angular-openlayers-directive/examples/042-layers-opacity-example.html)
 
+You can take a look at the current documentation go get a more detailed explanation of how it works and what you can accomplish with this directive:
 
-To see it in action, go to the main page where you can find more examples and
-some documentation:
+* [Openlayers directive](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/01-openlayers-directive.md)
+* [Center attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/02-center-attribute.md)
+* [Defaults attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/03-defaults-attribute.md)
+* [Layers attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/04-layers-attribute.md)
 
- * http://tombatossals.github.com/angular-openlayers-directive
+## Quick start: How to use it
 
+First of all, load **AngularJS** and **Openlayers(V3)** in your HTML.
 
-## How to use it
-
-You must include the openlayers-directive dependency on your angular module:
+After that, you must include the openlayers-directive dependency on your angular module:
 ```
 var app = angular.module("demoapp", ["openlayers-directive"]);
 ```
 
 After that, you can change the default values of the directive (if you want) on
-your angular controller. For example, you can change the tiles source or the
+your angular controller. For example, you can change the tiles source of the main layer, or the
 maxzoom on the map. You can see all the customizable default options in the documentation.
 
 ```javascript
@@ -67,5 +69,5 @@ angular.extend($scope, {
 ```
 Finally, you must include the markup directive on your HTML page, like this:
 ```html
-<openlayers defaults="defaults" center="center" height="480px" width="640px"></openlayers>
+<openlayers center="center" height="480px" width="640px"></openlayers>
 ```
