@@ -87,12 +87,14 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
         require: 'openlayers',
 
         link: function(scope, element, attrs, controller) {
-            var safeApply     = olHelpers.safeApply,
-                isValidCenter = olHelpers.isValidCenter,
-                isDefined = olHelpers.isDefined,
+            var safeApply         = olHelpers.safeApply,
+                isValidCenter     = olHelpers.isValidCenter,
+                isDefined         = olHelpers.isDefined,
+                isArray           = olHelpers.isArray,
+                isNumber          = olHelpers.isNumber,
                 isSameCenterOnMap = olHelpers.isSameCenterOnMap,
-                equals         = olHelpers.equals,
-                olScope       = controller.getOpenlayersScope();
+                equals            = olHelpers.equals,
+                olScope           = controller.getOpenlayersScope();
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id),
@@ -110,6 +112,10 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                 if (!isValidCenter(center)) {
                     $log.warn("[AngularJS - Openlayers] invalid 'center'");
                     center = angular.copy(defaults.center);
+                }
+
+                if (!isNumber(center.zoom)) {
+                    center.zoom = 1;
                 }
 
                 var view = new ol.View({
@@ -154,7 +160,6 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
 
                 var geolocation;
                 olScope.$watch("center", function(center) {
-
                     if (center.autodiscover) {
                         if (!geolocation) {
                             geolocation = new ol.Geolocation({
@@ -194,7 +199,6 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                         }
                     }
 
-
                     if (view.getZoom() !== center.zoom) {
                         view.setZoom(center.zoom);
                     }
@@ -202,8 +206,12 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
 
                 view.on('change:resolution', function() {
                     safeApply(olScope, function(scope) {
-                        if (scope.center && scope.center.zoom !== view.getZoom()) {
-                            scope.center.zoom = view.getZoom();
+                        scope.center.zoom = view.getZoom();
+
+                        // Calculate the bounds if needed
+                        if (isArray(scope.center.bounds)) {
+                            var extent = view.calculateExtent(map.getSize());
+                            scope.center.bounds = ol.proj.transform(extent, 'EPSG:3857', 'EPSG:4326');
                         }
                     });
                 });
@@ -215,6 +223,12 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                         if (scope.center) {
                             scope.center.lat = proj[1];
                             scope.center.lon = proj[0];
+
+                            // Calculate the bounds if needed
+                            if (isArray(scope.center.bounds)) {
+                                var extent = view.calculateExtent(map.getSize());
+                                scope.center.bounds = ol.proj.transform(extent, 'EPSG:3857', 'EPSG:4326');
+                            }
                         }
                     });
                 });
