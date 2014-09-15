@@ -29,25 +29,21 @@
         };
     </script>
   </head>
-  <body>
-  <div class="container">
-      <div ng-controller="DemoController">
-        <openlayers center="quebec" layers="layers" height="400px"></openlayers>
+  <body ng-controller="DemoController">
+    <openlayers center="quebec" layers="layers" height="400px"></openlayers>
 
-        <h1>Using a Bing Maps Layer</h1>
-        <p>This map uses a Bing source. You must request an API key to use these maps <a href="http://www.bingmapsportal.com">here</a>.</p>
+    <h1>Using a Bing Maps Layer</h1>
+    <p>This map uses a Bing source. You must request an API key to use these maps <a href="http://www.bingmapsportal.com">here</a>.</p>
 
-        <ul>
-            <li style="display: inline" ng-repeat="imagerySet in [ 'Road', 'Aerial', 'AerialWithLabels', 'collinsBart', 'ordnanceSurvey' ]">
-                <button ng-click="layers.main.source.imagerySet=imagerySet" class="btn btn-default" ng-bind="imagerySet"></button>
-            </li>
-        </ul>
+    <ul>
+        <li style="display: inline" ng-repeat="imagerySet in [ 'Road', 'Aerial', 'AerialWithLabels', 'collinsBart', 'ordnanceSurvey' ]">
+            <button ng-click="layers.main.source.imagerySet=imagerySet" class="btn btn-default" ng-bind="imagerySet"></button>
+        </li>
+    </ul>
 
-        <p>Current TileLayer Url:
-            <pre>{{ layers | json }}</pre>
-        </p>
-
-      </div>
+    <p>Current TileLayer Url:
+        <pre>{{ layers | json }}</pre>
+    </p>
   </div>
 
   </body>
