@@ -387,6 +387,15 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
         return angular.isDefined(value);
     };
 
+    var bingImagerySets = [
+      'Road',
+      'Aerial',
+      'AerialWithLabels',
+      'collinsBart',
+      'ordnanceSurvey'
+    ];
+
+
     return {
         // Determine if a reference is defined
         isDefined: isDefined,
@@ -500,6 +509,20 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                         oSource.setUrl(layer.source.url);
                     }
 
+                    break;
+                case 'BingMaps':
+                    if (!layer.source.key) {
+                        $log.error("[AngularJS - Openlayers] - You need an API key to show the Bing Maps.");
+                        return;
+                    }
+
+                    oSource = new ol.source.BingMaps({
+                        preload: Infinity,
+                        key: layer.source.key,
+                        imagerySet: layer.source.imagerySet?layer.source.imagerySet:bingImagerySets[0]
+                    });
+
+                    oLayer = new ol.layer.Tile({ source: oSource });
                     break;
                 case 'TileJSON':
                     oSource = new ol.source.TileJSON({

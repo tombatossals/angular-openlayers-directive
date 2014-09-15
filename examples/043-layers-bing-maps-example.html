@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+        angular.module("demoapp", ["openlayers-directive"]);
+        function DemoController($scope) {
+            angular.extend($scope, {
+                quebec: {
+                    lat: 46.823,
+                    lon: -71.205,
+                    zoom: 12
+                },
+                layers: {
+                    main: {
+                        type: "tile",
+                        source: {
+                            name: 'Bing Maps',
+                            type: 'BingMaps',
+                            key: 'Aj6XtE1Q1rIvehmjn2Rh1LR2qvMGZ-8vPS9Hn3jCeUiToM77JFnf-kFRzyMELDol',
+                            imagerySet: 'Road'
+                        }
+                    }
+                }
+            });
+        };
+    </script>
+  </head>
+  <body>
+  <div class="container">
+      <div ng-controller="DemoController">
+        <openlayers center="quebec" layers="layers" height="400px"></openlayers>
+
+        <h1>Using a Bing Maps Layer</h1>
+        <p>This map uses a Bing source. You must request an API key to use these maps <a href="http://www.bingmapsportal.com">here</a>.</p>
+
+        <ul>
+            <li style="display: inline" ng-repeat="imagerySet in [ 'Road', 'Aerial', 'AerialWithLabels', 'collinsBart', 'ordnanceSurvey' ]">
+                <button ng-click="layers.main.source.imagerySet=imagerySet" class="btn btn-default" ng-bind="imagerySet"></button>
+            </li>
+        </ul>
+
+        <p>Current TileLayer Url:
+            <pre>{{ layers | json }}</pre>
+        </p>
+
+      </div>
+  </div>
+
+  </body>
+</html>
