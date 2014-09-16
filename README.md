@@ -17,6 +17,10 @@ Let's start with some basic examples. Look at the source code of the example to 
 * [Layers change tiles example](http://tombatossals.github.io/angular-openlayers-directive/examples/040-layers-change-tiles-example.html)
 * [Layers zoom tiles changer example](http://tombatossals.github.io/angular-openlayers-directive/examples/041-layers-zoom-tiles-changer-example.html)
 * [Layers opacity example](http://tombatossals.github.io/angular-openlayers-directive/examples/042-layers-opacity-example.html)
+* [Layers Bing Maps example](http://tombatossals.github.io/angular-openlayers-directive/examples/043-layers-bing-maps-example.html)
+* [Layers MapQuest example](http://tombatossals.github.io/angular-openlayers-directive/examples/044-layers-mapquest-maps-example.html)
+* [Layers GeoJSON example](http://tombatossals.github.io/angular-openlayers-directive/examples/045-layers-geojson-example.html)
+* [Layers GeoJSON center example](http://tombatossals.github.io/angular-openlayers-directive/examples/046-layers-geojson-center-example.html)
 
 You can take a look at the current documentation go get a more detailed explanation of how it works and what you can accomplish with this directive:
 

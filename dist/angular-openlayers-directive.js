@@ -458,6 +458,8 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                 break;
 
             case 'GeoJSON':
+                var projection = source.projection?source.projection:'EPSG:3857';
+
                 if (!(source.features || source.url)) {
                     $log.error("[AngularJS - Openlayers] - You need a GeoJSON features property to add a GeoJSON layer.");
                     return;
@@ -465,6 +467,7 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
 
                 if (source.url) {
                     oSource = new ol.source.GeoJSON({
+                        projection: projection,
                         url: source.url
                     });
                 } else {
