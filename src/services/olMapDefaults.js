@@ -14,7 +14,7 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
             },
             layers: {
                 main: {
-                    type: 'tile',
+                    type: 'Tile',
                     source: {
                         type: 'OSM'
                     }

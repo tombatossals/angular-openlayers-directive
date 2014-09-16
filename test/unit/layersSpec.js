@@ -38,7 +38,6 @@ describe('Directive: openlayers layers', function() {
         angular.extend(scope, {
             layers: {
                 main: {
-                    type: 'tile',
                     source: {
                         type: 'OSM'
                     }
@@ -74,7 +73,6 @@ describe('Directive: openlayers layers', function() {
     it('should remove the map layer and add the default mpty value', function() {
         var initLayers = {
             main: {
-              type: "tile",
               source: {
                 type: 'TileJSON',
                 url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'

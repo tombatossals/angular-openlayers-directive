@@ -396,6 +396,85 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
     ];
 
 
+    var detectLayerType = function(layer) {
+        if (layer.type) {
+            return layer.type;
+        } else {
+            switch(layer.source.type) {
+                case 'OSM':
+                    return 'Tile';
+                case 'BingMaps':
+                    return 'Tile';
+                case 'TileJSON':
+                    return 'Tile';
+                case 'GeoJSON':
+                    return 'Vector';
+            }
+        }
+    };
+
+
+    var createSource = function(source) {
+        var oSource;
+
+        switch(source.type) {
+            case 'OSM':
+                if (source.attribution) {
+                    oSource = new ol.source.OSM({
+                        attributions: [
+                          new ol.Attribution({ html: source.attribution }),
+                          ol.source.OSM.DATA_ATTRIBUTION
+                        ]
+                    });
+                } else {
+                    oSource = new ol.source.OSM();
+                }
+
+                if (source.url) {
+                    oSource.setUrl(source.url);
+                }
+
+                break;
+            case 'BingMaps':
+                if (!source.key) {
+                    $log.error("[AngularJS - Openlayers] - You need an API key to show the Bing Maps.");
+                    return;
+                }
+
+                oSource = new ol.source.BingMaps({
+                    preload: Infinity,
+                    key: source.key,
+                    imagerySet: source.imagerySet?source.imagerySet:bingImagerySets[0]
+                });
+
+                break;
+            case 'GeoJSON':
+                if (!(source.features || source.url)) {
+                    $log.error("[AngularJS - Openlayers] - You need a GeoJSON features property to add a GeoJSON layer.");
+                    return;
+                }
+
+                if (source.url) {
+                    oSource = new ol.source.GeoJSON({
+                        url: source.url
+                    });
+                } else {
+                    oSource = new ol.source.GeoJSON(source.geojson);
+                }
+
+                break;
+            case 'TileJSON':
+                oSource = new ol.source.TileJSON({
+                    url: source.url,
+                    crossOrigin: 'anonymous'
+                });
+
+                break;
+        }
+
+        return oSource;
+    };
+
     return {
         // Determine if a reference is defined
         isDefined: isDefined,
@@ -488,65 +567,16 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
         },
 
         createLayer: function(layer) {
-            var oLayer, oSource;
+            var oLayer,
+                type = detectLayerType(layer),
+                oSource = createSource(layer.source);
 
-            switch(layer.source.type) {
-                case 'OSM':
-                    if (layer.source.attribution) {
-                        oSource = new ol.source.OSM({
-                            attributions: [
-                              new ol.Attribution({ html: layer.source.attribution }),
-                              ol.source.OSM.DATA_ATTRIBUTION
-                            ]
-                        });
-                    } else {
-                        oSource = new ol.source.OSM();
-                    }
-
-                    oLayer = new ol.layer.Tile({ source: oSource });
-
-                    if (layer.source.url) {
-                        oSource.setUrl(layer.source.url);
-                    }
-
-                    break;
-                case 'BingMaps':
-                    if (!layer.source.key) {
-                        $log.error("[AngularJS - Openlayers] - You need an API key to show the Bing Maps.");
-                        return;
-                    }
-
-                    oSource = new ol.source.BingMaps({
-                        preload: Infinity,
-                        key: layer.source.key,
-                        imagerySet: layer.source.imagerySet?layer.source.imagerySet:bingImagerySets[0]
-                    });
-
+            switch(type) {
+                case 'Tile':
                     oLayer = new ol.layer.Tile({ source: oSource });
                     break;
-                case 'GeoJSON':
-                    if (!(layer.source.features || layer.source.url)) {
-                        $log.error("[AngularJS - Openlayers] - You need a GeoJSON features property to add a GeoJSON layer.");
-                        return;
-                    }
-
-                    if (layer.source.url) {
-                        oSource = new ol.source.GeoJSON({
-                            url: layer.source.url
-                        });
-                    } else {
-                        oSource = new ol.source.GeoJSON(layer.source.geojson);
-                    }
-
+                case 'Vector':
                     oLayer = new ol.layer.Vector({ source: oSource });
-                    break;
-                case 'TileJSON':
-                    oSource = new ol.source.TileJSON({
-                        url: layer.source.url,
-                        crossOrigin: 'anonymous'
-                    });
-
-                    oLayer = new ol.layer.Tile({ source: oSource });
                     break;
             }
 
@@ -574,7 +604,7 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
             },
             layers: {
                 main: {
-                    type: 'tile',
+                    type: 'Tile',
                     source: {
                         type: 'OSM'
                     }
