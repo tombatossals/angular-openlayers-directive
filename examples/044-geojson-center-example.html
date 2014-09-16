@@ -20,6 +20,12 @@
                 }
             },
             layers: {
+                geojson: {
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/JPN.geo.json'
+                    }
+                },
                 main: {
                     source: {
                         type: "OSM"
@@ -45,15 +51,6 @@
             });
         };
 
-        // Get the countries geojson data from a JSON
-        $http.get("json/JPN.geo.json").success(function(geojson, status) {
-            $scope.layers.geojson = {
-                source: {
-                    type: 'GeoJSON',
-                    geojson: geojson
-                }
-            };
-        });
       } ]);
       </script>
   </head>

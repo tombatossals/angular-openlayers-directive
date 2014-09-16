@@ -525,12 +525,18 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                     oLayer = new ol.layer.Tile({ source: oSource });
                     break;
                 case 'GeoJSON':
-                    if (!layer.source.geojson) {
+                    if (!(layer.source.features || layer.source.url)) {
                         $log.error("[AngularJS - Openlayers] - You need a GeoJSON features property to add a GeoJSON layer.");
                         return;
                     }
 
-                    oSource = new ol.source.GeoJSON(layer.source.geojson);
+                    if (layer.source.url) {
+                        oSource = new ol.source.GeoJSON({
+                            url: layer.source.url
+                        });
+                    } else {
+                        oSource = new ol.source.GeoJSON(layer.source.geojson);
+                    }
 
                     oLayer = new ol.layer.Vector({ source: oSource });
                     break;

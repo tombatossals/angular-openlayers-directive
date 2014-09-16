@@ -103,15 +103,15 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
-        createLayer: function(layer) {
-            var oLayer, oSource;
+        createSource: function(source) {
+            var oSource;
 
-            switch(layer.source.type) {
+            switch(source.type) {
                 case 'OSM':
-                    if (layer.source.attribution) {
+                    if (source.attribution) {
                         oSource = new ol.source.OSM({
                             attributions: [
-                              new ol.Attribution({ html: layer.source.attribution }),
+                              new ol.Attribution({ html: source.attribution }),
                               ol.source.OSM.DATA_ATTRIBUTION
                             ]
                         });
@@ -119,46 +119,71 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                         oSource = new ol.source.OSM();
                     }
 
-                    oLayer = new ol.layer.Tile({ source: oSource });
-
-                    if (layer.source.url) {
-                        oSource.setUrl(layer.source.url);
+                    if (source.url) {
+                        oSource.setUrl(source.url);
                     }
 
                     break;
                 case 'BingMaps':
-                    if (!layer.source.key) {
+                    if (!source.key) {
                         $log.error("[AngularJS - Openlayers] - You need an API key to show the Bing Maps.");
                         return;
                     }
 
                     oSource = new ol.source.BingMaps({
                         preload: Infinity,
-                        key: layer.source.key,
-                        imagerySet: layer.source.imagerySet?layer.source.imagerySet:bingImagerySets[0]
+                        key: source.key,
+                        imagerySet: source.imagerySet?source.imagerySet:bingImagerySets[0]
                     });
 
-                    oLayer = new ol.layer.Tile({ source: oSource });
                     break;
                 case 'GeoJSON':
-                    if (!layer.source.geojson) {
+                    if (!(source.features || source.url)) {
                         $log.error("[AngularJS - Openlayers] - You need a GeoJSON features property to add a GeoJSON layer.");
                         return;
                     }
 
-                    oSource = new ol.source.GeoJSON(layer.source.geojson);
+                    if (source.url) {
+                        oSource = new ol.source.GeoJSON({
+                            url: source.url
+                        });
+                    } else {
+                        oSource = new ol.source.GeoJSON(source.geojson);
+                    }
 
-                    oLayer = new ol.layer.Vector({ source: oSource });
                     break;
                 case 'TileJSON':
                     oSource = new ol.source.TileJSON({
-                        url: layer.source.url,
+                        url: source.url,
                         crossOrigin: 'anonymous'
                     });
 
-                    oLayer = new ol.layer.Tile({ source: oSource });
                     break;
             }
+
+            return oSource;
+        },
+
+        autoDetectLayerType: function(source) {
+
+        },
+        
+        createLayer: function(layer) {
+            var oLayer,
+                type,
+                oSource = createSource(layer.source);
+
+            if (layer.type) {
+                type = layer.type;
+            } else {
+
+            }
+
+
+            oLayer = new ol.layer.Tile({ source: oSource });
+            oLayer = new ol.layer.Tile({ source: oSource });
+            oLayer = new ol.layer.Tile({ source: oSource });
+            oLayer = new ol.layer.Vector({ source: oSource });
 
             if (angular.isNumber(layer.opacity)) {
                 oLayer.setOpacity(layer.opacity);
