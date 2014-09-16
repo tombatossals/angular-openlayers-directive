@@ -11,20 +11,17 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
       'ordnanceSurvey'
     ];
 
+    var mapQuestLayers = [ 'osm', 'sat', 'hyb' ];
 
     var detectLayerType = function(layer) {
         if (layer.type) {
             return layer.type;
         } else {
             switch(layer.source.type) {
-                case 'OSM':
-                    return 'Tile';
-                case 'BingMaps':
-                    return 'Tile';
-                case 'TileJSON':
-                    return 'Tile';
                 case 'GeoJSON':
                     return 'Vector';
+                default:
+                  return 'Tile';
             }
         }
     };
@@ -58,12 +55,24 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 }
 
                 oSource = new ol.source.BingMaps({
-                    preload: Infinity,
                     key: source.key,
                     imagerySet: source.imagerySet?source.imagerySet:bingImagerySets[0]
                 });
 
                 break;
+
+            case 'MapQuest':
+                if (!source.layer || mapQuestLayers.indexOf(source.layer) === -1) {
+                    $log.error("[AngularJS - Openlayers] - MapQuest layers needs a valid 'layer' property.");
+                    return;
+                }
+
+                oSource = new ol.source.MapQuest({
+                    layer: source.layer
+                });
+
+                break;
+
             case 'GeoJSON':
                 if (!(source.features || source.url)) {
                     $log.error("[AngularJS - Openlayers] - You need a GeoJSON features property to add a GeoJSON layer.");
