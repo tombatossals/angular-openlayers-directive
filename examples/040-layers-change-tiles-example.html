@@ -44,7 +44,6 @@
                 },
                 layers: {
                     main: {
-                        type: "tile",
                         source: $scope.sources.opencyclemap
                     }
                 }
@@ -65,7 +64,7 @@
                 <button ng-click="layers.main.source=source" class="btn btn-default" ng-bind="source.name"></button>
             </li>
         </ul>
-        
+
         <p>Current TileLayer Url:
             <pre>{{ layers | json }}</pre>
         </p>
