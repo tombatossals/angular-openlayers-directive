@@ -87,12 +87,14 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
         require: 'openlayers',
 
         link: function(scope, element, attrs, controller) {
-            var safeApply     = olHelpers.safeApply,
-                isValidCenter = olHelpers.isValidCenter,
-                isDefined = olHelpers.isDefined,
+            var safeApply         = olHelpers.safeApply,
+                isValidCenter     = olHelpers.isValidCenter,
+                isDefined         = olHelpers.isDefined,
+                isArray           = olHelpers.isArray,
+                isNumber          = olHelpers.isNumber,
                 isSameCenterOnMap = olHelpers.isSameCenterOnMap,
-                equals         = olHelpers.equals,
-                olScope       = controller.getOpenlayersScope();
+                equals            = olHelpers.equals,
+                olScope           = controller.getOpenlayersScope();
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id),
@@ -110,6 +112,10 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                 if (!isValidCenter(center)) {
                     $log.warn("[AngularJS - Openlayers] invalid 'center'");
                     center = angular.copy(defaults.center);
+                }
+
+                if (!isNumber(center.zoom)) {
+                    center.zoom = 1;
                 }
 
                 var view = new ol.View({
@@ -154,7 +160,6 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
 
                 var geolocation;
                 olScope.$watch("center", function(center) {
-
                     if (center.autodiscover) {
                         if (!geolocation) {
                             geolocation = new ol.Geolocation({
@@ -162,7 +167,6 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                             });
 
                             geolocation.on('change', function() {
-                                console.log('change');
                                 if (center.autodiscover) {
                                     var location = geolocation.getPosition();
                                     safeApply(olScope, function(scope) {
@@ -175,7 +179,6 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                                 }
                             });
                         }
-                        console.log("settracking");
                         geolocation.setTracking(true);
                         return;
                     }
@@ -196,7 +199,6 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                         }
                     }
 
-
                     if (view.getZoom() !== center.zoom) {
                         view.setZoom(center.zoom);
                     }
@@ -204,8 +206,12 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
 
                 view.on('change:resolution', function() {
                     safeApply(olScope, function(scope) {
-                        if (scope.center && scope.center.zoom !== view.getZoom()) {
-                            scope.center.zoom = view.getZoom();
+                        scope.center.zoom = view.getZoom();
+
+                        // Calculate the bounds if needed
+                        if (isArray(scope.center.bounds)) {
+                            var extent = view.calculateExtent(map.getSize());
+                            scope.center.bounds = ol.proj.transform(extent, 'EPSG:3857', 'EPSG:4326');
                         }
                     });
                 });
@@ -217,6 +223,12 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                         if (scope.center) {
                             scope.center.lat = proj[1];
                             scope.center.lon = proj[0];
+
+                            // Calculate the bounds if needed
+                            if (isArray(scope.center.bounds)) {
+                                var extent = view.calculateExtent(map.getSize());
+                                scope.center.bounds = ol.proj.transform(extent, 'EPSG:3857', 'EPSG:4326');
+                            }
                         }
                     });
                 });
@@ -250,30 +262,59 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
                 olScope.$watch("layers", function(layers, oldLayers) {
-                    if (!isDefined(layers) || !isDefined(layers.main) || !isDefined(layers.main.type)) {
-                        $log.warn("[AngularJS - OpenLayers] At least one main layer has to be defined.");
+                    var name, layer = layers[Object.keys(layers)[0]];
+                    if (!isDefined(layer) || !isDefined(layer.source) || !isDefined(layer.source.type)) {
+                        $log.warn("[AngularJS - OpenLayers] At least one layer has to be defined.");
                         layers = angular.copy(defaults.layers);
                     }
 
-                    // Check if the main layer is the same type but different URL
-                    if (isDefined(layers.main) && isDefined(layers.main.type) &&
-                        isDefined(oldLayers.main) && isDefined(oldLayers.main.type) &&
-                        layers.main.type === oldLayers.main.type && layers.main.url !== oldLayers.main.url) {
-                            olLayers.main.getSource().setUrl(layers.main.url);
-                            return;
+                    // Delete non existent layers from the map
+                    for (name in olLayers) {
+                        layer = olLayers[name];
+                        if (!layers.hasOwnProperty(name)) {
+                            // Remove from the map if it's on it
+                            var activeLayers = map.getLayers();
+                            for (var i in activeLayers) {
+                                if (activeLayers[i] === layer) {
+                                    map.removeLayer(layers);
+                                }
+                            }
+                            delete olLayers[name];
+                        }
                     }
 
-                    if (!isDefined(olLayers.main) || !equals(layers.main, oldLayers.main)) {
-                        if (isDefined(olLayers.main) && oldLayers.main.type !== layers.main.type) {
-                            map.removeLayer(olLayers.main);
+                    // add new layers
+                    for (name in layers) {
+                        if (!olLayers.hasOwnProperty(name)) {
+                            layer = createLayer(layers[name]);
+                            if (isDefined(layer)) {
+                                olLayers[name] = layer;
+                                map.addLayer(olLayers[name]);
+                            }
+                        } else {
+                            layer = layers[name];
+                            var oldLayer = oldLayers[name];
+                            var olLayer = olLayers[name];
+                            if (isDefined(oldLayer) && !equals(layer, oldLayer)) {
+                                if (!equals(layer.source, oldLayer.source)) {
+                                    map.removeLayer(olLayer);
+                                    delete olLayers[name];
+                                    var l = createLayer(layer);
+                                    map.addLayer(l);
+                                    olLayers[name] = l;
+                                }
+
+                                if (layer.opacity && layer.opacity !== oldLayer.opacity) {
+                                    olLayer.setOpacity(layer.opacity);
+                                }
+                            }
                         }
-                        var l = createLayer(layers.main);
-                        map.addLayer(l);
-                        olLayers.main = l;
                     }
-                    _olLayers.resolve(olLayers);
                 }, true);
+                // We can resolve the layer promises
+                _olLayers.resolve(olLayers);
                 olData.setLayers(olLayers, attrs.id);
+
             });
         }
     };
@@ -346,6 +387,106 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
         return angular.isDefined(value);
     };
 
+    var bingImagerySets = [
+      'Road',
+      'Aerial',
+      'AerialWithLabels',
+      'collinsBart',
+      'ordnanceSurvey'
+    ];
+
+    var mapQuestLayers = [ 'osm', 'sat', 'hyb' ];
+
+    var detectLayerType = function(layer) {
+        if (layer.type) {
+            return layer.type;
+        } else {
+            switch(layer.source.type) {
+                case 'GeoJSON':
+                    return 'Vector';
+                default:
+                  return 'Tile';
+            }
+        }
+    };
+
+
+    var createSource = function(source) {
+        var oSource;
+
+        switch(source.type) {
+            case 'OSM':
+                if (source.attribution) {
+                    oSource = new ol.source.OSM({
+                        attributions: [
+                          new ol.Attribution({ html: source.attribution }),
+                          ol.source.OSM.DATA_ATTRIBUTION
+                        ]
+                    });
+                } else {
+                    oSource = new ol.source.OSM();
+                }
+
+                if (source.url) {
+                    oSource.setUrl(source.url);
+                }
+
+                break;
+            case 'BingMaps':
+                if (!source.key) {
+                    $log.error("[AngularJS - Openlayers] - You need an API key to show the Bing Maps.");
+                    return;
+                }
+
+                oSource = new ol.source.BingMaps({
+                    key: source.key,
+                    imagerySet: source.imagerySet?source.imagerySet:bingImagerySets[0]
+                });
+
+                break;
+
+            case 'MapQuest':
+                if (!source.layer || mapQuestLayers.indexOf(source.layer) === -1) {
+                    $log.error("[AngularJS - Openlayers] - MapQuest layers needs a valid 'layer' property.");
+                    return;
+                }
+
+                oSource = new ol.source.MapQuest({
+                    layer: source.layer
+                });
+
+                break;
+
+            case 'GeoJSON':
+                var projection = source.projection?source.projection:'EPSG:3857';
+
+                if (!(source.features || source.url)) {
+                    $log.error("[AngularJS - Openlayers] - You need a GeoJSON features property to add a GeoJSON layer.");
+                    return;
+                }
+
+                if (source.url) {
+                    oSource = new ol.source.GeoJSON({
+                        projection: projection,
+                        url: source.url
+                    });
+                } else {
+                    oSource = new ol.source.GeoJSON(source.geojson);
+                }
+
+                break;
+            case 'TileJSON':
+                oSource = new ol.source.TileJSON({
+                    url: source.url,
+                    crossOrigin: 'anonymous'
+                });
+
+                break;
+        }
+
+        return oSource;
+    };
+
     return {
         // Determine if a reference is defined
         isDefined: isDefined,
@@ -383,7 +524,7 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
         isValidCenter: function(center) {
             return angular.isDefined(center) &&
                    (angular.isNumber(center.lat) && angular.isNumber(center.lon) ||
-                   typeof center.autodiscover === "boolean" ||
+                   typeof center.autodiscover === "boolean" && center.autodiscover === true ||
                    (angular.isArray(center.bounds) && center.bounds.length === 4 &&
                    angular.isNumber(center.bounds[0]) && angular.isNumber(center.bounds[1]) &&
                    angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2])));
@@ -438,38 +579,22 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
         },
 
         createLayer: function(layer) {
-            var oLayer, source;
+            var oLayer,
+                type = detectLayerType(layer),
+                oSource = createSource(layer.source);
 
-            switch(layer.type) {
-                case 'OSM':
-                    if (layer.attribution) {
-                        source = new ol.source.OSM({
-                            attributions: [
-                              new ol.Attribution({ html: layer.attribution }),
-                              ol.source.OSM.DATA_ATTRIBUTION
-                            ]
-                        });
-                    } else {
-                        source = new ol.source.OSM();
-                    }
-
-                    oLayer = new ol.layer.Tile({ source: source });
-
-                    if (layer.url) {
-                        source.setUrl(layer.url);
-                    }
-
+            switch(type) {
+                case 'Tile':
+                    oLayer = new ol.layer.Tile({ source: oSource });
                     break;
-                case 'TileJSON':
-                    source = new ol.source.TileJSON({
-                        url: layer.url,
-                        crossOrigin: 'anonymous'
-                    });
-
-                    oLayer = new ol.layer.Tile({ source: source });
+                case 'Vector':
+                    oLayer = new ol.layer.Vector({ source: oSource });
                     break;
             }
 
+            if (angular.isNumber(layer.opacity)) {
+                oLayer.setOpacity(layer.opacity);
+            }
             return oLayer;
         }
     };
@@ -491,7 +616,10 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
             },
             layers: {
                 main: {
-                  type: 'OSM'
+                    type: 'Tile',
+                    source: {
+                        type: 'OSM'
+                    }
                 }
             },
             minZoom: undefined,

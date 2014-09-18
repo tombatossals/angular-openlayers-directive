@@ -10,7 +10,7 @@
         app.controller('DemoController', [ '$scope', function($scope) {
             angular.extend($scope, {
                 center: {
-                    autodiscover: true
+                    autodiscover: false
                 }
             });
        }]);
@@ -21,7 +21,7 @@
     <h1>Center autodiscover example</h1>
     <form>
         Latitude : <input type="number" step="any" ng-model="center.lat" />
-        Longitude : <input type="number" step="any" ng-model="center.lng" />
+        Longitude : <input type="number" step="any" ng-model="center.lon" />
         Zoom : <input type="number" step="any" ng-model="center.zoom" />
         <button ng-click="center.autodiscover=true">Discover position</button>
     </form>

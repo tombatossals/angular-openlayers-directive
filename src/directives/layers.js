@@ -22,30 +22,59 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
                 olScope.$watch("layers", function(layers, oldLayers) {
-                    if (!isDefined(layers) || !isDefined(layers.main) || !isDefined(layers.main.type)) {
-                        $log.warn("[AngularJS - OpenLayers] At least one main layer has to be defined.");
+                    var name, layer = layers[Object.keys(layers)[0]];
+                    if (!isDefined(layer) || !isDefined(layer.source) || !isDefined(layer.source.type)) {
+                        $log.warn("[AngularJS - OpenLayers] At least one layer has to be defined.");
                         layers = angular.copy(defaults.layers);
                     }
 
-                    // Check if the main layer is the same type but different URL
-                    if (isDefined(layers.main) && isDefined(layers.main.type) &&
-                        isDefined(oldLayers.main) && isDefined(oldLayers.main.type) &&
-                        layers.main.type === oldLayers.main.type && layers.main.url !== oldLayers.main.url) {
-                            olLayers.main.getSource().setUrl(layers.main.url);
-                            return;
+                    // Delete non existent layers from the map
+                    for (name in olLayers) {
+                        layer = olLayers[name];
+                        if (!layers.hasOwnProperty(name)) {
+                            // Remove from the map if it's on it
+                            var activeLayers = map.getLayers();
+                            for (var i in activeLayers) {
+                                if (activeLayers[i] === layer) {
+                                    map.removeLayer(layers);
+                                }
+                            }
+                            delete olLayers[name];
+                        }
                     }
 
-                    if (!isDefined(olLayers.main) || !equals(layers.main, oldLayers.main)) {
-                        if (isDefined(olLayers.main) && oldLayers.main.type !== layers.main.type) {
-                            map.removeLayer(olLayers.main);
+                    // add new layers
+                    for (name in layers) {
+                        if (!olLayers.hasOwnProperty(name)) {
+                            layer = createLayer(layers[name]);
+                            if (isDefined(layer)) {
+                                olLayers[name] = layer;
+                                map.addLayer(olLayers[name]);
+                            }
+                        } else {
+                            layer = layers[name];
+                            var oldLayer = oldLayers[name];
+                            var olLayer = olLayers[name];
+                            if (isDefined(oldLayer) && !equals(layer, oldLayer)) {
+                                if (!equals(layer.source, oldLayer.source)) {
+                                    map.removeLayer(olLayer);
+                                    delete olLayers[name];
+                                    var l = createLayer(layer);
+                                    map.addLayer(l);
+                                    olLayers[name] = l;
+                                }
+
+                                if (layer.opacity && layer.opacity !== oldLayer.opacity) {
+                                    olLayer.setOpacity(layer.opacity);
+                                }
+                            }
                         }
-                        var l = createLayer(layers.main);
-                        map.addLayer(l);
-                        olLayers.main = l;
                     }
-                    _olLayers.resolve(olLayers);
                 }, true);
+                // We can resolve the layer promises
+                _olLayers.resolve(olLayers);
                 olData.setLayers(olLayers, attrs.id);
+
             });
         }
     };

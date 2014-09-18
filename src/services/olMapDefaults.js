@@ -14,7 +14,10 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
             },
             layers: {
                 main: {
-                  type: 'OSM'
+                    type: 'Tile',
+                    source: {
+                        type: 'OSM'
+                    }
                 }
             },
             minZoom: undefined,

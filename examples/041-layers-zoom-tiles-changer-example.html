@@ -16,13 +16,15 @@
                 },
                 layers: {
                     main: {
-                        type: "OSM"
+                        source: {
+                            type: "OSM"
+                        }
                     }
                 }
             });
 
             $scope.$watch("london.zoom", function(zoom) {
-                $scope.layers.main.url = (zoom > 12)
+                $scope.layers.main.source.url = (zoom > 12)
                         ? "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         : "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
             });

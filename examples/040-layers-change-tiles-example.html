@@ -8,24 +8,29 @@
     <script>
         angular.module("demoapp", ["openlayers-directive"]);
         function DemoController($scope) {
-            var layersDict = {
+            $scope.sources = {
                 openstreetmap: {
+                    name: 'OpenStreetMap',
                     type: 'OSM'
                 },
                 opencyclemap: {
+                    name: 'OpenCycleMap',
                     type: 'OSM',
                     url: 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
                     attribution: 'All maps &copy; <a href="http://www.opencyclemap.org/">OpenCycleMap</a>'
                 },
                 mapbox_streets: {
+                    name: 'MapBox Streets',
                     type: 'TileJSON',
                     url: 'https://api.tiles.mapbox.com/v3/tombatossals.map-fmyyujjl.jsonp'
                 },
                 mapbox_terrain: {
+                    name: 'MapBox Terrain',
                     type: 'TileJSON',
                     url: 'https://api.tiles.mapbox.com/v3/tombatossals.jbn2nnon.jsonp'
                 },
                 mapbox_geographyclass: {
+                    name: 'Mapbox Geography Class',
                     type: 'TileJSON',
                     url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
                 }
@@ -38,21 +43,13 @@
                     zoom: 3
                 },
                 layers: {
-                    main: layersDict.opencyclemap
+                    main: {
+                        source: $scope.sources.opencyclemap
+                    }
                 }
             });
-
-            $scope.changeLayer = function(layer) {
-                $scope.layers.main = layersDict[layer];
-            };
         };
     </script>
-    <style>
-        .angular-leaflet-map {
-            width: 640px;
-            height: 400px;
-        }
-    </style>
   </head>
   <body>
   <div class="container">
@@ -62,13 +59,12 @@
         <h1>Layers change tiles example</h1>
         <p>This is a map that can change the tiles of the main layer by demand</p>
 
-        <p>
-            <button ng-click="changeLayer('opencyclemap')" class="btn btn-default">OpenCycleMaps</button>
-            <button ng-click="changeLayer('openstreetmap')" class="btn btn-default">OpenStreetMaps</button>
-            <button ng-click="changeLayer('mapbox_streets')" class="btn btn-default">Mapbox Streets</button>
-            <button ng-click="changeLayer('mapbox_terrain')" class="btn btn-default">Mapbox Terrain</button>
-            <button ng-click="changeLayer('mapbox_geographyclass')" class="btn btn-default">Mapbox Geography Class</button>
-        </p>
+        <ul>
+            <li style="display: inline" ng-repeat="(key, source) in sources">
+                <button ng-click="layers.main.source=source" class="btn btn-default" ng-bind="source.name"></button>
+            </li>
+        </ul>
+
         <p>Current TileLayer Url:
             <pre>{{ layers | json }}</pre>
         </p>
