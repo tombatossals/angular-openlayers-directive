@@ -22,40 +22,36 @@
             layers: {
                 main: {
                     source: {
-                        type: "OSM"
+                        type: 'TileJSON',
+                        url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
                     }
                 },
                 geojson: {
                     source: {
                         type: 'GeoJSON',
-                        url: 'json/JPN.geo.json'
+                        url: 'json/countries.geo.json'
                     }
                 }
             }
         });
 
-        $scope.centerJSON = function() {
-            olData.getMap().then(function(map) {
-                var latlngs = [];
-                var coords = $scope.geojson.data.features[0].geometry.coordinates;
-                for (var i in coords) {
-                    var coord = coords[i];
-                    for (var j in coord) {
-                        var points = coord[j];
-                        for (var k in points) {
-                            latlngs.push(L.GeoJSON.coordsToLatLng(points[k]));
-                        }
-                    }
-                }
-                map.fitBounds(latlngs);
-            });
-        };
+        // Get the countries data from a JSON
+        $http.get("json/all.json").success(function(data, status) {
+            // Put the countries on an associative array
+            $scope.countries = {};
+            for (var i=0; i< data.length; i++) {
+                var country = data[i];
+                $scope.countries[country['alpha-3']] = country;
+            }
+        });
 
       } ]);
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers center="japan" layers="layers" height="480px"></openlayers>
-     <input type="button" value="Click to center" ng-click="centerJSON()" />
+     <openlayers center="japan" layers="layers" height="400px"></openlayers>
+     <h1>Layers GeoJSON events example</h1>
+     <p>Click the button to center the map to the extent of the Japan GeoJSON Vector Layer.</p>
+     <input type="button" value="Center to Japan" ng-click="centerJSON()" />
   </body>
 </html>
