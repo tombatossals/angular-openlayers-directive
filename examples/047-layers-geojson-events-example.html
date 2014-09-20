@@ -9,10 +9,10 @@
       var app = angular.module("demoapp", ["openlayers-directive"]);
       app.controller("GeoJSONController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
         angular.extend($scope, {
-            japan: {
-                lat: 27.26,
-                lon: 78.86,
-                zoom: 3
+            center: {
+                lat: 30,
+                lon: 0,
+                zoom: 2
             },
             defaults: {
                 interactions: {
@@ -35,17 +35,21 @@
             },
             events: {
                 layers: {
-                    geojson: [ 'mousemove', 'click' ]
+                    vector: [ 'mousemove', 'click' ]
                 }
             }
         });
 
         $scope.$on('openlayers.geojson.mousemove', function(event, feature) {
-            console.log('mousemove', feature);
+            $scope.$apply(function(scope) {
+                $scope.mouseMoveCountry = feature?$scope.countries[feature.S].name:'';
+            });
         });
 
         $scope.$on('openlayers.geojson.click', function(event, feature) {
-            console.log('click', feature);
+            $scope.$apply(function(scope) {
+                $scope.mouseClickCountry = feature?$scope.countries[feature.S].name:'';
+            });
         });
 
         // Get the countries data from a JSON
@@ -57,14 +61,14 @@
                 $scope.countries[country['alpha-3']] = country;
             }
         });
-
       } ]);
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers center="japan" layers="layers" events="events" height="400px"></openlayers>
+     <openlayers center="center" layers="layers" events="events" height="400px"></openlayers>
      <h1>Layers GeoJSON events example</h1>
-     <p>Click the button to center the map to the extent of the Japan GeoJSON Vector Layer.</p>
-     <input type="button" value="Center to Japan" ng-click="centerJSON()" />
+     <p>Mouse over this country: {{ mouseMoveCountry }}</p>
+     <p>Mouse clicked this country: {{ mouseClickCountry }}</p>
+
   </body>
 </html>

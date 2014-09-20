@@ -622,19 +622,20 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
-        setEvents: function(events, map, scope) {
+        setEvents: function(events, map, scope, layers) {
             if (isDefined(events)) {
-                console.log(events);
-                if (isDefined(events.layers) && angular.isArray(events.layers.geojson)) {
-                    angular.forEach(events.layers.geojson, function(eventType) {
-                        angular.element(map.getViewport()).on(eventType, function(evt) {
-                            var pixel = map.getEventPixel(evt);
-                            var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
-                                return feature;
+                if (isDefined(layers)) {
+                    if (isDefined(events.layers) && angular.isArray(events.layers.vector)) {
+                        angular.forEach(events.layers.vector, function(eventType) {
+                            angular.element(map.getViewport()).on(eventType, function(evt) {
+                                var pixel = map.getEventPixel(evt);
+                                var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+                                    return feature;
+                                });
+                                scope.$emit('openlayers.geojson.' + eventType, feature);
                             });
-                            scope.$emit('openlayers.geojson.' + eventType, feature);
                         });
-                    });
+                    }
                 }
             }
         },
@@ -649,7 +650,20 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                     oLayer = new ol.layer.Tile({ source: oSource });
                     break;
                 case 'Vector':
-                    oLayer = new ol.layer.Vector({ source: oSource });
+                    if (layer.style) {
+                        var style = new ol.style.Style({
+                            fill: new ol.style.Fill({
+                                color: layer.style.fill.color
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: layer.style.stroke.color,
+                                width: layer.style.stroke.width
+                            })
+                        });
+                        oLayer = new ol.layer.Vector({ source: oSource, style: style });
+                    } else {
+                        oLayer = new ol.layer.Vector({ source: oSource });
+                    }
                     break;
             }
 
@@ -699,9 +713,7 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                 zoom: true
             },
             events: {
-                layers: {
-                    geojson: [ 'click' ]
-                }
+                map: [ 'click' ]
             }
         };
     };

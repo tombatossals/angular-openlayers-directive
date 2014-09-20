@@ -47,7 +47,7 @@
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers center="japan" layers="layers" height="400px"></openlayers>
+     <openlayers center="japan" layers="layers" defaults="defaults" height="400px"></openlayers>
      <h1>Layers center to GeoJSON example</h1>
      <p>Click the button to center the map to the extent of the Japan GeoJSON Vector Layer.</p>
      <input type="button" value="Center to Japan" ng-click="centerJSON()" />
