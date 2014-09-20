@@ -29,6 +29,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined,
                 createLayer = olHelpers.createLayer,
+                setEvents = olHelpers.setEvents,
                 defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
@@ -62,6 +63,11 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
             if (!isDefined(attrs.layers)) {
                 var layer = createLayer(defaults.layers.main);
                 map.addLayer(layer);
+            }
+
+            // If no events ared defined, set the default events
+            if (!isDefined(attrs.events)) {
+                setEvents(defaults.events, map, scope);
             }
 
             if (!isDefined(attrs.center)) {
@@ -330,9 +336,8 @@ angular.module("openlayers-directive").directive('events', ["$log", "$q", "olDat
         replace: false,
         require: [ 'openlayers', 'layers' ],
         link: function(scope, element, attrs, controller) {
-            var sendGeoJSONEvents = olHelpers.sendGeoJSONEvents,
+            var setEvents = olHelpers.setEvents,
                 isDefined = olHelpers.isDefined,
-                isArray = olHelpers.isArray,
                 mapController = controller[0],
                 olScope     = mapController.getOpenlayersScope();
 
@@ -350,14 +355,8 @@ angular.module("openlayers-directive").directive('events', ["$log", "$q", "olDat
                 }
 
                 getLayers().then(function(layers) {
-                    var defaults = olMapDefaults.getDefaults(attrs.id);
                     olScope.$watch("events", function(events) {
-                        if (isDefined(events.layers) && isArray(events.layers.geojson)) {
-                            angular.forEach(events.layers.geojson, function(eventType) {
-                                console.log(events, defaults, layers);
-                                sendGeoJSONEvents(eventType, map, olScope);
-                            });
-                        }
+                        setEvents(events, map, olScope, layers);
                     });
                 });
             });
@@ -623,17 +622,23 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
-        sendGeoJSONEvents: function(eventType, map, scope) {
-            angular.element(map.getViewport()).on(eventType, function(evt) {
-                var pixel = map.getEventPixel(evt);
-                var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
-                    return feature;
-                });
-
-                scope.$emit('openlayers.geojson.' + eventType, feature);
-            });
+        setEvents: function(events, map, scope) {
+            if (isDefined(events)) {
+                console.log(events);
+                if (isDefined(events.layers) && angular.isArray(events.layers.geojson)) {
+                    angular.forEach(events.layers.geojson, function(eventType) {
+                        angular.element(map.getViewport()).on(eventType, function(evt) {
+                            var pixel = map.getEventPixel(evt);
+                            var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+                                return feature;
+                            });
+                            scope.$emit('openlayers.geojson.' + eventType, feature);
+                        });
+                    });
+                }
+            }
         },
-        
+
         createLayer: function(layer) {
             var oLayer,
                 type = detectLayerType(layer),

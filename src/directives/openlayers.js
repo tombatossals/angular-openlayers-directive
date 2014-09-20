@@ -25,6 +25,7 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined,
                 createLayer = olHelpers.createLayer,
+                setEvents = olHelpers.setEvents,
                 defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
@@ -58,6 +59,11 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
             if (!isDefined(attrs.layers)) {
                 var layer = createLayer(defaults.layers.main);
                 map.addLayer(layer);
+            }
+
+            // If no events ared defined, set the default events
+            if (!isDefined(attrs.events)) {
+                setEvents(defaults.events, map, scope);
             }
 
             if (!isDefined(attrs.center)) {

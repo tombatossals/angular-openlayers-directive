@@ -5,9 +5,8 @@ angular.module("openlayers-directive").directive('events', function ($log, $q, o
         replace: false,
         require: [ 'openlayers', 'layers' ],
         link: function(scope, element, attrs, controller) {
-            var sendGeoJSONEvents = olHelpers.sendGeoJSONEvents,
+            var setEvents = olHelpers.setEvents,
                 isDefined = olHelpers.isDefined,
-                isArray = olHelpers.isArray,
                 mapController = controller[0],
                 olScope     = mapController.getOpenlayersScope();
 
@@ -25,14 +24,8 @@ angular.module("openlayers-directive").directive('events', function ($log, $q, o
                 }
 
                 getLayers().then(function(layers) {
-                    var defaults = olMapDefaults.getDefaults(attrs.id);
                     olScope.$watch("events", function(events) {
-                        if (isDefined(events.layers) && isArray(events.layers.geojson)) {
-                            angular.forEach(events.layers.geojson, function(eventType) {
-                                console.log(events, defaults, layers);
-                                sendGeoJSONEvents(eventType, map, olScope);
-                            });
-                        }
+                        setEvents(events, map, olScope, layers);
                     });
                 });
             });

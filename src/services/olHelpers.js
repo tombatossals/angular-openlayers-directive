@@ -194,17 +194,23 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
-        sendGeoJSONEvents: function(eventType, map, scope) {
-            angular.element(map.getViewport()).on(eventType, function(evt) {
-                var pixel = map.getEventPixel(evt);
-                var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
-                    return feature;
-                });
-
-                scope.$emit('openlayers.geojson.' + eventType, feature);
-            });
+        setEvents: function(events, map, scope) {
+            if (isDefined(events)) {
+                console.log(events);
+                if (isDefined(events.layers) && angular.isArray(events.layers.geojson)) {
+                    angular.forEach(events.layers.geojson, function(eventType) {
+                        angular.element(map.getViewport()).on(eventType, function(evt) {
+                            var pixel = map.getEventPixel(evt);
+                            var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+                                return feature;
+                            });
+                            scope.$emit('openlayers.geojson.' + eventType, feature);
+                        });
+                    });
+                }
+            }
         },
-        
+
         createLayer: function(layer) {
             var oLayer,
                 type = detectLayerType(layer),
