@@ -20,6 +20,8 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             switch(layer.source.type) {
                 case 'GeoJSON':
                     return 'Vector';
+                case 'TopoJSON':
+                    return 'Vector';
                 default:
                   return 'Tile';
             }
@@ -28,7 +30,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 
 
     var createSource = function(source) {
-        var oSource;
+        var oSource, projection;
 
         switch(source.type) {
             case 'OSM':
@@ -74,7 +76,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 break;
 
             case 'GeoJSON':
-                var projection = source.projection?source.projection:'EPSG:3857';
+                projection = source.projection?source.projection:'EPSG:3857';
 
                 if (!(source.features || source.url)) {
                     $log.error("[AngularJS - Openlayers] - You need a GeoJSON features property to add a GeoJSON layer.");
@@ -88,6 +90,24 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                     });
                 } else {
                     oSource = new ol.source.GeoJSON(source.geojson);
+                }
+
+                break;
+            case 'TopoJSON':
+                projection = source.projection?source.projection:'EPSG:3857';
+
+                if (!(source.features || source.url)) {
+                    $log.error("[AngularJS - Openlayers] - You need a TopoJSON features property to add a GeoJSON layer.");
+                    return;
+                }
+
+                if (source.url) {
+                    oSource = new ol.source.TopoJSON({
+                        projection: projection,
+                        url: source.url
+                    });
+                } else {
+                    oSource = new ol.source.TopoJSON(source.topojson);
                 }
 
                 break;
