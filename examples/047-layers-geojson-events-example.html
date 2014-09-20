@@ -32,7 +32,20 @@
                         url: 'json/countries.geo.json'
                     }
                 }
+            },
+            events: {
+                layers: {
+                    geojson: [ 'mousemove', 'click' ]
+                }
             }
+        });
+
+        $scope.$on('openlayers.geojson.mousemove', function(event, feature) {
+            console.log('mousemove', feature);
+        });
+
+        $scope.$on('openlayers.geojson.click', function(event, feature) {
+            console.log('click', feature);
         });
 
         // Get the countries data from a JSON
@@ -49,7 +62,7 @@
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers center="japan" layers="layers" height="400px"></openlayers>
+     <openlayers center="japan" layers="layers" events="events" height="400px"></openlayers>
      <h1>Layers GeoJSON events example</h1>
      <p>Click the button to center the map to the extent of the Japan GeoJSON Vector Layer.</p>
      <input type="button" value="Center to Japan" ng-click="centerJSON()" />

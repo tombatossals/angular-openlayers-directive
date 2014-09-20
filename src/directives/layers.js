@@ -45,16 +45,18 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
 
                     // add new layers
                     for (name in layers) {
+                        layer = layers[name];
+                        var olLayer;
                         if (!olLayers.hasOwnProperty(name)) {
-                            layer = createLayer(layers[name]);
-                            if (isDefined(layer)) {
-                                olLayers[name] = layer;
-                                map.addLayer(olLayers[name]);
+                            olLayer = createLayer(layers[name]);
+                            if (isDefined(olLayer)) {
+                                olLayers[name] = olLayer;
+                                map.addLayer(olLayer);
                             }
                         } else {
                             layer = layers[name];
                             var oldLayer = oldLayers[name];
-                            var olLayer = olLayers[name];
+                            olLayer = olLayers[name];
                             if (isDefined(oldLayer) && !equals(layer, oldLayer)) {
                                 if (!equals(layer.source, oldLayer.source)) {
                                     map.removeLayer(olLayer);

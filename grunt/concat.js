@@ -11,6 +11,7 @@ module.exports = function (grunt, options) {
                 'src/directives/openlayers.js',
                 'src/directives/center.js',
                 'src/directives/layers.js',
+                'src/directives/events.js',
                 'src/services/*.js'
             ],
             dest: 'dist/angular-openlayers-directive.pre.js',

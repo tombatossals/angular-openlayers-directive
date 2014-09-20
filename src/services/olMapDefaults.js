@@ -34,6 +34,11 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 attribution: true,
                 rotate: false,
                 zoom: true
+            },
+            events: {
+                layers: {
+                    geojson: [ 'click' ]
+                }
             }
         };
     };
