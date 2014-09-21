@@ -21,6 +21,7 @@ Let's start with some basic examples. Look at the source code of the example to 
 * [Layers MapQuest example](http://tombatossals.github.io/angular-openlayers-directive/examples/044-layers-mapquest-maps-example.html)
 * [Layers GeoJSON example](http://tombatossals.github.io/angular-openlayers-directive/examples/045-layers-geojson-example.html)
 * [Layers GeoJSON center example](http://tombatossals.github.io/angular-openlayers-directive/examples/046-layers-geojson-center-example.html)
+* [Layers TopoJSON example](http://tombatossals.github.io/angular-openlayers-directive/examples/047-layers-topojson-center-example.html)
 
 You can take a look at the current documentation go get a more detailed explanation of how it works and what you can accomplish with this directive:
 
