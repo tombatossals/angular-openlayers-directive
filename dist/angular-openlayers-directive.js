@@ -10,7 +10,8 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
         scope: {
             center: '=center',
             defaults: '=defaults',
-            layers: '=layers'
+            layers: '=layers',
+            events: '=events'
         },
         transclude: true,
         template: '<div class="angular-openlayers-map"><div ng-transclude></div></div>',
@@ -28,6 +29,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined,
                 createLayer = olHelpers.createLayer,
+                setEvents = olHelpers.setEvents,
                 defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
@@ -61,6 +63,11 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
             if (!isDefined(attrs.layers)) {
                 var layer = createLayer(defaults.layers.main);
                 map.addLayer(layer);
+            }
+
+            // If no events ared defined, set the default events
+            if (!isDefined(attrs.events)) {
+                setEvents(defaults.events, map, scope);
             }
 
             if (!isDefined(attrs.center)) {
@@ -285,16 +292,18 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
 
                     // add new layers
                     for (name in layers) {
+                        layer = layers[name];
+                        var olLayer;
                         if (!olLayers.hasOwnProperty(name)) {
-                            layer = createLayer(layers[name]);
-                            if (isDefined(layer)) {
-                                olLayers[name] = layer;
-                                map.addLayer(olLayers[name]);
+                            olLayer = createLayer(layers[name]);
+                            if (isDefined(olLayer)) {
+                                olLayers[name] = olLayer;
+                                map.addLayer(olLayer);
                             }
                         } else {
                             layer = layers[name];
                             var oldLayer = oldLayers[name];
-                            var olLayer = olLayers[name];
+                            olLayer = olLayers[name];
                             if (isDefined(oldLayer) && !equals(layer, oldLayer)) {
                                 if (!equals(layer.source, oldLayer.source)) {
                                     map.removeLayer(olLayer);
@@ -315,6 +324,41 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
                 _olLayers.resolve(olLayers);
                 olData.setLayers(olLayers, attrs.id);
 
+            });
+        }
+    };
+}]);
+
+angular.module("openlayers-directive").directive('events', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function ($log, $q, olData, olMapDefaults, olHelpers) {
+    return {
+        restrict: "A",
+        scope: false,
+        replace: false,
+        require: [ 'openlayers', 'layers' ],
+        link: function(scope, element, attrs, controller) {
+            var setEvents = olHelpers.setEvents,
+                isDefined = olHelpers.isDefined,
+                mapController = controller[0],
+                olScope     = mapController.getOpenlayersScope();
+
+            mapController.getMap().then(function(map) {
+
+                var getLayers;
+                if (isDefined(controller[1])) {
+                    getLayers = controller[1].getLayers;
+                } else {
+                    getLayers = function() {
+                        var deferred = $q.defer();
+                        deferred.resolve();
+                        return deferred.promise;
+                    };
+                }
+
+                getLayers().then(function(layers) {
+                    olScope.$watch("events", function(events) {
+                        setEvents(events, map, olScope, layers);
+                    });
+                });
             });
         }
     };
@@ -404,6 +448,8 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             switch(layer.source.type) {
                 case 'GeoJSON':
                     return 'Vector';
+                case 'TopoJSON':
+                    return 'Vector';
                 default:
                   return 'Tile';
             }
@@ -412,7 +458,7 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
 
 
     var createSource = function(source) {
-        var oSource;
+        var oSource, projection;
 
         switch(source.type) {
             case 'OSM':
@@ -458,7 +504,7 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                 break;
 
             case 'GeoJSON':
-                var projection = source.projection?source.projection:'EPSG:3857';
+                projection = source.projection?source.projection:'EPSG:3857';
 
                 if (!(source.features || source.url)) {
                     $log.error("[AngularJS - Openlayers] - You need a GeoJSON features property to add a GeoJSON layer.");
@@ -472,6 +518,24 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                     });
                 } else {
                     oSource = new ol.source.GeoJSON(source.geojson);
+                }
+
+                break;
+            case 'TopoJSON':
+                projection = source.projection?source.projection:'EPSG:3857';
+
+                if (!(source.features || source.url)) {
+                    $log.error("[AngularJS - Openlayers] - You need a TopoJSON features property to add a GeoJSON layer.");
+                    return;
+                }
+
+                if (source.url) {
+                    oSource = new ol.source.TopoJSON({
+                        projection: projection,
+                        url: source.url
+                    });
+                } else {
+                    oSource = new ol.source.TopoJSON(source.topojson);
                 }
 
                 break;
@@ -578,6 +642,24 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
+        setEvents: function(events, map, scope, layers) {
+            if (isDefined(events)) {
+                if (isDefined(layers)) {
+                    if (isDefined(events.layers) && angular.isArray(events.layers.vector)) {
+                        angular.forEach(events.layers.vector, function(eventType) {
+                            angular.element(map.getViewport()).on(eventType, function(evt) {
+                                var pixel = map.getEventPixel(evt);
+                                var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+                                    return feature;
+                                });
+                                scope.$emit('openlayers.geojson.' + eventType, feature);
+                            });
+                        });
+                    }
+                }
+            }
+        },
+
         createLayer: function(layer) {
             var oLayer,
                 type = detectLayerType(layer),
@@ -588,7 +670,20 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                     oLayer = new ol.layer.Tile({ source: oSource });
                     break;
                 case 'Vector':
-                    oLayer = new ol.layer.Vector({ source: oSource });
+                    if (layer.style) {
+                        var style = new ol.style.Style({
+                            fill: new ol.style.Fill({
+                                color: layer.style.fill.color
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: layer.style.stroke.color,
+                                width: layer.style.stroke.width
+                            })
+                        });
+                        oLayer = new ol.layer.Vector({ source: oSource, style: style });
+                    } else {
+                        oLayer = new ol.layer.Vector({ source: oSource });
+                    }
                     break;
             }
 
@@ -636,6 +731,9 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                 attribution: true,
                 rotate: false,
                 zoom: true
+            },
+            events: {
+                map: [ 'click' ]
             }
         };
     };
