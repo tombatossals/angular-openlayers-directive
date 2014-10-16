@@ -8,11 +8,11 @@
     "openlayers"
   ],
   "main": [
-    "dist/angular-openlayers-directive.js"
+    "dist/angular-openlayers-directive.min.js"
   ],
   "dependencies": {
     "angular": "latest",
-    "openlayers3": "https://github.com/openlayers/ol3.git#v3.0.0-gamma.4"
+    "openlayers3": "https://github.com/openlayers/ol3.git#v3.1.0-pre.2"
   },
   "devDependencies": {
     "jquery": "*",
