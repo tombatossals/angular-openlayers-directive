@@ -11,7 +11,7 @@
     "dist/angular-openlayers-directive.min.js"
   ],
   "dependencies": {
-    "angular": "latest",
+    "angular": "*",
     "openlayers3": "https://github.com/openlayers/ol3.git#v3.1.0-pre.2"
   },
   "devDependencies": {
