@@ -53,13 +53,6 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
                                 olLayers[name] = olLayer;
                                 map.addLayer(olLayer);
                             }
-                            console.log('holaa');
-                            if (layer.type === 'ImageStatic') {
-                                map.setView({
-                                    projection: new ol.proj.get('pixel')
-                                });
-                            }
-
                         } else {
                             layer = layers[name];
                             var oldLayer = oldLayers[name];
