@@ -18,6 +18,8 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             return layer.type;
         } else {
             switch(layer.source.type) {
+                case 'ImageStatic':
+                    return 'Image';
                 case 'GeoJSON':
                     return 'Vector';
                 case 'TopoJSON':
@@ -28,6 +30,21 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         }
     };
 
+    var createProjection = function(projection) {
+        var oProjection;
+
+        switch(projection) {
+            case 'pixel':
+                oProjection = new ol.proj.Projection({
+                    code: 'pixel',
+                    units: 'pixels',
+                    extent: [0, 0, 1800, 1200]
+                });
+                break;
+        }
+
+        return oProjection;
+    };
 
     var createSource = function(source) {
         var oSource, projection;
@@ -109,14 +126,26 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 } else {
                     oSource = new ol.source.TopoJSON(source.topojson);
                 }
-
                 break;
             case 'TileJSON':
                 oSource = new ol.source.TileJSON({
                     url: source.url,
                     crossOrigin: 'anonymous'
                 });
+                break;
+            case 'ImageStatic':
+                if (!source.url) {
+                    $log.error("[AngularJS - Openlayers] - You need a image URL to create a ImageStatic layer.");
+                    return;
+                }
 
+                projection = createProjection(source.projection);
+                oSource = new ol.source.ImageStatic({
+                    url: source.url,
+                    imageSize: source.imageSize,
+                    projection: projection,
+                    imageExtent: projection.getExtent()
+                });
                 break;
         }
 
@@ -238,6 +267,11 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 oSource = createSource(layer.source);
 
             switch(type) {
+                case 'Image':
+                    console.log('hola');
+                    console.log(layer);
+                    oLayer = new ol.layer.Image({ source: oSource });
+                    break;
                 case 'Tile':
                     oLayer = new ol.layer.Tile({ source: oSource });
                     break;
