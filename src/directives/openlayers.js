@@ -25,6 +25,7 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined,
                 createLayer = olHelpers.createLayer,
+                createProjection = olHelpers.createProjection,
                 setEvents = olHelpers.setEvents,
                 defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
@@ -47,12 +48,18 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
 
             var controls = ol.control.defaults(defaults.controls);
             var interactions = ol.interaction.defaults(defaults.interactions);
-
+            var projection = createProjection(defaults.projection);
+          
             // Create the Openlayers Map Object with the options
             var map = new ol.Map({
                 target: element[0],
                 controls: controls,
-                interactions: interactions
+                interactions: interactions,
+                view: new ol.View({
+                    projection: projection,
+                    maxZoom: defaults.center.maxZoom,
+                    minZoom: defaults.center.minZoom
+                })
             });
 
             // If no layer is defined, set the default tileLayer
@@ -67,12 +74,9 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
             }
 
             if (!isDefined(attrs.center)) {
-                map.setView(new ol.View({
-                    center: [ defaults.center.lon, defaults.center.lat ],
-                    zoom: defaults.center.zoom,
-                    maxZoom: defaults.center.maxZoom,
-                    minZoom: defaults.center.minZoom
-                }));
+                var view = map.getView();
+                view.setCenter([ defaults.center.lon, defaults.center.lat ]);
+                view.setZoom(defaults.center.zoom);
             }
 
             // Resolve the map object to the promises

@@ -12,6 +12,7 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 mouseWheelZoom: true,
                 dragZoom: true
             },
+            projection: 'EPSG:3857',
             layers: {
                 main: {
                     type: 'Tile',
@@ -75,6 +76,10 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
 
                 if (isDefined(userDefaults.maxZoom)) {
                     newDefaults.maxZoom = userDefaults.maxZoom;
+                }
+
+                if (isDefined(userDefaults.projection)) {
+                    newDefaults.projection = userDefaults.projection;
                 }
 
             }

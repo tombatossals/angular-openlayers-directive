@@ -19,12 +19,10 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                 var defaults = olMapDefaults.getDefaults(attrs.id),
                     center = olScope.center;
 
+                var view = map.getView();
                 if (attrs.center.search("-") !== -1) {
                     $log.error('[AngularJS - Openlayers] The "center" variable can\'t use a "-" on his key name: "' + attrs.center + '".');
-                    map.setView(new ol.View({
-                        center: ol.proj.transform([ defaults.center.lon, defaults.center.lat ], 'EPSG:4326', 'EPSG:3857')
-                    }));
-
+                    view.setCenter(ol.proj.transform([ defaults.center.lon, defaults.center.lat ], 'EPSG:4326', 'EPSG:3857'));
                     return;
                 }
 
@@ -37,13 +35,8 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                     center.zoom = 1;
                 }
 
-                var view = new ol.View({
-                    center: ol.proj.transform([ center.lon, center.lat ], 'EPSG:4326', 'EPSG:3857'),
-                    zoom: center.zoom,
-                    maxZoom: defaults.maxZoom,
-                    minZoom: defaults.minZoom
-                });
-                map.setView(view);
+                view.setCenter(ol.proj.transform([ center.lon, center.lat ], 'EPSG:4326', 'EPSG:3857'));
+                view.setZoom(center.zoom);
 
                 var centerUrlHash;
                 if (center.centerUrlHash === true) {

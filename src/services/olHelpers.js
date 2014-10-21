@@ -13,7 +13,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 
     var mapQuestLayers = [ 'osm', 'sat', 'hyb' ];
 
-    var detectLayerType = function(layer) {
+    var _detectLayerType = function(layer) {
         if (layer.type) {
             return layer.type;
         } else {
@@ -30,15 +30,17 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         }
     };
 
-    var createProjection = function(projection) {
+    var _createProjection = function(projection) {
         var oProjection;
 
         switch(projection) {
+            case 'EPSG:3857':
+                oProjection = new ol.proj.get(projection);
+                break;
             case 'pixel':
                 oProjection = new ol.proj.Projection({
                     code: 'pixel',
                     units: 'pixels',
-                    extent: [0, 0, 1800, 1200]
                 });
                 break;
         }
@@ -134,12 +136,14 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 });
                 break;
             case 'ImageStatic':
-                if (!source.url) {
+                if (!source.url || !angular.isArray(source.imageSize) || source.imageSize.length !== 2) {
                     $log.error("[AngularJS - Openlayers] - You need a image URL to create a ImageStatic layer.");
                     return;
                 }
 
-                projection = createProjection(source.projection);
+                projection = map.getView().getProjection();
+                projection.setExtent([ 0, 0, source.imageSize[0], source.imageSize[1] ]);
+
                 oSource = new ol.source.ImageStatic({
                     url: source.url,
                     imageSize: source.imageSize,
@@ -160,6 +164,8 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         isNumber: function(value) {
             return angular.isNumber(value);
         },
+
+        createProjection: _createProjection,
 
         // Determine if a reference is defined and not null
         isDefinedAndNotNull: function(value) {
@@ -261,15 +267,15 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             }
         },
 
+        detectLayerType: _detectLayerType,
+
         createLayer: function(layer) {
             var oLayer,
-                type = detectLayerType(layer),
+                type = _detectLayerType(layer),
                 oSource = createSource(layer.source);
 
             switch(type) {
                 case 'Image':
-                    console.log('hola');
-                    console.log(layer);
                     oLayer = new ol.layer.Image({ source: oSource });
                     break;
                 case 'Tile':

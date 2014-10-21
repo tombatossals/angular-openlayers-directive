@@ -17,7 +17,8 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
                 equals      = olHelpers.equals,
                 olLayers    = {},
                 olScope     = controller.getOpenlayersScope(),
-                createLayer = olHelpers.createLayer;
+                createLayer = olHelpers.createLayer,
+                detectLayerType = olHelpers.detectLayerType;
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
@@ -53,6 +54,13 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
                                 olLayers[name] = olLayer;
                                 map.addLayer(olLayer);
                             }
+
+                            if (detectLayerType(layer) === 'Image') {
+                                var projection = map.getView().getProjection();
+                                console.log('map', layer.source.imageSize);
+                                projection.setExtent([ 0, 0, layer.source.imageSize[0], layer.source.imageSize[1] ]);
+                            }
+
                         } else {
                             layer = layers[name];
                             var oldLayer = oldLayers[name];
