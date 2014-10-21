@@ -12,7 +12,7 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 mouseWheelZoom: true,
                 dragZoom: true
             },
-            projection: 'EPSG:3857',
+            projection: 'EPSG:4326',
             layers: {
                 main: {
                     type: 'Tile',
@@ -29,7 +29,8 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 zoom: 1,
                 autodiscover: false,
                 bounds: [],
-                centerUrlHash: false
+                centerUrlHash: false,
+                projection: 'EPSG:3857'
             },
             controls: {
                 attribution: true,

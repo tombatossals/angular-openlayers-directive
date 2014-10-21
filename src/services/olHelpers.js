@@ -41,6 +41,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 oProjection = new ol.proj.Projection({
                     code: 'pixel',
                     units: 'pixels',
+                    extent: [ 0, 0, 4500, 2234 ]
                 });
                 break;
         }
@@ -48,8 +49,8 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         return oProjection;
     };
 
-    var createSource = function(source) {
-        var oSource, projection;
+    var createSource = function(source, projection) {
+        var oSource;
 
         switch(source.type) {
             case 'OSM':
@@ -95,8 +96,6 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 break;
 
             case 'GeoJSON':
-                projection = source.projection?source.projection:'EPSG:3857';
-
                 if (!(source.features || source.url)) {
                     $log.error("[AngularJS - Openlayers] - You need a GeoJSON features property to add a GeoJSON layer.");
                     return;
@@ -113,8 +112,6 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 
                 break;
             case 'TopoJSON':
-                projection = source.projection?source.projection:'EPSG:3857';
-
                 if (!(source.features || source.url)) {
                     $log.error("[AngularJS - Openlayers] - You need a TopoJSON features property to add a GeoJSON layer.");
                     return;
@@ -140,9 +137,6 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                     $log.error("[AngularJS - Openlayers] - You need a image URL to create a ImageStatic layer.");
                     return;
                 }
-
-                projection = map.getView().getProjection();
-                projection.setExtent([ 0, 0, source.imageSize[0], source.imageSize[1] ]);
 
                 oSource = new ol.source.ImageStatic({
                     url: source.url,
@@ -269,10 +263,10 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 
         detectLayerType: _detectLayerType,
 
-        createLayer: function(layer) {
+        createLayer: function(layer, projection) {
             var oLayer,
                 type = _detectLayerType(layer),
-                oSource = createSource(layer.source);
+                oSource = createSource(layer.source, projection);
 
             switch(type) {
                 case 'Image':

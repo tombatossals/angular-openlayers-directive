@@ -17,11 +17,11 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
                 equals      = olHelpers.equals,
                 olLayers    = {},
                 olScope     = controller.getOpenlayersScope(),
-                createLayer = olHelpers.createLayer,
-                detectLayerType = olHelpers.detectLayerType;
+                createLayer = olHelpers.createLayer;
 
             controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
+                var defaults = olMapDefaults.getDefaults(attrs.id),
+                    projection = map.getView().getProjection();
                 olScope.$watch("layers", function(layers, oldLayers) {
                     var name, layer = layers[Object.keys(layers)[0]];
                     if (!isDefined(layer) || !isDefined(layer.source) || !isDefined(layer.source.type)) {
@@ -49,18 +49,11 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
                         layer = layers[name];
                         var olLayer;
                         if (!olLayers.hasOwnProperty(name)) {
-                            olLayer = createLayer(layers[name]);
+                            olLayer = createLayer(layers[name], projection);
                             if (isDefined(olLayer)) {
                                 olLayers[name] = olLayer;
                                 map.addLayer(olLayer);
                             }
-
-                            if (detectLayerType(layer) === 'Image') {
-                                var projection = map.getView().getProjection();
-                                console.log('map', layer.source.imageSize);
-                                projection.setExtent([ 0, 0, layer.source.imageSize[0], layer.source.imageSize[1] ]);
-                            }
-
                         } else {
                             layer = layers[name];
                             var oldLayer = oldLayers[name];
@@ -69,7 +62,7 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
                                 if (!equals(layer.source, oldLayer.source)) {
                                     map.removeLayer(olLayer);
                                     delete olLayers[name];
-                                    var l = createLayer(layer);
+                                    var l = createLayer(layer, projection);
                                     map.addLayer(l);
                                     olLayers[name] = l;
                                 }
