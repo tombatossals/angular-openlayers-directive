@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" type="text/css">
+    <style>
+      .map {
+        height: 400px;
+        width: 100%;
+      }
+    </style>
+    <script src="../bower_components/openlayers3/build/ol.js" type="text/javascript"></script>
+    <title>OpenLayers 3 example</title>
+  </head>
+  <body>
+    <h2>My Map</h2>
+    <div id="map" class="map"></div>
+    <script type="text/javascript">
+      var pixelProjection = new ol.proj.Projection({
+        code: 'pixel',
+        units: 'pixels',
+        extent: [0, 0, 1024, 968]
+      });
+
+      var map = new ol.Map({
+        layers: [
+          new ol.layer.Image({
+            source: new ol.source.ImageStatic({
+              url: 'http://blog.wallpops.com/wp-content/upLoads/2013/05/WPE0624.jpg',
+              imageSize: [1024, 968],
+              projection: pixelProjection,
+              imageExtent: pixelProjection.getExtent()
+            })
+          })
+        ],
+        target: 'map',
+        view: new ol.View({
+          projection: pixelProjection,
+          center: [0, 0],
+          zoom: 0
+        })
+      });
+      var p = new ol.proj.get('pixels');
+      console.log(p);
+    </script>
+  </body>
+</html>

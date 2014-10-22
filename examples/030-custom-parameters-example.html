@@ -6,8 +6,8 @@
     <script src="../dist/angular-openlayers-directive.js"></script>
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <script>
-        angular.module("demoapp", ["openlayers-directive"]);
-        function DemoController($scope) {
+        var app = angular.module("demoapp", ["openlayers-directive"]);
+        app.controller("DemoController", [ '$scope', function($scope) {
             angular.extend($scope, {
                 london: {
                     lat: 51.505,
@@ -33,7 +33,7 @@
                     }
                 }
             });
-        };
+        } ]);
     </script>
   </head>
   <body ng-controller="DemoController">

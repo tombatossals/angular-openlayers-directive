@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+<script src="../bower_components/angular/angular.min.js"></script>
+<script src="../bower_components/openlayers3/build/ol.js"></script>
+<script src="../dist/angular-openlayers-directive.js"></script>
+<link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+      var app = angular.module("demoapp", ["openlayers-directive"]);
+      app.controller("GeoJSONController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
+        angular.extend($scope, {
+            japan: {
+                lat: 27.26,
+                lon: 78.86,
+                zoom: 3
+            },
+            defaults: {
+                interactions: {
+                    mouseWheelZoom: false
+                }
+            },
+            layers: {
+                main: {
+                    source: {
+                        type: "OSM"
+                    }
+                },
+                geojson: {
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/JPN.geo.json'
+                    }
+                }
+            }
+        });
+
+        $scope.centerJSON = function() {
+            olData.getMap().then(function(map) {
+                olData.getLayers().then(function(layers) {
+                    var extent = layers.geojson.getSource().getExtent();
+                    map.getView().fitExtent(extent, map.getSize());
+                });
+            });
+        };
+
+      } ]);
+      </script>
+  </head>
+  <body ng-controller="GeoJSONController">
+     <openlayers center="japan" layers="layers" defaults="defaults" height="400px"></openlayers>
+     <h1>Layers center to GeoJSON example</h1>
+     <p>Click the button to center the map to the extent of the Japan GeoJSON Vector Layer.</p>
+     <input type="button" value="Center to Japan" ng-click="centerJSON()" />
+  </body>
+</html>
