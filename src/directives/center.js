@@ -119,8 +119,7 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
 
                     if (view.getCenter()) {
                         if (defaults.projection === 'pixel') {
-                            console.log(center);
-                            view.setCenter([ center.lon, center.lat ]);
+                            view.setCenter(center.coord);
                         } else {
                             var actualCenter = ol.proj.transform(view.getCenter(), center.projection, defaults.projection);
 
@@ -151,8 +150,12 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                 view.on("change:center", function() {
                     safeApply(olScope, function(scope) {
                         var center = map.getView().getCenter();
-                        var proj = ol.proj.transform(center, scope.center.projection, defaults.projection);
+                        if (defaults.projection === 'pixel') {
+                            scope.center.coord = center;
+                            return;
+                        }
 
+                        var proj = ol.proj.transform(center, scope.center.projection, defaults.projection);
                         if (scope.center) {
                             scope.center.lat = proj[1];
                             scope.center.lon = proj[0];
@@ -160,7 +163,7 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                             // Calculate the bounds if needed
                             if (isArray(scope.center.bounds)) {
                                 var extent = view.calculateExtent(map.getSize());
-                                scope.center.bounds = ol.proj.transform(extent, 'EPSG:3857', 'EPSG:4326');
+                                scope.center.bounds = ol.proj.transform(extent, scope.center.projection, defaults.projection);
                             }
                         }
                     });
