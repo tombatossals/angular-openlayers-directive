@@ -140,6 +140,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                 if (defaults.projection !== center.projection) {
                     projCenter = ol.proj.transform([ center.lon, center.lat ], defaults.projection, center.projection);
                 }
+
                 view.setCenter(projCenter);
                 view.setZoom(center.zoom);
 
@@ -640,7 +641,6 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             return angular.isDefined(center) &&
                    (angular.isNumber(center.lat) && angular.isNumber(center.lon) ||
                    (angular.isArray(center.coord) && center.coord.length === 2 && angular.isNumber(center.coord[0]) && angular.isNumber(center.coord[1])) ||
-                   typeof center.autodiscover === "boolean" && center.autodiscover === true ||
                    (angular.isArray(center.bounds) && center.bounds.length === 4 &&
                    angular.isNumber(center.bounds[0]) && angular.isNumber(center.bounds[1]) &&
                    angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2])));

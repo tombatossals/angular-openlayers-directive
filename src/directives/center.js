@@ -48,6 +48,7 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                 if (defaults.projection !== center.projection) {
                     projCenter = ol.proj.transform([ center.lon, center.lat ], defaults.projection, center.projection);
                 }
+
                 view.setCenter(projCenter);
                 view.setZoom(center.zoom);
 
