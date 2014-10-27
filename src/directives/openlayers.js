@@ -56,7 +56,9 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
                 controls: controls,
                 interactions: interactions,
                 view: new ol.View({
-                    projection: projection
+                    projection: projection,
+                    maxZoom: defaults.maxZoom,
+                    minZoom: defaults.minZoom
                 })
             });
 
