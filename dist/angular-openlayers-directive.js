@@ -3,7 +3,7 @@
 "use strict";
 
 angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q", "olHelpers", "olMapDefaults", "olData", function ($log, $q, olHelpers, olMapDefaults, olData) {
-    var _olMap = $q.defer();
+    var _olMap;
     return {
         restrict: "EA",
         replace: true,
@@ -16,7 +16,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
         transclude: true,
         template: '<div class="angular-openlayers-map"><div ng-transclude></div></div>',
         controller: ["$scope", function ($scope) {
-
+            _olMap = $q.defer();
             this.getMap = function () {
                 return _olMap.promise;
             };
@@ -60,7 +60,9 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
                 controls: controls,
                 interactions: interactions,
                 view: new ol.View({
-                    projection: projection
+                    projection: projection,
+                    maxZoom: defaults.maxZoom,
+                    minZoom: defaults.minZoom
                 })
             });
 
@@ -111,6 +113,15 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
 
                 var view = map.getView();
 
+                console.log(attrs.id, map);
+                var setCenter = function(view, projection, newCenter) {
+                    if (newCenter.projection === projection) {
+                        view.setCenter([ newCenter.lon, newCenter.lat ]);
+                    } else {
+                        view.setCenter(ol.proj.transform([ newCenter.lon, newCenter.lat ], projection, newCenter.projection));
+                    }
+                };
+
                 if (!center.projection) {
                     if (defaults.projection !== 'pixel') {
                         center.projection = defaults.center.projection;
@@ -121,7 +132,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
 
                 if (attrs.center.search("-") !== -1) {
                     $log.error('[AngularJS - Openlayers] The "center" variable can\'t use a "-" on his key name: "' + attrs.center + '".');
-                    view.setCenter(ol.proj.transform([ defaults.center.lon, defaults.center.lat ], defaults.projection, center.projection));
+                    setCenter(view, defaults.projection, defaults.center);
                     return;
                 }
 
@@ -134,11 +145,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                     center.zoom = 1;
                 }
 
-                var projCenter = center;
-                if (defaults.projection !== center.projection) {
-                    projCenter = ol.proj.transform([ center.lon, center.lat ], defaults.projection, center.projection);
-                }
-                view.setCenter(projCenter);
+                setCenter(view, defaults.projection, center);
                 view.setZoom(center.zoom);
 
                 var centerUrlHash;
@@ -207,16 +214,15 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                         center = defaults.center;
                     }
 
-                    if (view.getCenter()) {
+                    var viewCenter = view.getCenter();
+                    if (viewCenter) {
                         if (defaults.projection === 'pixel') {
                             view.setCenter(center.coord);
-                        } else {
-                            var actualCenter = ol.proj.transform(view.getCenter(), center.projection, defaults.projection);
-
-                            if (!equals({ lat: actualCenter[1], lon: actualCenter[1] }, { lat: center.lat, lon: center.lon })) {
-                                var proj = ol.proj.transform([ center.lon, center.lat ], defaults.projection, center.projection);
-                                view.setCenter(proj);
-                            }
+                            return;
+                        }
+                        var actualCenter = ol.proj.transform(viewCenter, center.projection, defaults.projection);
+                        if (!equals({ lat: actualCenter[1], lon: actualCenter[0] }, { lat: center.lat, lon: center.lon })) {
+                            setCenter(view, defaults.projection, center);
                         }
                     }
 
@@ -638,7 +644,6 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             return angular.isDefined(center) &&
                    (angular.isNumber(center.lat) && angular.isNumber(center.lon) ||
                    (angular.isArray(center.coord) && center.coord.length === 2 && angular.isNumber(center.coord[0]) && angular.isNumber(center.coord[1])) ||
-                   typeof center.autodiscover === "boolean" && center.autodiscover === true ||
                    (angular.isArray(center.bounds) && center.bounds.length === 4 &&
                    angular.isNumber(center.bounds[0]) && angular.isNumber(center.bounds[1]) &&
                    angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2])));

@@ -1,5 +1,5 @@
 angular.module("openlayers-directive", []).directive('openlayers', function ($log, $q, olHelpers, olMapDefaults, olData) {
-    var _olMap = $q.defer();
+    var _olMap;
     return {
         restrict: "EA",
         replace: true,
@@ -12,7 +12,7 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
         transclude: true,
         template: '<div class="angular-openlayers-map"><div ng-transclude></div></div>',
         controller: function ($scope) {
-
+            _olMap = $q.defer();
             this.getMap = function () {
                 return _olMap.promise;
             };
@@ -56,7 +56,9 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
                 controls: controls,
                 interactions: interactions,
                 view: new ol.View({
-                    projection: projection
+                    projection: projection,
+                    maxZoom: defaults.maxZoom,
+                    minZoom: defaults.minZoom
                 })
             });
 

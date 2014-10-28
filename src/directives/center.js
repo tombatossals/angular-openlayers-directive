@@ -21,6 +21,7 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
 
                 var view = map.getView();
 
+                console.log(attrs.id, map);
                 var setCenter = function(view, projection, newCenter) {
                     if (newCenter.projection === projection) {
                         view.setCenter([ newCenter.lon, newCenter.lat ]);
