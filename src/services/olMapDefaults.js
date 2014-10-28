@@ -12,7 +12,11 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 mouseWheelZoom: true,
                 dragZoom: true
             },
-            projection: 'EPSG:4326',
+            view: {
+                projection: 'EPSG:4326',
+                minZoom: undefined,
+                maxZoom: undefined
+            },
             layers: {
                 main: {
                     type: 'Tile',
@@ -21,8 +25,6 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                     }
                 }
             },
-            minZoom: undefined,
-            maxZoom: undefined,
             center: {
                 lat: 0,
                 lon: 0,
@@ -39,7 +41,8 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
             },
             events: {
                 map: [ 'click' ]
-            }
+            },
+            renderer: 'canvas'
         };
     };
 
@@ -71,16 +74,14 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                     newDefaults.interactions = angular.copy(userDefaults.interactions);
                 }
 
-                if (isDefined(userDefaults.minZoom)) {
-                    newDefaults.minZoom = userDefaults.minZoom;
+                if (isDefined(userDefaults.renderer)) {
+                    newDefaults.renderer = userDefaults.renderer;
                 }
 
-                if (isDefined(userDefaults.maxZoom)) {
-                    newDefaults.maxZoom = userDefaults.maxZoom;
-                }
-
-                if (isDefined(userDefaults.projection)) {
-                    newDefaults.projection = userDefaults.projection;
+                if (isDefined(userDefaults.view)) {
+                    newDefaults.view.maxZoom = userDefaults.view.maxZoom || newDefaults.view.maxZoom;
+                    newDefaults.view.minZoom = userDefaults.view.minZoom || newDefaults.view.minZoom;
+                    newDefaults.view.projection = userDefaults.view.projection || newDefaults.view.projection;
                 }
 
             }

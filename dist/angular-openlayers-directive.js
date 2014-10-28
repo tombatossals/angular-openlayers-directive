@@ -52,17 +52,18 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
 
             var controls = ol.control.defaults(defaults.controls);
             var interactions = ol.interaction.defaults(defaults.interactions);
-            var projection = createProjection(defaults.projection);
+            var projection = createProjection(defaults.view.projection);
 
             // Create the Openlayers Map Object with the options
             var map = new ol.Map({
                 target: element[0],
                 controls: controls,
                 interactions: interactions,
+                renderer: defaults.renderer,
                 view: new ol.View({
                     projection: projection,
-                    maxZoom: defaults.maxZoom,
-                    minZoom: defaults.minZoom
+                    maxZoom: defaults.view.maxZoom,
+                    minZoom: defaults.view.minZoom,
                 })
             });
 
@@ -112,8 +113,6 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                     center = olScope.center;
 
                 var view = map.getView();
-
-                console.log(attrs.id, map);
                 var setCenter = function(view, projection, newCenter) {
                     if (newCenter.projection === projection) {
                         view.setCenter([ newCenter.lon, newCenter.lat ]);
@@ -123,16 +122,16 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                 };
 
                 if (!center.projection) {
-                    if (defaults.projection !== 'pixel') {
+                    if (defaults.view.projection !== 'pixel') {
                         center.projection = defaults.center.projection;
                     } else {
-                        center.projection = defaults.projection;
+                        center.projection = defaults.view.projection;
                     }
                 }
 
                 if (attrs.center.search("-") !== -1) {
                     $log.error('[AngularJS - Openlayers] The "center" variable can\'t use a "-" on his key name: "' + attrs.center + '".');
-                    setCenter(view, defaults.projection, defaults.center);
+                    setCenter(view, defaults.view.projection, defaults.center);
                     return;
                 }
 
@@ -145,7 +144,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                     center.zoom = 1;
                 }
 
-                setCenter(view, defaults.projection, center);
+                setCenter(view, defaults.view.projection, center);
                 view.setZoom(center.zoom);
 
                 var centerUrlHash;
@@ -189,7 +188,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                     if (center.autodiscover) {
                         if (!geolocation) {
                             geolocation = new ol.Geolocation({
-                                projection: ol.proj.get(defaults.projection)
+                                projection: ol.proj.get(defaults.view.projection)
                             });
 
                             geolocation.on('change', function() {
@@ -216,13 +215,13 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
 
                     var viewCenter = view.getCenter();
                     if (viewCenter) {
-                        if (defaults.projection === 'pixel') {
+                        if (defaults.view.projection === 'pixel') {
                             view.setCenter(center.coord);
                             return;
                         }
-                        var actualCenter = ol.proj.transform(viewCenter, center.projection, defaults.projection);
+                        var actualCenter = ol.proj.transform(viewCenter, center.projection, defaults.view.projection);
                         if (!equals({ lat: actualCenter[1], lon: actualCenter[0] }, { lat: center.lat, lon: center.lon })) {
-                            setCenter(view, defaults.projection, center);
+                            setCenter(view, defaults.view.projection, center);
                         }
                     }
 
@@ -238,7 +237,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                         // Calculate the bounds if needed
                         if (isArray(scope.center.bounds)) {
                             var extent = view.calculateExtent(map.getSize());
-                            scope.center.bounds = ol.proj.transform(extent, scope.center.projection, defaults.projection);
+                            scope.center.bounds = ol.proj.transform(extent, scope.center.projection, defaults.view.projection);
                         }
                     });
                 });
@@ -246,12 +245,12 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                 view.on("change:center", function() {
                     safeApply(olScope, function(scope) {
                         var center = map.getView().getCenter();
-                        if (defaults.projection === 'pixel') {
+                        if (defaults.view.projection === 'pixel') {
                             scope.center.coord = center;
                             return;
                         }
 
-                        var proj = ol.proj.transform(center, scope.center.projection, defaults.projection);
+                        var proj = ol.proj.transform(center, scope.center.projection, defaults.view.projection);
                         if (scope.center) {
                             scope.center.lat = proj[1];
                             scope.center.lon = proj[0];
@@ -259,7 +258,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                             // Calculate the bounds if needed
                             if (isArray(scope.center.bounds)) {
                                 var extent = view.calculateExtent(map.getSize());
-                                scope.center.bounds = ol.proj.transform(extent, scope.center.projection, defaults.projection);
+                                scope.center.bounds = ol.proj.transform(extent, scope.center.projection, defaults.view.projection);
                             }
                         }
                     });
@@ -769,7 +768,11 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                 mouseWheelZoom: true,
                 dragZoom: true
             },
-            projection: 'EPSG:4326',
+            view: {
+                projection: 'EPSG:4326',
+                minZoom: undefined,
+                maxZoom: undefined
+            },
             layers: {
                 main: {
                     type: 'Tile',
@@ -778,8 +781,6 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                     }
                 }
             },
-            minZoom: undefined,
-            maxZoom: undefined,
             center: {
                 lat: 0,
                 lon: 0,
@@ -796,7 +797,8 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
             },
             events: {
                 map: [ 'click' ]
-            }
+            },
+            renderer: 'canvas'
         };
     };
 
@@ -828,16 +830,14 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                     newDefaults.interactions = angular.copy(userDefaults.interactions);
                 }
 
-                if (isDefined(userDefaults.minZoom)) {
-                    newDefaults.minZoom = userDefaults.minZoom;
+                if (isDefined(userDefaults.renderer)) {
+                    newDefaults.renderer = userDefaults.renderer;
                 }
 
-                if (isDefined(userDefaults.maxZoom)) {
-                    newDefaults.maxZoom = userDefaults.maxZoom;
-                }
-
-                if (isDefined(userDefaults.projection)) {
-                    newDefaults.projection = userDefaults.projection;
+                if (isDefined(userDefaults.view)) {
+                    newDefaults.view.maxZoom = userDefaults.view.maxZoom || newDefaults.view.maxZoom;
+                    newDefaults.view.minZoom = userDefaults.view.minZoom || newDefaults.view.minZoom;
+                    newDefaults.view.projection = userDefaults.view.projection || newDefaults.view.projection;
                 }
 
             }

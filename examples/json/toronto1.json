@@ -1,4 +1,4 @@
-{ "data" : { "features" : [ { "geometry" : { "coordinates" : [ [ [ -79.515130936384381,
+{ "features" : [ { "geometry" : { "coordinates" : [ [ [ -79.515130936384381,
                         43.747105443858011
                       ],
                       [ -79.51568726118758,
@@ -2840,4 +2840,4 @@
           }
         ],
       "type" : "FeatureCollection"
-    } }
+    }
