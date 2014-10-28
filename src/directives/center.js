@@ -21,6 +21,14 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
 
                 var view = map.getView();
 
+                var setCenter = function(view, projection, newCenter) {
+                    if (newCenter.projection === projection) {
+                        view.setCenter([ newCenter.lon, newCenter.lat ]);
+                    } else {
+                        view.setCenter(ol.proj.transform([ newCenter.lon, newCenter.lat ], projection, newCenter.projection));
+                    }
+                };
+
                 if (!center.projection) {
                     if (defaults.projection !== 'pixel') {
                         center.projection = defaults.center.projection;
@@ -31,7 +39,7 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
 
                 if (attrs.center.search("-") !== -1) {
                     $log.error('[AngularJS - Openlayers] The "center" variable can\'t use a "-" on his key name: "' + attrs.center + '".');
-                    view.setCenter(ol.proj.transform([ defaults.center.lon, defaults.center.lat ], defaults.projection, center.projection));
+                    setCenter(view, defaults.projection, defaults.center);
                     return;
                 }
 
@@ -44,11 +52,7 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                     center.zoom = 1;
                 }
 
-                var projCenter = center;
-                if (defaults.projection !== center.projection) {
-                    projCenter = ol.proj.transform([ center.lon, center.lat ], defaults.projection, center.projection);
-                }
-                view.setCenter(projCenter);
+                setCenter(view, defaults.projection, center);
                 view.setZoom(center.zoom);
 
                 var centerUrlHash;
@@ -117,16 +121,15 @@ angular.module("openlayers-directive").directive('center', function ($log, $loca
                         center = defaults.center;
                     }
 
-                    if (view.getCenter()) {
+                    var viewCenter = view.getCenter();
+                    if (viewCenter) {
                         if (defaults.projection === 'pixel') {
                             view.setCenter(center.coord);
-                        } else {
-                            var actualCenter = ol.proj.transform(view.getCenter(), center.projection, defaults.projection);
-
-                            if (!equals({ lat: actualCenter[1], lon: actualCenter[1] }, { lat: center.lat, lon: center.lon })) {
-                                var proj = ol.proj.transform([ center.lon, center.lat ], defaults.projection, center.projection);
-                                view.setCenter(proj);
-                            }
+                            return;
+                        }
+                        var actualCenter = ol.proj.transform(viewCenter, center.projection, defaults.projection);
+                        if (!equals({ lat: actualCenter[1], lon: actualCenter[0] }, { lat: center.lat, lon: center.lon })) {
+                            setCenter(view, defaults.projection, center);
                         }
                     }
 
