@@ -3,7 +3,7 @@
 "use strict";
 
 angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q", "olHelpers", "olMapDefaults", "olData", function ($log, $q, olHelpers, olMapDefaults, olData) {
-    var _olMap = $q.defer();
+    var _olMap;
     return {
         restrict: "EA",
         replace: true,
@@ -16,7 +16,7 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
         transclude: true,
         template: '<div class="angular-openlayers-map"><div ng-transclude></div></div>',
         controller: ["$scope", function ($scope) {
-
+            _olMap = $q.defer();
             this.getMap = function () {
                 return _olMap.promise;
             };
@@ -52,17 +52,18 @@ angular.module("openlayers-directive", []).directive('openlayers', ["$log", "$q"
 
             var controls = ol.control.defaults(defaults.controls);
             var interactions = ol.interaction.defaults(defaults.interactions);
-            var projection = createProjection(defaults.projection);
+            var projection = createProjection(defaults.view.projection);
 
             // Create the Openlayers Map Object with the options
             var map = new ol.Map({
                 target: element[0],
                 controls: controls,
                 interactions: interactions,
+                renderer: defaults.renderer,
                 view: new ol.View({
                     projection: projection,
-                    maxZoom: defaults.maxZoom,
-                    minZoom: defaults.minZoom
+                    maxZoom: defaults.view.maxZoom,
+                    minZoom: defaults.view.minZoom,
                 })
             });
 
@@ -112,18 +113,25 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                     center = olScope.center;
 
                 var view = map.getView();
+                var setCenter = function(view, projection, newCenter) {
+                    if (newCenter.projection === projection) {
+                        view.setCenter([ newCenter.lon, newCenter.lat ]);
+                    } else {
+                        view.setCenter(ol.proj.transform([ newCenter.lon, newCenter.lat ], projection, newCenter.projection));
+                    }
+                };
 
                 if (!center.projection) {
-                    if (defaults.projection !== 'pixel') {
+                    if (defaults.view.projection !== 'pixel') {
                         center.projection = defaults.center.projection;
                     } else {
-                        center.projection = defaults.projection;
+                        center.projection = defaults.view.projection;
                     }
                 }
 
                 if (attrs.center.search("-") !== -1) {
                     $log.error('[AngularJS - Openlayers] The "center" variable can\'t use a "-" on his key name: "' + attrs.center + '".');
-                    view.setCenter(ol.proj.transform([ defaults.center.lon, defaults.center.lat ], defaults.projection, center.projection));
+                    setCenter(view, defaults.view.projection, defaults.center);
                     return;
                 }
 
@@ -136,12 +144,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                     center.zoom = 1;
                 }
 
-                var projCenter = center;
-                if (defaults.projection !== center.projection) {
-                    projCenter = ol.proj.transform([ center.lon, center.lat ], defaults.projection, center.projection);
-                }
-
-                view.setCenter(projCenter);
+                setCenter(view, defaults.view.projection, center);
                 view.setZoom(center.zoom);
 
                 var centerUrlHash;
@@ -185,7 +188,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                     if (center.autodiscover) {
                         if (!geolocation) {
                             geolocation = new ol.Geolocation({
-                                projection: ol.proj.get(defaults.projection)
+                                projection: ol.proj.get(defaults.view.projection)
                             });
 
                             geolocation.on('change', function() {
@@ -210,16 +213,15 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                         center = defaults.center;
                     }
 
-                    if (view.getCenter()) {
-                        if (defaults.projection === 'pixel') {
+                    var viewCenter = view.getCenter();
+                    if (viewCenter) {
+                        if (defaults.view.projection === 'pixel') {
                             view.setCenter(center.coord);
-                        } else {
-                            var actualCenter = ol.proj.transform(view.getCenter(), center.projection, defaults.projection);
-
-                            if (!equals({ lat: actualCenter[1], lon: actualCenter[1] }, { lat: center.lat, lon: center.lon })) {
-                                var proj = ol.proj.transform([ center.lon, center.lat ], defaults.projection, center.projection);
-                                view.setCenter(proj);
-                            }
+                            return;
+                        }
+                        var actualCenter = ol.proj.transform(viewCenter, center.projection, defaults.view.projection);
+                        if (!equals({ lat: actualCenter[1], lon: actualCenter[0] }, { lat: center.lat, lon: center.lon })) {
+                            setCenter(view, defaults.view.projection, center);
                         }
                     }
 
@@ -235,7 +237,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                         // Calculate the bounds if needed
                         if (isArray(scope.center.bounds)) {
                             var extent = view.calculateExtent(map.getSize());
-                            scope.center.bounds = ol.proj.transform(extent, scope.center.projection, defaults.projection);
+                            scope.center.bounds = ol.proj.transform(extent, scope.center.projection, defaults.view.projection);
                         }
                     });
                 });
@@ -243,12 +245,12 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                 view.on("change:center", function() {
                     safeApply(olScope, function(scope) {
                         var center = map.getView().getCenter();
-                        if (defaults.projection === 'pixel') {
+                        if (defaults.view.projection === 'pixel') {
                             scope.center.coord = center;
                             return;
                         }
 
-                        var proj = ol.proj.transform(center, scope.center.projection, defaults.projection);
+                        var proj = ol.proj.transform(center, scope.center.projection, defaults.view.projection);
                         if (scope.center) {
                             scope.center.lat = proj[1];
                             scope.center.lon = proj[0];
@@ -256,7 +258,7 @@ angular.module("openlayers-directive").directive('center', ["$log", "$location",
                             // Calculate the bounds if needed
                             if (isArray(scope.center.bounds)) {
                                 var extent = view.calculateExtent(map.getSize());
-                                scope.center.bounds = ol.proj.transform(extent, scope.center.projection, defaults.projection);
+                                scope.center.bounds = ol.proj.transform(extent, scope.center.projection, defaults.view.projection);
                             }
                         }
                     });
@@ -286,7 +288,8 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
                 equals      = olHelpers.equals,
                 olLayers    = {},
                 olScope     = controller.getOpenlayersScope(),
-                createLayer = olHelpers.createLayer;
+                createLayer = olHelpers.createLayer,
+                createStyle = olHelpers.createStyle;
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id),
@@ -316,12 +319,25 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
                     // add new layers
                     for (name in layers) {
                         layer = layers[name];
-                        var olLayer;
+                        var olLayer, style;
                         if (!olLayers.hasOwnProperty(name)) {
                             olLayer = createLayer(layers[name], projection);
                             if (isDefined(olLayer)) {
                                 olLayers[name] = olLayer;
                                 map.addLayer(olLayer);
+
+                                if (layer.opacity) {
+                                    olLayer.setOpacity(layer.opacity);
+                                }
+
+                                if (layer.style) {
+                                    if (!angular.isFunction(layer.style)) {
+                                        style = createStyle(layer.style);
+                                    } else {
+                                        style = layer.style;
+                                    }
+                                    olLayer.setStyle(style);
+                                }
                             }
                         } else {
                             layer = layers[name];
@@ -331,13 +347,24 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
                                 if (!equals(layer.source, oldLayer.source)) {
                                     map.removeLayer(olLayer);
                                     delete olLayers[name];
-                                    var l = createLayer(layer, projection);
-                                    map.addLayer(l);
-                                    olLayers[name] = l;
+                                    olLayer = createLayer(layer, projection);
+                                    if (isDefined(olLayer)) {
+                                        olLayers[name] = olLayer;
+                                        map.addLayer(olLayer);
+                                    }
                                 }
 
                                 if (layer.opacity && layer.opacity !== oldLayer.opacity) {
                                     olLayer.setOpacity(layer.opacity);
+                                }
+
+                                if (layer.style && !equals(layer.style, oldLayer.style)) {
+                                    if (!angular.isFunction(layer.style)) {
+                                        style = createStyle(layer.style);
+                                    } else {
+                                        style = layer.style;
+                                    }
+                                    olLayer.setStyle(style);
                                 }
                             }
                         }
@@ -464,6 +491,26 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
 
     var mapQuestLayers = [ 'osm', 'sat', 'hyb' ];
 
+    var _createStyle = function(style) {
+        var fill, stroke;
+        if (style.fill) {
+            fill = new ol.style.Fill( {
+                color: style.fill.color
+            });
+        }
+
+        if (style.stroke) {
+            stroke = new ol.style.Stroke({
+                color: style.stroke.color,
+                width: style.stroke.width
+            });
+        }
+        return new ol.style.Style({
+            fill: fill,
+            stroke: stroke
+        });
+    };
+
     var _detectLayerType = function(layer) {
         if (layer.type) {
             return layer.type;
@@ -498,6 +545,10 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
         }
 
         return oProjection;
+    };
+
+    var isValidStamenLayer = function(layer) {
+        return [ 'watercolor', 'terrain', 'toner' ].indexOf(layer) !== -1;
     };
 
     var createSource = function(source, projection) {
@@ -581,6 +632,15 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                 oSource = new ol.source.TileJSON({
                     url: source.url,
                     crossOrigin: 'anonymous'
+                });
+                break;
+            case 'Stamen':
+                if (!source.layer || !isValidStamenLayer(source.layer)) {
+                    $log.error("[AngularJS - Openlayers] - You need a valid Stamen layer.");
+                    return;
+                }
+                oSource = new ol.source.Stamen({
+                    layer: source.layer
                 });
                 break;
             case 'ImageStatic':
@@ -694,6 +754,8 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
+        createStyle: _createStyle,
+
         setEvents: function(events, map, scope, layers) {
             if (isDefined(events)) {
                 if (isDefined(layers)) {
@@ -719,6 +781,10 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                 type = _detectLayerType(layer),
                 oSource = createSource(layer.source, projection);
 
+            if (!oSource) {
+                return;
+            }
+
             switch(type) {
                 case 'Image':
                     oLayer = new ol.layer.Image({ source: oSource });
@@ -727,20 +793,11 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                     oLayer = new ol.layer.Tile({ source: oSource });
                     break;
                 case 'Vector':
+                    var style;
                     if (layer.style) {
-                        var style = new ol.style.Style({
-                            fill: new ol.style.Fill({
-                                color: layer.style.fill.color
-                            }),
-                            stroke: new ol.style.Stroke({
-                                color: layer.style.stroke.color,
-                                width: layer.style.stroke.width
-                            })
-                        });
-                        oLayer = new ol.layer.Vector({ source: oSource, style: style });
-                    } else {
-                        oLayer = new ol.layer.Vector({ source: oSource });
+                        style = _createStyle(layer.style);
                     }
+                    oLayer = new ol.layer.Vector({ source: oSource, style: style });
                     break;
             }
 
@@ -766,7 +823,11 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                 mouseWheelZoom: true,
                 dragZoom: true
             },
-            projection: 'EPSG:4326',
+            view: {
+                projection: 'EPSG:4326',
+                minZoom: undefined,
+                maxZoom: undefined
+            },
             layers: {
                 main: {
                     type: 'Tile',
@@ -775,8 +836,6 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                     }
                 }
             },
-            minZoom: undefined,
-            maxZoom: undefined,
             center: {
                 lat: 0,
                 lon: 0,
@@ -793,7 +852,8 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
             },
             events: {
                 map: [ 'click' ]
-            }
+            },
+            renderer: 'canvas'
         };
     };
 
@@ -825,16 +885,14 @@ angular.module("openlayers-directive").factory('olMapDefaults', ["$q", "olHelper
                     newDefaults.interactions = angular.copy(userDefaults.interactions);
                 }
 
-                if (isDefined(userDefaults.minZoom)) {
-                    newDefaults.minZoom = userDefaults.minZoom;
+                if (isDefined(userDefaults.renderer)) {
+                    newDefaults.renderer = userDefaults.renderer;
                 }
 
-                if (isDefined(userDefaults.maxZoom)) {
-                    newDefaults.maxZoom = userDefaults.maxZoom;
-                }
-
-                if (isDefined(userDefaults.projection)) {
-                    newDefaults.projection = userDefaults.projection;
+                if (isDefined(userDefaults.view)) {
+                    newDefaults.view.maxZoom = userDefaults.view.maxZoom || newDefaults.view.maxZoom;
+                    newDefaults.view.minZoom = userDefaults.view.minZoom || newDefaults.view.minZoom;
+                    newDefaults.view.projection = userDefaults.view.projection || newDefaults.view.projection;
                 }
 
             }
