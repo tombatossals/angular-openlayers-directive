@@ -333,9 +333,11 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
                                 if (!equals(layer.source, oldLayer.source)) {
                                     map.removeLayer(olLayer);
                                     delete olLayers[name];
-                                    var l = createLayer(layer, projection);
-                                    map.addLayer(l);
-                                    olLayers[name] = l;
+                                    olLayer = createLayer(layer, projection);
+                                    if (isDefined(olLayer)) {
+                                        olLayers[name] = olLayer;
+                                        map.addLayer(olLayer);
+                                    }
                                 }
 
                                 if (layer.opacity && layer.opacity !== oldLayer.opacity) {
@@ -502,6 +504,10 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
         return oProjection;
     };
 
+    var isValidStamenLayer = function(layer) {
+        return [ 'watercolor', 'terrain', 'toner' ].indexOf(layer) !== -1;
+    };
+
     var createSource = function(source, projection) {
         var oSource;
 
@@ -586,8 +592,9 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                 });
                 break;
             case 'Stamen':
-                if (!source.layer) {
+                if (!source.layer || !isValidStamenLayer(source.layer)) {
                     $log.error("[AngularJS - Openlayers] - You need a valid Stamen layer.");
+                    return;
                 }
                 oSource = new ol.source.Stamen({
                     layer: source.layer
@@ -728,6 +735,10 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             var oLayer,
                 type = _detectLayerType(layer),
                 oSource = createSource(layer.source, projection);
+
+            if (!oSource) {
+                return;
+            }
 
             switch(type) {
                 case 'Image':

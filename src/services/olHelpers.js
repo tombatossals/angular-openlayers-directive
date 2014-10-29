@@ -49,6 +49,10 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         return oProjection;
     };
 
+    var isValidStamenLayer = function(layer) {
+        return [ 'watercolor', 'terrain', 'toner' ].indexOf(layer) !== -1;
+    };
+
     var createSource = function(source, projection) {
         var oSource;
 
@@ -133,8 +137,9 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 });
                 break;
             case 'Stamen':
-                if (!source.layer) {
+                if (!source.layer || !isValidStamenLayer(source.layer)) {
                     $log.error("[AngularJS - Openlayers] - You need a valid Stamen layer.");
+                    return;
                 }
                 oSource = new ol.source.Stamen({
                     layer: source.layer
@@ -275,6 +280,10 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             var oLayer,
                 type = _detectLayerType(layer),
                 oSource = createSource(layer.source, projection);
+
+            if (!oSource) {
+                return;
+            }
 
             switch(type) {
                 case 'Image':

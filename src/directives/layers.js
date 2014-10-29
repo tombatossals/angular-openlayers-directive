@@ -62,9 +62,11 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
                                 if (!equals(layer.source, oldLayer.source)) {
                                     map.removeLayer(olLayer);
                                     delete olLayers[name];
-                                    var l = createLayer(layer, projection);
-                                    map.addLayer(l);
-                                    olLayers[name] = l;
+                                    olLayer = createLayer(layer, projection);
+                                    if (isDefined(olLayer)) {
+                                        olLayers[name] = olLayer;
+                                        map.addLayer(olLayer);
+                                    }
                                 }
 
                                 if (layer.opacity && layer.opacity !== oldLayer.opacity) {

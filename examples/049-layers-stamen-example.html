@@ -9,16 +9,16 @@
         var app = angular.module("demoapp", ["openlayers-directive"]);
         app.controller('DemoController', [ '$scope', function($scope) {
             angular.extend($scope, {
-                papua: {
-                    lat: -4.34,
-                    lon: 152.26,
-                    zoom: 6
+                newyork: {
+                    lat: 40.74,
+                    lon: -73.97,
+                    zoom: 12
                 },
                 layers: {
                     main: {
                         source: {
                             type: 'Stamen',
-                            layer: 'watercolor'
+                            layer: 'terrain'
                         }
                     }
                 }
@@ -27,10 +27,10 @@
     </script>
   </head>
   <body ng-controller="DemoController">
-    <openlayers center="papua" layers="layers" height="400px"></openlayers>
+    <openlayers center="newyork" layers="layers" height="400px"></openlayers>
 
-    <h1>Using a Bing Maps Layer</h1>
-    <p>This map uses a Bing source. You must request an API key to use these maps <a href="http://www.bingmapsportal.com">here</a>.</p>
+    <h1>Using Stamen Maps Layer</h1>
+    <p>This map uses a <a href="http://maps.stamen.com">Stamen</a> layer. Click on the buttons to see the three types of layers:</p>
 
     <ul>
         <li style="display: inline" ng-repeat="layer in [ 'watercolor', 'terrain', 'toner' ]">
