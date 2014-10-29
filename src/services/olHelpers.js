@@ -13,6 +13,26 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 
     var mapQuestLayers = [ 'osm', 'sat', 'hyb' ];
 
+    var _createStyle = function(style) {
+        var fill, stroke;
+        if (style.fill) {
+            fill = new ol.style.Fill( {
+                color: style.fill.color
+            });
+        }
+
+        if (style.stroke) {
+            stroke = new ol.style.Stroke({
+                color: style.stroke.color,
+                width: style.stroke.width
+            });
+        }
+        return new ol.style.Style({
+            fill: fill,
+            stroke: stroke
+        });
+    };
+
     var _detectLayerType = function(layer) {
         if (layer.type) {
             return layer.type;
@@ -256,6 +276,8 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
+        createStyle: _createStyle,
+
         setEvents: function(events, map, scope, layers) {
             if (isDefined(events)) {
                 if (isDefined(layers)) {
@@ -293,20 +315,11 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                     oLayer = new ol.layer.Tile({ source: oSource });
                     break;
                 case 'Vector':
+                    var style;
                     if (layer.style) {
-                        var style = new ol.style.Style({
-                            fill: new ol.style.Fill({
-                                color: layer.style.fill.color
-                            }),
-                            stroke: new ol.style.Stroke({
-                                color: layer.style.stroke.color,
-                                width: layer.style.stroke.width
-                            })
-                        });
-                        oLayer = new ol.layer.Vector({ source: oSource, style: style });
-                    } else {
-                        oLayer = new ol.layer.Vector({ source: oSource });
+                        style = _createStyle(layer.style);
                     }
+                    oLayer = new ol.layer.Vector({ source: oSource, style: style });
                     break;
             }
 

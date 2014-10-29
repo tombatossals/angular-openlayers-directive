@@ -288,7 +288,8 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
                 equals      = olHelpers.equals,
                 olLayers    = {},
                 olScope     = controller.getOpenlayersScope(),
-                createLayer = olHelpers.createLayer;
+                createLayer = olHelpers.createLayer,
+                createStyle = olHelpers.createStyle;
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id),
@@ -342,6 +343,11 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
 
                                 if (layer.opacity && layer.opacity !== oldLayer.opacity) {
                                     olLayer.setOpacity(layer.opacity);
+                                }
+
+                                if (layer.style && !equals(layer.style, oldLayer.style)) {
+                                    var style = createStyle(layer.style);
+                                    olLayer.setStyle(style);
                                 }
                             }
                         }
@@ -467,6 +473,26 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
     ];
 
     var mapQuestLayers = [ 'osm', 'sat', 'hyb' ];
+
+    var _createStyle = function(style) {
+        var fill, stroke;
+        if (style.fill) {
+            fill = new ol.style.Fill( {
+                color: style.fill.color
+            });
+        }
+
+        if (style.stroke) {
+            stroke = new ol.style.Stroke({
+                color: style.stroke.color,
+                width: style.stroke.width
+            });
+        }
+        return new ol.style.Style({
+            fill: fill,
+            stroke: stroke
+        });
+    };
 
     var _detectLayerType = function(layer) {
         if (layer.type) {
@@ -711,6 +737,8 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         },
 
+        createStyle: _createStyle,
+
         setEvents: function(events, map, scope, layers) {
             if (isDefined(events)) {
                 if (isDefined(layers)) {
@@ -748,20 +776,11 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                     oLayer = new ol.layer.Tile({ source: oSource });
                     break;
                 case 'Vector':
+                    var style;
                     if (layer.style) {
-                        var style = new ol.style.Style({
-                            fill: new ol.style.Fill({
-                                color: layer.style.fill.color
-                            }),
-                            stroke: new ol.style.Stroke({
-                                color: layer.style.stroke.color,
-                                width: layer.style.stroke.width
-                            })
-                        });
-                        oLayer = new ol.layer.Vector({ source: oSource, style: style });
-                    } else {
-                        oLayer = new ol.layer.Vector({ source: oSource });
+                        style = _createStyle(layer.style);
                     }
+                    oLayer = new ol.layer.Vector({ source: oSource, style: style });
                     break;
             }
 

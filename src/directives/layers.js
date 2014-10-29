@@ -17,7 +17,8 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
                 equals      = olHelpers.equals,
                 olLayers    = {},
                 olScope     = controller.getOpenlayersScope(),
-                createLayer = olHelpers.createLayer;
+                createLayer = olHelpers.createLayer,
+                createStyle = olHelpers.createStyle;
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id),
@@ -71,6 +72,11 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
 
                                 if (layer.opacity && layer.opacity !== oldLayer.opacity) {
                                     olLayer.setOpacity(layer.opacity);
+                                }
+
+                                if (layer.style && !equals(layer.style, oldLayer.style)) {
+                                    var style = createStyle(layer.style);
+                                    olLayer.setStyle(style);
                                 }
                             }
                         }
