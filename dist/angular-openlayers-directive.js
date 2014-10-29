@@ -585,6 +585,14 @@ angular.module("openlayers-directive").factory('olHelpers', ["$q", "$log", funct
                     crossOrigin: 'anonymous'
                 });
                 break;
+            case 'Stamen':
+                if (!source.layer) {
+                    $log.error("[AngularJS - Openlayers] - You need a valid Stamen layer.");
+                }
+                oSource = new ol.source.Stamen({
+                    layer: source.layer
+                });
+                break;
             case 'ImageStatic':
                 if (!source.url || !angular.isArray(source.imageSize) || source.imageSize.length !== 2) {
                     $log.error("[AngularJS - Openlayers] - You need a image URL to create a ImageStatic layer.");

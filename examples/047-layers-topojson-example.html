@@ -43,15 +43,6 @@
             }
         });
 
-        $scope.centerJSON = function() {
-            olData.getMap().then(function(map) {
-                olData.getLayers().then(function(layers) {
-                    var extent = layers.geojson.getSource().getExtent();
-                    map.getView().fitExtent(extent, map.getSize());
-                });
-            });
-        };
-
       } ]);
       </script>
   </head>
