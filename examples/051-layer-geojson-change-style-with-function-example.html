@@ -7,12 +7,13 @@
 <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <script>
       var app = angular.module("demoapp", ["openlayers-directive"]);
+
       app.controller("GeoJSONController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
         angular.extend($scope, {
             europe: {
-                lat: 43.88,
-                lon: 7.57,
-                zoom: 3
+                lat: 39.2,
+                lon: -1.27,
+                zoom: 5
             },
             defaults: {
                 interactions: {
@@ -25,31 +26,32 @@
                         type: "OSM"
                     }
                 },
-                topojson: {
+                esp: {
                     source: {
-                        type: 'TopoJSON',
-                        url: 'json/world.topo.json'
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
                     },
-                    style: {
-                        fill: {
-                            color: 'rgba(255, 0, 0, 0.6)'
-                        },
-                        stroke: {
-                            color: 'white',
-                            width: 3
-                        }
-                    }
+                    style: styleFunc
                 }
             }
         });
+
+        function styleFunc(feature, resolution) {
+            var style = new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: '#FF0000'
+                })
+            });
+
+            return [ style ];
+        };
 
       } ]);
       </script>
   </head>
   <body ng-controller="GeoJSONController">
      <openlayers center="europe" layers="layers" defaults="defaults" height="400px"></openlayers>
-     <h1>Layers TopoJSON example</h1>
-     <p>You can load TopoJSON as new layers easily, look at the source of the <strong>layers</strong> attribute:</p>
-     <pre ng-bind="layers | json"></pre>
+     <h1>Layers GeoJSON change style with a function</h1>
+     <p>Move the map to change the vector layer style.</p>
   </body>
 </html>

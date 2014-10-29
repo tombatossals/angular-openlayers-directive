@@ -10,9 +10,9 @@
       app.controller("GeoJSONController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
         angular.extend($scope, {
             europe: {
-                lat: 43.88,
-                lon: 7.57,
-                zoom: 3
+                lat: 39.2,
+                lon: -1.27,
+                zoom: 5
             },
             defaults: {
                 interactions: {
@@ -25,17 +25,17 @@
                         type: "OSM"
                     }
                 },
-                topojson: {
+                esp: {
                     source: {
-                        type: 'TopoJSON',
-                        url: 'json/world.topo.json'
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
                     },
                     style: {
                         fill: {
-                            color: 'rgba(255, 0, 0, 0.6)'
+                            color: '#FF0000'
                         },
                         stroke: {
-                            color: 'white',
+                            color: '#FFFFFF',
                             width: 3
                         }
                     }
@@ -48,8 +48,9 @@
   </head>
   <body ng-controller="GeoJSONController">
      <openlayers center="europe" layers="layers" defaults="defaults" height="400px"></openlayers>
-     <h1>Layers TopoJSON example</h1>
-     <p>You can load TopoJSON as new layers easily, look at the source of the <strong>layers</strong> attribute:</p>
-     <pre ng-bind="layers | json"></pre>
+     <h1>Layers GeoJSON change style</h1>
+     <p>Stroke color: <input type="color" ng-model="layers.esp.style.stroke.color">
+     <p>Stroke width: <input type="range" min="0" max="20" value="3" ng-model="layers.esp.style.stroke.width">
+     <p>Fill color: <input type="color" ng-model="layers.esp.style.fill.color">
   </body>
 </html>

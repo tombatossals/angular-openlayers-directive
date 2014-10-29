@@ -10,7 +10,8 @@
       app.controller("StaticImageController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
         angular.extend($scope, {
             center: {
-                coord: [ 1680, 1000 ],
+                lat: 512,
+                lon: 484,
                 zoom: 3
             },
             defaults: {
@@ -20,8 +21,8 @@
                 main: {
                     source: {
                         type: "ImageStatic",
-                        url: "http://blog.wallpops.com/wp-content/upLoads/2013/05/WPE0624.jpg",
-                        imageSize: [ 1800, 1200 ]
+                        url: "http://imgs.xkcd.com/comics/online_communities.png",
+                        imageSize: [1024, 968]
                     }
                 }
             }
@@ -31,10 +32,9 @@
       </script>
   </head>
   <body ng-controller="StaticImageController">
-     <openlayers layers="layers" center="center" defaults="defaults" height="600px"></openlayers>
+     <openlayers layers="layers" center="center" defaults="defaults" height="400px"></openlayers>
      <h1>Static Image Layer example</h1>
      <p>You can load an static image (no tiles) easily, look at the source of the <strong>layers</strong> attribute:</p>
      <pre ng-bind="layers | json"></pre>
-     <pre ng-bind="center | json"></pre>
   </body>
 </html>
