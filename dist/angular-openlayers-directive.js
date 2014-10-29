@@ -319,12 +319,25 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
                     // add new layers
                     for (name in layers) {
                         layer = layers[name];
-                        var olLayer;
+                        var olLayer, style;
                         if (!olLayers.hasOwnProperty(name)) {
                             olLayer = createLayer(layers[name], projection);
                             if (isDefined(olLayer)) {
                                 olLayers[name] = olLayer;
                                 map.addLayer(olLayer);
+
+                                if (layer.opacity) {
+                                    olLayer.setOpacity(layer.opacity);
+                                }
+
+                                if (layer.style) {
+                                    if (!angular.isFunction(layer.style)) {
+                                        style = createStyle(layer.style);
+                                    } else {
+                                        style = layer.style;
+                                    }
+                                    olLayer.setStyle(style);
+                                }
                             }
                         } else {
                             layer = layers[name];
@@ -346,7 +359,11 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
                                 }
 
                                 if (layer.style && !equals(layer.style, oldLayer.style)) {
-                                    var style = createStyle(layer.style);
+                                    if (!angular.isFunction(layer.style)) {
+                                        style = createStyle(layer.style);
+                                    } else {
+                                        style = layer.style;
+                                    }
                                     olLayer.setStyle(style);
                                 }
                             }
