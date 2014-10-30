@@ -99,10 +99,10 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
                         }
                     }
                 }, true);
+
                 // We can resolve the layer promises
                 _olLayers.resolve(olLayers);
                 olData.setLayers(olLayers, attrs.id);
-
             });
         }
     };

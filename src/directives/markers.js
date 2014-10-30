@@ -32,7 +32,6 @@ angular.module("openlayers-directive").directive('markers', function ($log, $q, 
 
                     // Create the markers layer and add it to the map
                     var markerLayer = createMarkerLayer();
-                    map.addLayer(markerLayer);
 
                     olScope.$watch('markers', function(newMarkers) {
                         // Delete markers from the array
@@ -61,6 +60,7 @@ angular.module("openlayers-directive").directive('markers', function ($log, $q, 
                                 markerLayer.getSource().addFeature(marker);
                             }
                         }
+                        map.addLayer(markerLayer);
                     }, true);
                 });
             });

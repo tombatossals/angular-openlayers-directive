@@ -371,10 +371,10 @@ angular.module("openlayers-directive").directive('layers', ["$log", "$q", "olDat
                         }
                     }
                 }, true);
+
                 // We can resolve the layer promises
                 _olLayers.resolve(olLayers);
                 olData.setLayers(olLayers, attrs.id);
-
             });
         }
     };
@@ -449,7 +449,6 @@ angular.module("openlayers-directive").directive('markers', ["$log", "$q", "olDa
 
                     // Create the markers layer and add it to the map
                     var markerLayer = createMarkerLayer();
-                    map.addLayer(markerLayer);
 
                     olScope.$watch('markers', function(newMarkers) {
                         // Delete markers from the array
@@ -478,6 +477,7 @@ angular.module("openlayers-directive").directive('markers', ["$log", "$q", "olDa
                                 markerLayer.getSource().addFeature(marker);
                             }
                         }
+                        map.addLayer(markerLayer);
                     }, true);
                 });
             });
