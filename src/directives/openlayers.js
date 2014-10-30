@@ -7,6 +7,7 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
             center: '=center',
             defaults: '=defaults',
             layers: '=layers',
+            markers: '=markers',
             events: '=events'
         },
         transclude: true,

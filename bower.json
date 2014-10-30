@@ -16,9 +16,7 @@
   },
   "devDependencies": {
     "jquery": "*",
-    "bootstrap": "*",
     "angular-route": "*",
-    "angular-animate": "*",
     "angular-mocks": "*"
   },
   "ignore": [

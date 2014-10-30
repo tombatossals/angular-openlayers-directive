@@ -2,7 +2,8 @@ angular.module("openlayers-directive").service('olData', function ($log, $q, olH
     var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
 
     var maps = {},
-        layers = {};
+        layers = {},
+        markers = {};
 
     var setResolvedDefer = function(d, mapId) {
         var id = obtainEffectiveMapId(d, mapId);
@@ -56,6 +57,17 @@ angular.module("openlayers-directive").service('olData', function ($log, $q, olH
         var defer = getUnresolvedDefer(layers, scopeId);
         defer.resolve(olLayers);
         setResolvedDefer(layers, scopeId);
+    };
+
+    this.getMarkers = function(scopeId) {
+        var defer = getDefer(markers, scopeId);
+        return defer.promise;
+    };
+
+    this.setMarkers = function(olMarkers, scopeId) {
+        var defer = getUnresolvedDefer(markers, scopeId);
+        defer.resolve(olMarkers);
+        setResolvedDefer(markers, scopeId);
     };
 
 });
