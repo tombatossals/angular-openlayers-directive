@@ -17,6 +17,11 @@ angular.module('openlayers-directive').directive('center', function($log, $locat
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
                 var center = olScope.center;
+
+                if (!center) {
+                    center = {};
+                }
+
                 var view = map.getView();
                 var setCenter = function(view, projection, newCenter) {
                     if (newCenter.projection === projection) {
@@ -81,6 +86,10 @@ angular.module('openlayers-directive').directive('center', function($log, $locat
                 var geolocation;
                 olScope.$watch('center', function(center) {
 
+                    if (!center) {
+                        return;
+                    }
+                    
                     if (isDefined(centerUrlHash)) {
                         var urlCenter = extractCenterFromUrl();
                         if  (!isSameCenterOnMap(urlCenter, map)) {

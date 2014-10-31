@@ -15,7 +15,8 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
             view: {
                 projection: 'EPSG:4326',
                 minZoom: undefined,
-                maxZoom: undefined
+                maxZoom: undefined,
+                rotation: 0
             },
             layers: {
                 main: {

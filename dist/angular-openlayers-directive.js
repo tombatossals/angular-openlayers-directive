@@ -13,6 +13,7 @@ angular.module('openlayers-directive', [])
             defaults: '=defaults',
             layers: '=layers',
             markers: '=markers',
+            view: '=view',
             events: '=events'
         },
         transclude: true,
@@ -112,6 +113,11 @@ angular.module('openlayers-directive').directive('center', ["$log", "$location",
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
                 var center = olScope.center;
+
+                if (!center) {
+                    center = {};
+                }
+
                 var view = map.getView();
                 var setCenter = function(view, projection, newCenter) {
                     if (newCenter.projection === projection) {
@@ -176,6 +182,10 @@ angular.module('openlayers-directive').directive('center', ["$log", "$location",
                 var geolocation;
                 olScope.$watch('center', function(center) {
 
+                    if (!center) {
+                        return;
+                    }
+                    
                     if (isDefined(centerUrlHash)) {
                         var urlCenter = extractCenterFromUrl();
                         if  (!isSameCenterOnMap(urlCenter, map)) {
@@ -428,6 +438,48 @@ angular.module('openlayers-directive').directive('events', ["$log", "$q", "olDat
                         setEvents(events, map, olScope, layers);
                     });
                 });
+            });
+        }
+    };
+}]);
+
+angular.module('openlayers-directive')
+       .directive('view', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
+    return {
+        restrict: 'A',
+        scope: false,
+        replace: false,
+        require: 'openlayers',
+        link: function(scope, element, attrs, controller) {
+            var olScope   = controller.getOpenlayersScope();
+            var isNumber = olHelpers.isNumber;
+
+            controller.getMap().then(function(map) {
+                var defaults = olMapDefaults.getDefaults(attrs.id);
+                var view = olScope.view;
+
+                if (!view.projection) {
+                    view.projection = defaults.view.projection;
+                }
+
+                if (!view.maxZoom) {
+                    view.maxZoom = defaults.view.maxZoom;
+                }
+
+                if (!view.minZoom) {
+                    view.minZoom = defaults.view.minZoom;
+                }
+
+                if (!view.rotation) {
+                    view.rotation = defaults.view.rotation;
+                }
+
+                olScope.$watch('view', function(view) {
+                    if (isNumber(view.rotation)) {
+                        var mapView = map.getView();
+                        mapView.setRotation(view.rotation);
+                    }
+                }, true);
             });
         }
     };
@@ -1011,7 +1063,8 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
             view: {
                 projection: 'EPSG:4326',
                 minZoom: undefined,
-                maxZoom: undefined
+                maxZoom: undefined,
+                rotation: 0
             },
             layers: {
                 main: {
