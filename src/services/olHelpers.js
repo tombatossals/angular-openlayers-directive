@@ -341,6 +341,13 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             });
         },
 
+        notifyCenterUrlHashChanged: function(scope, center, search) {
+            var centerUrlHash = (center[1]).toFixed(4) + ":" + (center[0]).toFixed(4) + ":" + map.getView().getZoom();
+            if (!isDefined(search.c) || search.c !== centerUrlHash) {
+                scope.$emit("centerUrlHash", centerUrlHash);
+            }
+        },
+
         createMarker: function(markerData) {
             if (!isDefined(markerData)) {
                 $log.error('[AngularJS - OpenLayers] The marker definition is not valid.');

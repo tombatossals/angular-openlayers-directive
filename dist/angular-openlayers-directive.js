@@ -236,6 +236,11 @@ angular.module('openlayers-directive').directive('center', ["$log", "$location",
                     safeApply(olScope, function(scope) {
                         scope.center.zoom = view.getZoom();
 
+                        // Notify the controller about a change in the center position
+                        if (center.centerUrlHash) {
+                            olHelpers.notifyCenterUrlHashChanged(olScope, center.projection, defaults.view.projection, map, $location.search());
+                        }
+
                         // Calculate the bounds if needed
                         if (isArray(scope.center.bounds)) {
                             var extent = view.calculateExtent(map.getSize());
@@ -258,6 +263,11 @@ angular.module('openlayers-directive').directive('center', ["$log", "$location",
                         if (scope.center) {
                             scope.center.lat = proj[1];
                             scope.center.lon = proj[0];
+
+                            // Notify the controller about a change in the center position
+                            if (center.centerUrlHash) {
+                                olHelpers.notifyCenterUrlHashChanged(olScope, center.projection, defaults.view.projection, map, $location.search());
+                            }
 
                             // Calculate the bounds if needed
                             if (isArray(scope.center.bounds)) {
@@ -912,6 +922,14 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             return new ol.layer.Vector({
                 source: new ol.source.Vector()
             });
+        },
+
+        notifyCenterUrlHashChanged: function(scope, centerProjection, viewProjection, map, search) {
+            var center = ol.proj.transform(map.getView().getCenter(), viewProjection, centerProjection);
+            var centerUrlHash = (center[1]).toFixed(4) + ":" + (center[0]).toFixed(4) + ":" + map.getView().getZoom();
+            if (!isDefined(search.c) || search.c !== centerUrlHash) {
+                scope.$emit("centerUrlHash", centerUrlHash);
+            }
         },
 
         createMarker: function(markerData) {

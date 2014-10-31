@@ -141,6 +141,12 @@ angular.module('openlayers-directive').directive('center', function($log, $locat
                     safeApply(olScope, function(scope) {
                         scope.center.zoom = view.getZoom();
 
+                        // Notify the controller about a change in the center position
+                        if (center.centerUrlHash) {
+                            var c = ol.proj.transform(map.getView().getCenter(), defaults.view.projection, center.projection);
+                            olHelpers.notifyCenterUrlHashChanged(olScope, c, map.getView().getZoom(), $location.search());
+                        }
+
                         // Calculate the bounds if needed
                         if (isArray(scope.center.bounds)) {
                             var extent = view.calculateExtent(map.getSize());
@@ -163,6 +169,12 @@ angular.module('openlayers-directive').directive('center', function($log, $locat
                         if (scope.center) {
                             scope.center.lat = proj[1];
                             scope.center.lon = proj[0];
+
+                            // Notify the controller about a change in the center position
+                            if (center.centerUrlHash) {
+                                var c = ol.proj.transform(map.getView().getCenter(), viewProjection, centerProjection);
+                                olHelpers.notifyCenterUrlHashChanged(olScope, c, map.getView().getZoom(), $location.search());
+                            }
 
                             // Calculate the bounds if needed
                             if (isArray(scope.center.bounds)) {
