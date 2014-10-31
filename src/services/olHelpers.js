@@ -342,9 +342,11 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         },
 
         notifyCenterUrlHashChanged: function(scope, center, search) {
-            var centerUrlHash = (center[1]).toFixed(4) + ":" + (center[0]).toFixed(4) + ":" + map.getView().getZoom();
-            if (!isDefined(search.c) || search.c !== centerUrlHash) {
-                scope.$emit("centerUrlHash", centerUrlHash);
+            if (center.centerUrlHash) {
+                var centerUrlHash = center.lat.toFixed(4) + ":" + center.lon.toFixed(4) + ":" + center.zoom;
+                if (!isDefined(search.c) || search.c !== centerUrlHash) {
+                    scope.$emit("centerUrlHash", centerUrlHash);
+                }
             }
         },
 

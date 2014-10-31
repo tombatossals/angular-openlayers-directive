@@ -73,21 +73,25 @@ angular.module('openlayers-directive').directive('center', function($log, $locat
                     };
                     centerUrlHash = extractCenterFromUrl();
 
-                    olScope.$on('$locationChangeSuccess', function(event) {
-                        var scope = event.currentScope;
-                        var urlCenter = extractCenterFromUrl();
-                        if (isDefined(urlCenter) && !isSameCenterOnMap(urlCenter, map)) {
-                            scope.center = {
-                                lat: urlCenter.lat,
-                                lon: urlCenter.lon,
-                                zoom: urlCenter.zoom
-                            };
-                        }
+                    olScope.$on('$locationChangeSuccess', function() {
+                        centerUrlHash = extractCenterFromUrl();
                     });
                 }
 
                 var geolocation;
                 olScope.$watch('center', function(center) {
+
+                    if (isDefined(centerUrlHash)) {
+                        var urlCenter = extractCenterFromUrl();
+                        if  (!isSameCenterOnMap(urlCenter, map)) {
+                            center.lat = centerUrlHash.lat;
+                            center.lon = centerUrlHash.lon;
+                            center.zoom = centerUrlHash.zoom;
+                        }
+                        centerUrlHash = undefined;
+                    }
+
+
                     if (!center.projection) {
                         center.projection = defaults.center.projection;
                     }
@@ -142,10 +146,7 @@ angular.module('openlayers-directive').directive('center', function($log, $locat
                         scope.center.zoom = view.getZoom();
 
                         // Notify the controller about a change in the center position
-                        if (center.centerUrlHash) {
-                            var c = ol.proj.transform(map.getView().getCenter(), defaults.view.projection, center.projection);
-                            olHelpers.notifyCenterUrlHashChanged(olScope, c, map.getView().getZoom(), $location.search());
-                        }
+                        olHelpers.notifyCenterUrlHashChanged(olScope, scope.center, $location.search());
 
                         // Calculate the bounds if needed
                         if (isArray(scope.center.bounds)) {
@@ -171,10 +172,7 @@ angular.module('openlayers-directive').directive('center', function($log, $locat
                             scope.center.lon = proj[0];
 
                             // Notify the controller about a change in the center position
-                            if (center.centerUrlHash) {
-                                var c = ol.proj.transform(map.getView().getCenter(), viewProjection, centerProjection);
-                                olHelpers.notifyCenterUrlHashChanged(olScope, c, map.getView().getZoom(), $location.search());
-                            }
+                            olHelpers.notifyCenterUrlHashChanged(olScope, scope.center, $location.search());
 
                             // Calculate the bounds if needed
                             if (isArray(scope.center.bounds)) {
