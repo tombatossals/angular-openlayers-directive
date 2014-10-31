@@ -5,7 +5,12 @@
 /* jasmine specs for directives go here */
 
 describe('Directive: openlayers', function() {
-    var $compile = null, $rootScope = null, $timeout, olData = null, olMapDefaults = null, scope;
+    var $compile = null;
+    var $rootScope = null;
+    var $timeout;
+    var olData = null;
+    var olMapDefaults = null;
+    var scope;
 
     beforeEach(module('openlayers-directive'));
     beforeEach(inject(function(_$compile_, _$rootScope_, _$timeout_, _olData_, _olMapDefaults_) {
@@ -45,7 +50,8 @@ describe('Directive: openlayers', function() {
     xit('should set default tile if not tiles nor layers are provided', function() {
         var element = angular.element('<openlayers></openlayers>');
         element = $compile(element)(scope);
-        var leafletTiles, defaults;
+        var leafletTiles;
+        var defaults;
         leafletData.getTiles().then(function(tiles) {
             leafletTiles = tiles;
         });
@@ -109,7 +115,7 @@ describe('Directive: openlayers', function() {
     xit('should set tileLayer and tileLayer options if specified', function() {
         angular.extend($rootScope, {
             defaults: {
-                tileLayer: "http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png",
+                tileLayer: 'http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
                 tileLayerOptions: {
                     detectRetina: true,
                     opacity: 0.8
@@ -118,7 +124,8 @@ describe('Directive: openlayers', function() {
         });
         var element = angular.element('<leaflet defaults="defaults"></leaflet>');
         element = $compile(element)($rootScope);
-        var leafletTiles, defaults;
+        var leafletTiles;
+        var defaults;
         leafletData.getTiles().then(function(tiles) {
             leafletTiles = tiles;
         });
@@ -129,8 +136,8 @@ describe('Directive: openlayers', function() {
         $rootScope.$digest();
         expect(leafletTiles.options.detectRetina).toEqual(true);
         expect(leafletTiles.options.opacity).toEqual(0.8);
-        expect(leafletTiles._url).toEqual("http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png");
-        expect(defaults.tileLayer).toEqual("http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png");
+        expect(leafletTiles._url).toEqual('http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png');
+        expect(defaults.tileLayer).toEqual('http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png');
     });
 
     xit('should set zoom control button properly if zoomControlPosition option is set', function() {

@@ -28,6 +28,7 @@
     "grunt-ng-annotate": "latest",
     "grunt-contrib-uglify": "latest",
     "grunt-open": "latest",
+    "grunt-jscs": "latest",
     "grunt-bower-task": "latest",
     "karma-script-launcher": "latest",
     "karma-firefox-launcher": "latest",

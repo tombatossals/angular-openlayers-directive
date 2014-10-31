@@ -1,4 +1,4 @@
-angular.module("openlayers-directive").directive('center', function ($log, $location, olMapDefaults, olHelpers) {
+angular.module("openlayers-directive").directive('center', function($log, $location, olMapDefaults, olHelpers) {
     return {
         restrict: "A",
         scope: false,
