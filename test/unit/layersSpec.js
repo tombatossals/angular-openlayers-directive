@@ -5,7 +5,12 @@
 /* jasmine specs for directives go here */
 
 describe('Directive: openlayers layers', function() {
-    var $compile = null, $rootScope = null, $timeout, olData = null, olMapDefaults = null, scope;
+    var $compile = null;
+    var $rootScope;
+    var $timeout;
+    var olData = null;
+    var olMapDefaults = null;
+    var scope;
 
     beforeEach(module('openlayers-directive'));
     beforeEach(inject(function(_$compile_, _$rootScope_, _$timeout_, _olData_, _olMapDefaults_) {

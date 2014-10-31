@@ -1,20 +1,21 @@
-angular.module("openlayers-directive").directive('markers', function ($log, $q, olData, olMapDefaults, olHelpers) {
+angular.module('openlayers-directive')
+       .directive('markers', function($log, $q, olData, olMapDefaults, olHelpers) {
     return {
-        restrict: "A",
+        restrict: 'A',
         scope: false,
         replace: false,
         require: ['openlayers', '?layers'],
 
         link: function(scope, element, attrs, controller) {
-            var mapController = controller[0],
-                isDefined = olHelpers.isDefined,
-                olScope  = mapController.getOpenlayersScope(),
-                createMarkerLayer = olHelpers.createMarkerLayer,
-                createMarker = olHelpers.createMarker;
+            var mapController = controller[0];
+            var isDefined = olHelpers.isDefined;
+            var olScope  = mapController.getOpenlayersScope();
+            var createMarkerLayer = olHelpers.createMarkerLayer;
+            var createMarker = olHelpers.createMarker;
 
             mapController.getMap().then(function(map) {
-                var olMarkers = {},
-                    getLayers;
+                var olMarkers = {};
+                var getLayers;
 
                 // If the layers attribute is used, we must wait until the layers are created
                 if (isDefined(controller[1])) {
@@ -44,8 +45,9 @@ angular.module("openlayers-directive").directive('markers', function ($log, $q, 
 
                         // add new markers
                         for (var newName in newMarkers) {
-                            if (newName.search("-") !== -1) {
-                                $log.error('[AngularJS - Openlayers] The marker can\'t use a "-" on his key name: "' + newName + '".');
+                            if (newName.search('-') !== -1) {
+                                $log.error('[AngularJS - Openlayers] The marker can\'t use a "-" on ' +
+                                           'his key name: "' + newName + '".');
                                 continue;
                             }
 
@@ -53,7 +55,8 @@ angular.module("openlayers-directive").directive('markers', function ($log, $q, 
                                 var markerData = newMarkers[newName];
                                 var marker = createMarker(markerData);
                                 if (!isDefined(marker)) {
-                                    $log.error('[AngularJS - Openlayers] Received invalid data on the marker ' + newName + '.');
+                                    $log.error('[AngularJS - Openlayers] Received invalid data on ' +
+                                               'the marker ' + newName + '.');
                                     continue;
                                 }
                                 olMarkers[newName] = marker;

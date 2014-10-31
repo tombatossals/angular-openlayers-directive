@@ -42,6 +42,7 @@ serve:
 
 build:
  - 'jshint'
+ - 'jscs'
  - 'concat:dist'
  - 'ngAnnotate'
  - 'uglify'

@@ -5,7 +5,12 @@
 /* jasmine specs for directives go here */
 
 describe('Directive: openlayers center', function() {
-    var $compile = null, $rootScope = null, $timeout, olData = null, olMapDefaults = null, scope;
+    var $compile = null;
+    var $rootScope = null;
+    var $timeout;
+    var olData = null;
+    var olMapDefaults = null;
+    var scope;
 
     beforeEach(module('openlayers-directive'));
     beforeEach(inject(function(_$compile_, _$rootScope_, _$timeout_, _olData_, _olMapDefaults_) {
@@ -54,7 +59,7 @@ describe('Directive: openlayers center', function() {
         olData.getMap().then(function(map) {
             var zoom = map.getView().getZoom();
             var center = map.getView().getCenter();
-            center = ol.proj.transform([ center[1], center[0] ], 'EPSG:3857', 'EPSG:4326');
+            center = ol.proj.transform([center[1], center[0]], 'EPSG:3857', 'EPSG:4326');
             expect(zoom).toEqual(4);
             expect(center[0]).toBeCloseTo(0.96658);
             expect(center[1]).toBeCloseTo(2.02);
@@ -79,7 +84,7 @@ describe('Directive: openlayers center', function() {
         scope.$digest();
 
         var mapCenter = map.getView().getCenter();
-        mapCenter = ol.proj.transform([ mapCenter[1], mapCenter[0] ], 'EPSG:3857', 'EPSG:4326');
+        mapCenter = ol.proj.transform([mapCenter[1], mapCenter[0]], 'EPSG:3857', 'EPSG:4326');
         expect(mapCenter[0]).toBeCloseTo(0.96658);
         expect(mapCenter[1]).toBeCloseTo(2.01958);
         expect(map.getView().getZoom()).toEqual(4);
@@ -93,7 +98,7 @@ describe('Directive: openlayers center', function() {
         scope.$digest();
 
         mapCenter = map.getView().getCenter();
-        mapCenter = ol.proj.transform([ mapCenter[1], mapCenter[0] ], 'EPSG:3857', 'EPSG:4326');
+        mapCenter = ol.proj.transform([mapCenter[1], mapCenter[0]], 'EPSG:3857', 'EPSG:4326');
         expect(mapCenter[0]).toBeCloseTo(2.0304);
         expect(mapCenter[1]).toBeCloseTo(4.0366);
         expect(map.getView().getZoom()).toEqual(8);

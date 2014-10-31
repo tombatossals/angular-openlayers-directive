@@ -1,4 +1,4 @@
-angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) {
+angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
     var isDefined = function(value) {
         return angular.isDefined(value);
     };
@@ -11,12 +11,13 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
       'ordnanceSurvey'
     ];
 
-    var mapQuestLayers = [ 'osm', 'sat', 'hyb' ];
+    var mapQuestLayers = ['osm', 'sat', 'hyb'];
 
     var createStyle = function(style) {
-        var fill, stroke;
+        var fill;
+        var stroke;
         if (style.fill) {
-            fill = new ol.style.Fill( {
+            fill = new ol.style.Fill({
                 color: style.fill.color
             });
         }
@@ -37,7 +38,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         if (layer.type) {
             return layer.type;
         } else {
-            switch(layer.source.type) {
+            switch (layer.source.type) {
                 case 'ImageStatic':
                     return 'Image';
                 case 'GeoJSON':
@@ -45,7 +46,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 case 'TopoJSON':
                     return 'Vector';
                 default:
-                  return 'Tile';
+                    return 'Tile';
             }
         }
     };
@@ -53,7 +54,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
     var createProjection = function(projection) {
         var oProjection;
 
-        switch(projection) {
+        switch (projection) {
             case 'EPSG:3857':
                 oProjection = new ol.proj.get(projection);
                 break;
@@ -61,7 +62,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 oProjection = new ol.proj.Projection({
                     code: 'pixel',
                     units: 'pixels',
-                    extent: [ 0, 0, 4500, 2234 ]
+                    extent: [0, 0, 4500, 2234]
                 });
                 break;
         }
@@ -70,13 +71,13 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
     };
 
     var isValidStamenLayer = function(layer) {
-        return [ 'watercolor', 'terrain', 'toner' ].indexOf(layer) !== -1;
+        return ['watercolor', 'terrain', 'toner'].indexOf(layer) !== -1;
     };
 
     var createSource = function(source, projection) {
         var oSource;
 
-        switch(source.type) {
+        switch (source.type) {
             case 'OSM':
                 if (source.attribution) {
                     oSource = new ol.source.OSM({
@@ -96,20 +97,20 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 break;
             case 'BingMaps':
                 if (!source.key) {
-                    $log.error("[AngularJS - Openlayers] - You need an API key to show the Bing Maps.");
+                    $log.error('[AngularJS - Openlayers] - You need an API key to show the Bing Maps.');
                     return;
                 }
 
                 oSource = new ol.source.BingMaps({
                     key: source.key,
-                    imagerySet: source.imagerySet?source.imagerySet:bingImagerySets[0]
+                    imagerySet: source.imagerySet ? source.imagerySet : bingImagerySets[0]
                 });
 
                 break;
 
             case 'MapQuest':
                 if (!source.layer || mapQuestLayers.indexOf(source.layer) === -1) {
-                    $log.error("[AngularJS - Openlayers] - MapQuest layers needs a valid 'layer' property.");
+                    $log.error('[AngularJS - Openlayers] - MapQuest layers needs a valid \'layer\' property.');
                     return;
                 }
 
@@ -121,7 +122,8 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 
             case 'GeoJSON':
                 if (!(source.features || source.url)) {
-                    $log.error("[AngularJS - Openlayers] - You need a GeoJSON features property to add a GeoJSON layer.");
+                    $log.error('[AngularJS - Openlayers] - You need a GeoJSON features ' +
+                               'property to add a GeoJSON layer.');
                     return;
                 }
 
@@ -137,7 +139,8 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 break;
             case 'TopoJSON':
                 if (!(source.features || source.url)) {
-                    $log.error("[AngularJS - Openlayers] - You need a TopoJSON features property to add a GeoJSON layer.");
+                    $log.error('[AngularJS - Openlayers] - You need a TopoJSON features ' +
+                               'property to add a GeoJSON layer.');
                     return;
                 }
 
@@ -158,7 +161,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 break;
             case 'Stamen':
                 if (!source.layer || !isValidStamenLayer(source.layer)) {
-                    $log.error("[AngularJS - Openlayers] - You need a valid Stamen layer.");
+                    $log.error('[AngularJS - Openlayers] - You need a valid Stamen layer.');
                     return;
                 }
                 oSource = new ol.source.Stamen({
@@ -167,7 +170,7 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                 break;
             case 'ImageStatic':
                 if (!source.url || !angular.isArray(source.imageSize) || source.imageSize.length !== 2) {
-                    $log.error("[AngularJS - Openlayers] - You need a image URL to create a ImageStatic layer.");
+                    $log.error('[AngularJS - Openlayers] - You need a image URL to create a ImageStatic layer.');
                     return;
                 }
 
@@ -222,7 +225,8 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         isValidCenter: function(center) {
             return angular.isDefined(center) &&
                    (angular.isNumber(center.lat) && angular.isNumber(center.lon) ||
-                   (angular.isArray(center.coord) && center.coord.length === 2 && angular.isNumber(center.coord[0]) && angular.isNumber(center.coord[1])) ||
+                   (angular.isArray(center.coord) && center.coord.length === 2 &&
+                    angular.isNumber(center.coord[0]) && angular.isNumber(center.coord[1])) ||
                    (angular.isArray(center.bounds) && center.bounds.length === 4 &&
                    angular.isNumber(center.bounds[0]) && angular.isNumber(center.bounds[1]) &&
                    angular.isNumber(center.bounds[1]) && angular.isNumber(center.bounds[2])));
@@ -243,13 +247,14 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
             if (mapCenter[1].toFixed(4) === center.lat.toFixed(4) &&
                 mapCenter[1].toFixed(4) === center.lon.toFixed(4) &&
                 zoom === center.zoom) {
-                  return true;
+                return true;
             }
             return false;
         },
 
         obtainEffectiveMapId: function(d, mapId) {
-            var id, i;
+            var id;
+            var i;
             if (!angular.isDefined(mapId)) {
                 if (Object.keys(d).length === 1) {
                     for (i in d) {
@@ -258,9 +263,10 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
                         }
                     }
                 } else if (Object.keys(d).length === 0) {
-                    id = "main";
+                    id = 'main';
                 } else {
-                    $log.error("[AngularJS - Openlayers] - You have more than 1 map on the DOM, you must provide the map ID to the olData.getXXX call");
+                    $log.error('[AngularJS - Openlayers] - You have more than 1 map on the DOM, ' +
+                               'you must provide the map ID to the olData.getXXX call');
                 }
             } else {
                 id = mapId;
@@ -299,15 +305,15 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
         detectLayerType: _detectLayerType,
 
         createLayer: function(layer, projection) {
-            var oLayer,
-                type = _detectLayerType(layer),
-                oSource = createSource(layer.source, projection);
+            var oLayer;
+            var type = _detectLayerType(layer);
+            var oSource = createSource(layer.source, projection);
 
             if (!oSource) {
                 return;
             }
 
-            switch(type) {
+            switch (type) {
                 case 'Image':
                     oLayer = new ol.layer.Image({ source: oSource });
                     break;
@@ -348,7 +354,37 @@ angular.module("openlayers-directive").factory('olHelpers', function ($q, $log) 
 
             var style;
             if (!markerData.style) {
-                var base64icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAApCAYAAADAk4LOAAAGmklEQVRYw7VXeUyTZxjvNnfELFuyIzOabermMZEeQC/OclkO49CpOHXOLJl/CAURuYbQi3KLgEhbrhZ1aDwmaoGqKII6odATmH/scDFbdC7LvFqOCc+e95s2VG50X/LLm/f4/Z7neY/ne18aANCmAr5E/                                        xZf1uDOkTcGcWR6hl9247tT5U7Y6SNvWsKT63P58qbfeLJG8M5qcgTknrvvrdDbsT7Ml+tv82X6vVxJE33aRmgSyYtcWVMqX97Yv2JvW39UhRE2HuyBL+t+                               gK1116ly06EeWFNlAmHxlQE0OMiV6mQCScusKRlhS3QLeVJdl1+23h5dY4FNB3thrbYboqptEFlphTC1hSpJnbRvxP4NWgsE5Jyz86QNNi/5qSUTGuFk1gu54tN9wuK2wc3o+                 Wc13RCmsoBwEqzGcZsxsvCSy/9wJKf7UWf1mEY8JWfewc67UUoDbDjQC+FqK4QqLVMGGR9d2wurKzqBk3nqIT/9zLxRRjgZ9bqQgub+DdoeCC03Q8j+0QhFhBHR/eP3U/zCln7Uu+hihJ1+       bBNffLIvmkyP0gpBZWYXhKussK6mBz5HT6M1Nqpcp+mBCPXosYQfrekGvrjewd59/GvKCE7TbK/04/ZV5QZYVWmDwH1mF3xa2Q3ra3DBC5vBT1oP7PTj4C0+                              CcL8c7C2CtejqhuCnuIQHaKHzvcRfZpnylFfXsYJx3pNLwhKzRAwAhEqG0SpusBHfAKkxw3w4627MPhoCH798z7s0ZnBJ/MEJbZSbXPhER2ih7p2ok/zSj2cEJDd4CAe+                     5WYnBCgR2uruyEw6zRoW6/DWJ/OeAP8pd/BGtzOZKpG8oke0SX6GMmRk6GFlyAc59K32OTEinILRJRchah8HQwND8N435Z9Z0FY1EqtxUg+0SO6RJ/mmXz4VuS+                           DpxXC3gXmZwIL7dBSH4zKE50wESf8qwVgrP1EIlTO5JP9Igu0aexdh28F1lmAEGJGfh7jE6ElyM5Rw/FDcYJjWhbeiBYoYNIpc2FT/                                                SILivp0F1ipDWk4BIEo2VuodEJUifhbiltnNBIXPUFCMpthtAyqws/BPlEF/VbaIxErdxPphsU7rcCp8DohC+GvBIPJS/tW2jtvTmmAeuNO8BNOYQeG8G/2OzCJ3q+                        soYB5i6NhMaKr17FSal7GIHheuV3uSCY8qYVuEm1cOzqdWr7ku/R0BDoTT+DT+ohCM6/CCvKLKO4RI+dXPeAuaMqksaKrZ7L3FE5FIFbkIceeOZ2OcHO6wIhTkNo0ffgjRGxEqogXHYUPHfWAC/   lADpwGcLRY3aeK4/oRGCKYcZXPVoeX/kelVYY8dUGf8V5EBRbgJXT5QIPhP9ePJi428JKOiEYhYXFBqou2Guh+p/mEB1/RfMw6rY7cxcjTrneI1FrDyuzUSRm9miwEJx8E/                   gUmqlyvHGkneiwErR21F3tNOK5Tf0yXaT+O7DgCvALTUBXdM4YhC/IawPU+2PduqMvuaR6eoxSwUk75ggqsYJ7VicsnwGIkZBSXKOUww73WGXyqP+J2/b9c+gi1YAg/                       xpwck3gJuucNrh5JvDPvQr0WFXf0piyt8f8/WI0hV4pRxxkQZdJDfDJNOAmM0Ag8jyT6hz0WGXWuP94Yh2jcfjmXAGvHCMslRimDHYuHuDsy2QtHuIavznhbYURq5R57KpzBBRZKPJi8eQg48h4j8SDdowifdIrEVdU+gbO6QNvRRt4ZBthUaZhUnjlYObNagV3keoeru3rU7rcuceqU1mJBxy+BWZYlNEBH+0eH4vRiB+OYybU2hnblYlTvkHinM4m54YnxSyaZYSF6R3jwgP7udKLGIX6r/lbNa9N6y5MFynjWDtrHd75ZvTYAPO/6RgF0k76mQla3FGq7dO+cH8sKn0Vo7nDllwAhqwLPkxrHwWmHJOo+AKJ4rab5OgrM7rVu8eWb2Pu0Dh4eDgXoOfvp7Y7QeqknRmvcTBEyq9m/HQQSCSz6LHq3z0yzsNySRfMS253wl2KyRDbcZPcfJKjZmSEOjcxyi+Y8dUOtsIEH6R2wNykdqrkYJ0RV92H0W58pkfQk7cKevsLK10Py8SdMGfXNXATY+pPbyJR/ET6n9nIfztNtZYRV9XniQu9IA2vOVgy4ir7GCLVmmd+zjkH0eAF9Po6K61pmCXHxU5rHMYd1ftc3owjwRSVRzLjKvqZEty6cRUD7jGqiOdu5HG6MdHjNcNYGqfDm5YRzLBBCCDl/2bk8a8gdbqcfwECu62Fg/HrggAAAABJRU5ErkJggg==";
+                var base64icon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAApCAYAAADAk4LOAAAGmklEQVRYw' +
+                                 '7VXeUyTZxjvNnfELFuyIzOabermMZEeQC/OclkO49CpOHXOLJl/CAURuYbQi3KLgEhbrhZ1aDwmaoGq' +
+                                 'KII6odATmH/scDFbdC7LvFqOCc+e95s2VG50X/LLm/f4/Z7neY/ne18aANCmAr5E/xZf1uDOkTcGcWR' +
+                                 '6hl9247tT5U7Y6SNvWsKT63P58qbfeLJG8M5qcgTknrvvrdDbsT7Ml+tv82X6vVxJE33aRmgSyYtcWV' +
+                                 'MqX97Yv2JvW39UhRE2HuyBL+t+gK1116ly06EeWFNlAmHxlQE0OMiV6mQCScusKRlhS3QLeVJdl1+23' +
+                                 'h5dY4FNB3thrbYboqptEFlphTC1hSpJnbRvxP4NWgsE5Jyz86QNNi/5qSUTGuFk1gu54tN9wuK2wc3o' +
+                                 '+Wc13RCmsoBwEqzGcZsxsvCSy/9wJKf7UWf1mEY8JWfewc67UUoDbDjQC+FqK4QqLVMGGR9d2wurKzq' +
+                                 'Bk3nqIT/9zLxRRjgZ9bqQgub+DdoeCC03Q8j+0QhFhBHR/eP3U/zCln7Uu+hihJ1+bBNffLIvmkyP0g' +
+                                 'pBZWYXhKussK6mBz5HT6M1Nqpcp+mBCPXosYQfrekGvrjewd59/GvKCE7TbK/04/ZV5QZYVWmDwH1mF' +
+                                 '3xa2Q3ra3DBC5vBT1oP7PTj4C0+CcL8c7C2CtejqhuCnuIQHaKHzvcRfZpnylFfXsYJx3pNLwhKzRAw' +
+                                 'AhEqG0SpusBHfAKkxw3w4627MPhoCH798z7s0ZnBJ/MEJbZSbXPhER2ih7p2ok/zSj2cEJDd4CAe+5W' +
+                                 'YnBCgR2uruyEw6zRoW6/DWJ/OeAP8pd/BGtzOZKpG8oke0SX6GMmRk6GFlyAc59K32OTEinILRJRcha' +
+                                 'h8HQwND8N435Z9Z0FY1EqtxUg+0SO6RJ/mmXz4VuS+DpxXC3gXmZwIL7dBSH4zKE50wESf8qwVgrP1E' +
+                                 'IlTO5JP9Igu0aexdh28F1lmAEGJGfh7jE6ElyM5Rw/FDcYJjWhbeiBYoYNIpc2FT/SILivp0F1ipDWk' +
+                                 '4BIEo2VuodEJUifhbiltnNBIXPUFCMpthtAyqws/BPlEF/VbaIxErdxPphsU7rcCp8DohC+GvBIPJS/' +
+                                 'tW2jtvTmmAeuNO8BNOYQeG8G/2OzCJ3q+soYB5i6NhMaKr17FSal7GIHheuV3uSCY8qYVuEm1cOzqdW' +
+                                 'r7ku/R0BDoTT+DT+ohCM6/CCvKLKO4RI+dXPeAuaMqksaKrZ7L3FE5FIFbkIceeOZ2OcHO6wIhTkNo0' +
+                                 'ffgjRGxEqogXHYUPHfWAC/lADpwGcLRY3aeK4/oRGCKYcZXPVoeX/kelVYY8dUGf8V5EBRbgJXT5QIP' +
+                                 'hP9ePJi428JKOiEYhYXFBqou2Guh+p/mEB1/RfMw6rY7cxcjTrneI1FrDyuzUSRm9miwEJx8E/gUmql' +
+                                 'yvHGkneiwErR21F3tNOK5Tf0yXaT+O7DgCvALTUBXdM4YhC/IawPU+2PduqMvuaR6eoxSwUk75ggqsY' +
+                                 'J7VicsnwGIkZBSXKOUww73WGXyqP+J2/b9c+gi1YAg/xpwck3gJuucNrh5JvDPvQr0WFXf0piyt8f8/' +
+                                 'WI0hV4pRxxkQZdJDfDJNOAmM0Ag8jyT6hz0WGXWuP94Yh2jcfjmXAGvHCMslRimDHYuHuDsy2QtHuIa' +
+                                 'vznhbYURq5R57KpzBBRZKPJi8eQg48h4j8SDdowifdIrEVdU+gbO6QNvRRt4ZBthUaZhUnjlYObNagV' +
+                                 '3keoeru3rU7rcuceqU1mJBxy+BWZYlNEBH+0eH4vRiB+OYybU2hnblYlTvkHinM4m54YnxSyaZYSF6R' +
+                                 '3jwgP7udKLGIX6r/lbNa9N6y5MFynjWDtrHd75ZvTYAPO/6RgF0k76mQla3FGq7dO+cH8sKn0Vo7nDl' +
+                                 'lwAhqwLPkxrHwWmHJOo+AKJ4rab5OgrM7rVu8eWb2Pu0Dh4eDgXoOfvp7Y7QeqknRmvcTBEyq9m/HQQ' +
+                                 'SCSz6LHq3z0yzsNySRfMS253wl2KyRDbcZPcfJKjZmSEOjcxyi+Y8dUOtsIEH6R2wNykdqrkYJ0RV92' +
+                                 'H0W58pkfQk7cKevsLK10Py8SdMGfXNXATY+pPbyJR/ET6n9nIfztNtZYRV9XniQu9IA2vOVgy4ir7GC' +
+                                 'LVmmd+zjkH0eAF9Po6K61pmCXHxU5rHMYd1ftc3owjwRSVRzLjKvqZEty6cRUD7jGqiOdu5HG6MdHjN' +
+                                 'cNYGqfDm5YRzLBBCCDl/2bk8a8gdbqcfwECu62Fg/HrggAAAABJRU5ErkJggg==';
+
                 style = new ol.style.Style({
                     image: new ol.style.Icon({
                         anchor: [0.5, 1],

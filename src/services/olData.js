@@ -1,9 +1,9 @@
-angular.module("openlayers-directive").service('olData', function ($log, $q, olHelpers) {
+angular.module('openlayers-directive').service('olData', function($log, $q, olHelpers) {
     var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
 
-    var maps = {},
-        layers = {},
-        markers = {};
+    var maps = {};
+    var layers = {};
+    var markers = {};
 
     var setResolvedDefer = function(d, mapId) {
         var id = obtainEffectiveMapId(d, mapId);
@@ -11,8 +11,8 @@ angular.module("openlayers-directive").service('olData', function ($log, $q, olH
     };
 
     var getUnresolvedDefer = function(d, mapId) {
-        var id = obtainEffectiveMapId(d, mapId),
-            defer;
+        var id = obtainEffectiveMapId(d, mapId);
+        var defer;
 
         if (!angular.isDefined(d[id]) || d[id].resolvedDefer === true) {
             defer = $q.defer();
@@ -27,8 +27,9 @@ angular.module("openlayers-directive").service('olData', function ($log, $q, olH
     };
 
     var getDefer = function(d, mapId) {
-        var id = obtainEffectiveMapId(d, mapId),
-            defer;
+        var id = obtainEffectiveMapId(d, mapId);
+        var defer;
+
         if (!angular.isDefined(d[id]) || d[id].resolvedDefer === false) {
             defer = getUnresolvedDefer(d, mapId);
         } else {

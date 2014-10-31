@@ -1,4 +1,4 @@
-angular.module("openlayers-directive").factory('olMapDefaults', function ($q, olHelpers) {
+angular.module('openlayers-directive').factory('olMapDefaults', function($q, olHelpers) {
     var _getDefaults = function() {
         return {
             interactions: {
@@ -40,19 +40,19 @@ angular.module("openlayers-directive").factory('olMapDefaults', function ($q, ol
                 zoom: true
             },
             events: {
-                map: [ 'click' ]
+                map: ['click']
             },
             renderer: 'canvas'
         };
     };
 
-    var isDefined = olHelpers.isDefined,
-        obtainEffectiveMapId = olHelpers.obtainEffectiveMapId,
-        defaults = {};
+    var isDefined = olHelpers.isDefined;
+    var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
+    var defaults = {};
 
     // Get the _defaults dictionary, and override the properties defined by the user
     return {
-        getDefaults: function (scopeId) {
+        getDefaults: function(scopeId) {
             var mapId = obtainEffectiveMapId(defaults, scopeId);
             return defaults[mapId];
         },

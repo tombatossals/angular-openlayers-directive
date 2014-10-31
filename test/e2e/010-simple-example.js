@@ -2,7 +2,8 @@
 
 describe('Loading 010-simple-example.html', function() {
 
-    var ptor, driver;
+    var ptor;
+    var driver;
     beforeEach(function() {
         ptor = protractor.getInstance();
         ptor.get('/examples/010-simple-example.html');
@@ -11,7 +12,7 @@ describe('Loading 010-simple-example.html', function() {
 
     it('should load the Openlayers map inside the directive tag', function() {
         driver.findElement(protractor.By.className('angular-openlayers-map')).getText().then(function(text) {
-            expect(text).toBe("Zoom in\n+\nZoom out\n−\ni\nAttributions");
+            expect(text).toBe('Zoom in\n+\nZoom out\n−\ni\nAttributions');
         });
     });
 

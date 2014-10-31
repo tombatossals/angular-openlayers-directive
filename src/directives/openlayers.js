@@ -1,7 +1,8 @@
-angular.module("openlayers-directive", []).directive('openlayers', function ($log, $q, olHelpers, olMapDefaults, olData) {
+angular.module('openlayers-directive', [])
+       .directive('openlayers', function($log, $q, olHelpers, olMapDefaults, olData) {
     var _olMap;
     return {
-        restrict: "EA",
+        restrict: 'EA',
         replace: true,
         scope: {
             center: '=center',
@@ -12,9 +13,9 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
         },
         transclude: true,
         template: '<div class="angular-openlayers-map"><div ng-transclude></div></div>',
-        controller: function ($scope) {
+        controller: function($scope) {
             _olMap = $q.defer();
-            this.getMap = function () {
+            this.getMap = function() {
                 return _olMap.promise;
             };
 
@@ -24,11 +25,11 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
         },
 
         link: function(scope, element, attrs) {
-            var isDefined = olHelpers.isDefined,
-                createLayer = olHelpers.createLayer,
-                createProjection = olHelpers.createProjection,
-                setEvents = olHelpers.setEvents,
-                defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
+            var isDefined = olHelpers.isDefined;
+            var createLayer = olHelpers.createLayer;
+            var createProjection = olHelpers.createProjection;
+            var setEvents = olHelpers.setEvents;
+            var defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
             if (isDefined(attrs.width)) {
@@ -77,7 +78,7 @@ angular.module("openlayers-directive", []).directive('openlayers', function ($lo
 
             if (!isDefined(attrs.center)) {
                 var view = map.getView();
-                view.setCenter([ defaults.center.lon, defaults.center.lat ]);
+                view.setCenter([defaults.center.lon, defaults.center.lat]);
                 view.setZoom(defaults.center.zoom);
             }
 

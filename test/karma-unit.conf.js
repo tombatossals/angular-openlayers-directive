@@ -13,7 +13,7 @@ module.exports = function(karma) {
         ],
 
         // Frameworks
-        frameworks: ["jasmine"],
+        frameworks: ['jasmine'],
 
         // list of files to exclude
         exclude: [

@@ -1,32 +1,34 @@
-angular.module("openlayers-directive").directive('layers', function ($log, $q, olData, olMapDefaults, olHelpers) {
+angular.module('openlayers-directive').directive('layers', function($log, $q, olData, olMapDefaults, olHelpers) {
     var _olLayers;
 
     return {
-        restrict: "A",
+        restrict: 'A',
         scope: false,
         replace: false,
         require: 'openlayers',
-        controller: function () {
+        controller: function() {
             _olLayers = $q.defer();
             this.getLayers = function() {
                 return _olLayers.promise;
             };
         },
         link: function(scope, element, attrs, controller) {
-            var isDefined   = olHelpers.isDefined,
-                equals      = olHelpers.equals,
-                olLayers    = {},
-                olScope     = controller.getOpenlayersScope(),
-                createLayer = olHelpers.createLayer,
-                createStyle = olHelpers.createStyle;
+            var isDefined   = olHelpers.isDefined;
+            var equals      = olHelpers.equals;
+            var olLayers    = {};
+            var olScope     = controller.getOpenlayersScope();
+            var createLayer = olHelpers.createLayer;
+            var createStyle = olHelpers.createStyle;
 
             controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id),
-                    projection = map.getView().getProjection();
-                olScope.$watch("layers", function(layers, oldLayers) {
-                    var name, layer = layers[Object.keys(layers)[0]];
+                var defaults = olMapDefaults.getDefaults(attrs.id);
+                var projection = map.getView().getProjection();
+
+                olScope.$watch('layers', function(layers, oldLayers) {
+                    var layer = layers[Object.keys(layers)[0]];
+                    var name;
                     if (!isDefined(layer) || !isDefined(layer.source) || !isDefined(layer.source.type)) {
-                        $log.warn("[AngularJS - OpenLayers] At least one layer has to be defined.");
+                        $log.warn('[AngularJS - OpenLayers] At least one layer has to be defined.');
                         layers = angular.copy(defaults.layers);
                     }
 
@@ -48,7 +50,8 @@ angular.module("openlayers-directive").directive('layers', function ($log, $q, o
                     // add new layers
                     for (name in layers) {
                         layer = layers[name];
-                        var olLayer, style;
+                        var olLayer;
+                        var style;
                         if (!olLayers.hasOwnProperty(name)) {
                             olLayer = createLayer(layers[name], projection);
                             if (isDefined(olLayer)) {

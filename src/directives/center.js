@@ -1,30 +1,29 @@
-angular.module("openlayers-directive").directive('center', function($log, $location, olMapDefaults, olHelpers) {
+angular.module('openlayers-directive').directive('center', function($log, $location, olMapDefaults, olHelpers) {
     return {
-        restrict: "A",
+        restrict: 'A',
         scope: false,
         replace: false,
         require: 'openlayers',
 
         link: function(scope, element, attrs, controller) {
-            var safeApply         = olHelpers.safeApply,
-                isValidCenter     = olHelpers.isValidCenter,
-                isDefined         = olHelpers.isDefined,
-                isArray           = olHelpers.isArray,
-                isNumber          = olHelpers.isNumber,
-                isSameCenterOnMap = olHelpers.isSameCenterOnMap,
-                equals            = olHelpers.equals,
-                olScope           = controller.getOpenlayersScope();
+            var safeApply         = olHelpers.safeApply;
+            var isValidCenter     = olHelpers.isValidCenter;
+            var isDefined         = olHelpers.isDefined;
+            var isArray           = olHelpers.isArray;
+            var isNumber          = olHelpers.isNumber;
+            var isSameCenterOnMap = olHelpers.isSameCenterOnMap;
+            var olScope           = controller.getOpenlayersScope();
 
             controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id),
-                    center = olScope.center;
-
+                var defaults = olMapDefaults.getDefaults(attrs.id);
+                var center = olScope.center;
                 var view = map.getView();
                 var setCenter = function(view, projection, newCenter) {
                     if (newCenter.projection === projection) {
-                        view.setCenter([ newCenter.lon, newCenter.lat ]);
+                        view.setCenter([newCenter.lon, newCenter.lat]);
                     } else {
-                        view.setCenter(ol.proj.transform([ newCenter.lon, newCenter.lat ], projection, newCenter.projection));
+                        var coord = [newCenter.lon, newCenter.lat];
+                        view.setCenter(ol.proj.transform(coord, projection, newCenter.projection));
                     }
                 };
 
@@ -36,14 +35,15 @@ angular.module("openlayers-directive").directive('center', function($log, $locat
                     }
                 }
 
-                if (attrs.center.search("-") !== -1) {
-                    $log.error('[AngularJS - Openlayers] The "center" variable can\'t use a "-" on his key name: "' + attrs.center + '".');
+                if (attrs.center.search('-') !== -1) {
+                    $log.error('[AngularJS - Openlayers] The "center" variable can\'t use ' +
+                               'a "-" on his key name: "' + attrs.center + '".');
                     setCenter(view, defaults.view.projection, defaults.center);
                     return;
                 }
 
                 if (!isValidCenter(center)) {
-                    $log.warn("[AngularJS - Openlayers] invalid 'center'");
+                    $log.warn('[AngularJS - Openlayers] invalid \'center\'');
                     center = angular.copy(defaults.center);
                 }
 
@@ -60,7 +60,7 @@ angular.module("openlayers-directive").directive('center', function($log, $locat
                         var search = $location.search();
                         var centerParam;
                         if (isDefined(search.c)) {
-                            var cParam = search.c.split(":");
+                            var cParam = search.c.split(':');
                             if (cParam.length === 3) {
                                 centerParam = {
                                     lat: parseFloat(cParam[0]),
@@ -87,7 +87,7 @@ angular.module("openlayers-directive").directive('center', function($log, $locat
                 }
 
                 var geolocation;
-                olScope.$watch("center", function(center) {
+                olScope.$watch('center', function(center) {
                     if (!center.projection) {
                         center.projection = defaults.center.projection;
                     }
@@ -116,7 +116,7 @@ angular.module("openlayers-directive").directive('center', function($log, $locat
                     }
 
                     if (!isValidCenter(center)) {
-                        $log.warn("[AngularJS - Openlayers] invalid 'center'");
+                        $log.warn('[AngularJS - Openlayers] invalid \'center\'');
                         center = defaults.center;
                     }
 
@@ -127,7 +127,7 @@ angular.module("openlayers-directive").directive('center', function($log, $locat
                             return;
                         }
                         var actualCenter = ol.proj.transform(viewCenter, center.projection, defaults.view.projection);
-                        if (!equals({ lat: actualCenter[1], lon: actualCenter[0] }, { lat: center.lat, lon: center.lon })) {
+                        if (!(actualCenter[1] === center.lat && actualCenter[0] === center.lon)) {
                             setCenter(view, defaults.view.projection, center);
                         }
                     }
@@ -144,12 +144,14 @@ angular.module("openlayers-directive").directive('center', function($log, $locat
                         // Calculate the bounds if needed
                         if (isArray(scope.center.bounds)) {
                             var extent = view.calculateExtent(map.getSize());
-                            scope.center.bounds = ol.proj.transform(extent, scope.center.projection, defaults.view.projection);
+                            var centerProjection = scope.center.projection;
+                            var viewProjection = defaults.view.projection;
+                            scope.center.bounds = ol.proj.transform(extent, centerProjection, viewProjection);
                         }
                     });
                 });
 
-                view.on("change:center", function() {
+                view.on('change:center', function() {
                     safeApply(olScope, function(scope) {
                         var center = map.getView().getCenter();
                         if (defaults.view.projection === 'pixel') {
@@ -165,7 +167,9 @@ angular.module("openlayers-directive").directive('center', function($log, $locat
                             // Calculate the bounds if needed
                             if (isArray(scope.center.bounds)) {
                                 var extent = view.calculateExtent(map.getSize());
-                                scope.center.bounds = ol.proj.transform(extent, scope.center.projection, defaults.view.projection);
+                                var centerProjection = scope.center.projection;
+                                var viewProjection = defaults.view.projection;
+                                scope.center.bounds = ol.proj.transform(extent, centerProjection, viewProjection);
                             }
                         }
                     });
