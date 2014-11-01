@@ -10,6 +10,7 @@ angular.module('openlayers-directive', [])
             layers: '=layers',
             markers: '=markers',
             view: '=view',
+            controls: '=controls',
             events: '=events'
         },
         transclude: true,

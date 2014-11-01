@@ -27,7 +27,9 @@ Let's start with some basic examples. Look at the source code of the example to 
 * [Layers GeoJSON change style example](http://tombatossals.github.io/angular-openlayers-directive/examples/050-layer-geojson-change-style-example.html)
 * [Layers GeoJSON change style with function example](http://tombatossals.github.io/angular-openlayers-directive/examples/051-layer-geojson-change-style-with-function-example.html)
 * [Markers example](http://tombatossals.github.io/angular-openlayers-directive/examples/060-markers-example.html)
+* [View rotation example](http://tombatossals.github.io/angular-openlayers-directive/examples/070-view-rotation-example.html)
 * [Multiple maps example](http://tombatossals.github.io/angular-openlayers-directive/examples/090-multiple-maps-example.html)
+* [Controls example](http://tombatossals.github.io/angular-openlayers-directive/examples/100-controls-example.html)
 
 You can take a look at the current documentation go get a more detailed explanation of how it works and what you can accomplish with this directive:
 

@@ -11,6 +11,19 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
       'ordnanceSurvey'
     ];
 
+    var getControlClasses = function() {
+        return {
+            attribution: ol.control.Attribution,
+            fullscreen: ol.control.FullScreen,
+            mouseposition: ol.control.MousePosition,
+            rotate: ol.control.Rotate,
+            scaleline: ol.control.ScaleLine,
+            zoom: ol.control.Zoom,
+            zoomslider: ol.control.ZoomSlider,
+            zoomtoextent: ol.control.ZoomToExtent
+        };
+    };
+
     var mapQuestLayers = ['osm', 'sat', 'hyb'];
 
     var createStyle = function(style) {
@@ -359,6 +372,23 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     scope.$emit("centerUrlHash", centerUrlHash);
                 }
             }
+        },
+
+        getControlClasses: getControlClasses,
+
+        detectControls: function(controls) {
+            var actualControls = {};
+            var controlClasses = getControlClasses();
+
+            controls.forEach(function(control) {
+                for (var i in controlClasses) {
+                    if (control instanceof controlClasses[i]) {
+                        actualControls[i] = control;
+                    }
+                }
+            });
+
+            return actualControls;
         },
 
         createMarker: function(markerData) {
