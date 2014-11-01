@@ -25,6 +25,11 @@ angular.module('openlayers-directive').directive('layers', function($log, $q, ol
                 var projection = map.getView().getProjection();
 
                 olScope.$watch('layers', function(layers, oldLayers) {
+                    if (!isDefined(layers)) {
+                        $log.warn('[AngularJS - OpenLayers] At least one layer has to be defined.');
+                        layers = angular.copy(defaults.layers);
+                    }
+
                     var layer = layers[Object.keys(layers)[0]];
                     var name;
                     if (!isDefined(layer) || !isDefined(layer.source) || !isDefined(layer.source.type)) {

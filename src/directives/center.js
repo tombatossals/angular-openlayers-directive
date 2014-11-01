@@ -89,7 +89,7 @@ angular.module('openlayers-directive').directive('center', function($log, $locat
                     if (!center) {
                         return;
                     }
-                    
+
                     if (isDefined(centerUrlHash)) {
                         var urlCenter = extractCenterFromUrl();
                         if  (!isSameCenterOnMap(urlCenter, map)) {
@@ -175,8 +175,8 @@ angular.module('openlayers-directive').directive('center', function($log, $locat
                             return;
                         }
 
-                        var proj = ol.proj.transform(center, scope.center.projection, defaults.view.projection);
                         if (scope.center) {
+                            var proj = ol.proj.transform(center, scope.center.projection, defaults.view.projection);
                             scope.center.lat = proj[1];
                             scope.center.lon = proj[0];
 

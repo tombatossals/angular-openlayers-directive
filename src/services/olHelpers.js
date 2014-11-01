@@ -159,6 +159,14 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     crossOrigin: 'anonymous'
                 });
                 break;
+            case 'KML':
+                oSource = new ol.source.KML({
+                    url: source.url,
+                    projection: source.projection,
+                    radius: source.radius,
+                    extractStyles: false,
+                });
+                break;
             case 'Stamen':
                 if (!source.layer || !isValidStamenLayer(source.layer)) {
                     $log.error('[AngularJS - Openlayers] - You need a valid Stamen layer.');
@@ -319,6 +327,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     break;
                 case 'Tile':
                     oLayer = new ol.layer.Tile({ source: oSource });
+                    break;
+                case 'Heatmap':
+                    oLayer = new ol.layer.Heatmap({ source: oSource });
                     break;
                 case 'Vector':
                     var style;

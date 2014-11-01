@@ -185,7 +185,7 @@ angular.module('openlayers-directive').directive('center', ["$log", "$location",
                     if (!center) {
                         return;
                     }
-                    
+
                     if (isDefined(centerUrlHash)) {
                         var urlCenter = extractCenterFromUrl();
                         if  (!isSameCenterOnMap(urlCenter, map)) {
@@ -271,8 +271,8 @@ angular.module('openlayers-directive').directive('center', ["$log", "$location",
                             return;
                         }
 
-                        var proj = ol.proj.transform(center, scope.center.projection, defaults.view.projection);
                         if (scope.center) {
+                            var proj = ol.proj.transform(center, scope.center.projection, defaults.view.projection);
                             scope.center.lat = proj[1];
                             scope.center.lon = proj[0];
 
@@ -322,6 +322,11 @@ angular.module('openlayers-directive').directive('layers', ["$log", "$q", "olDat
                 var projection = map.getView().getProjection();
 
                 olScope.$watch('layers', function(layers, oldLayers) {
+                    if (!isDefined(layers)) {
+                        $log.warn('[AngularJS - OpenLayers] At least one layer has to be defined.');
+                        layers = angular.copy(defaults.layers);
+                    }
+
                     var layer = layers[Object.keys(layers)[0]];
                     var name;
                     if (!isDefined(layer) || !isDefined(layer.source) || !isDefined(layer.source.type)) {
@@ -802,6 +807,14 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     crossOrigin: 'anonymous'
                 });
                 break;
+            case 'KML':
+                oSource = new ol.source.KML({
+                    url: source.url,
+                    projection: source.projection,
+                    radius: source.radius,
+                    extractStyles: false,
+                });
+                break;
             case 'Stamen':
                 if (!source.layer || !isValidStamenLayer(source.layer)) {
                     $log.error('[AngularJS - Openlayers] - You need a valid Stamen layer.');
@@ -962,6 +975,9 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     break;
                 case 'Tile':
                     oLayer = new ol.layer.Tile({ source: oSource });
+                    break;
+                case 'Heatmap':
+                    oLayer = new ol.layer.Heatmap({ source: oSource });
                     break;
                 case 'Vector':
                     var style;
