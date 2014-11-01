@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+<script src="../bower_components/angular/angular.min.js"></script>
+<script src="../bower_components/openlayers3/build/ol.js"></script>
+<script src="../dist/angular-openlayers-directive.js"></script>
+<link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+      var app = angular.module("demoapp", ["openlayers-directive"]);
+      app.controller("GeoJSONController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
+        angular.extend($scope, {
+            center: {
+                lat: 43.88,
+                lon: 7.57,
+                zoom: 2
+            },
+            defaults: {
+                interactions: {
+                    mouseWheelZoom: false
+                }
+            },
+            layers: {
+                main: {
+                    source: {
+                        type: 'OSM'
+                    }
+                },
+                heatmap: {
+                    type: 'Heatmap',
+                    source: {
+                        type: 'KML',
+                        projection: 'EPSG:3857',
+                        url: 'kml/earthquakes.kml',
+                        radius: 5
+                    }
+                }
+            }
+        });
+
+      } ]);
+      </script>
+  </head>
+  <body ng-controller="GeoJSONController">
+     <openlayers center="center" layers="layers" defaults="defaults" height="400px"></openlayers>
+     <h1>Layers GeoJSON example</h1>
+     <p>You can load GeoJSON as new layers easily, look at the source of the <strong>layers</strong> attribute:</p>
+     <pre ng-bind="layers | json"></pre>
+  </body>
+</html>
