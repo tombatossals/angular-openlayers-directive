@@ -21,8 +21,12 @@
             });
 
             $scope.degreesToRadians = function() {
-                $scope.view.rotation = parseInt($scope.degrees, 10) * (Math.PI/180);
+                $scope.view.rotation = parseFloat($scope.degrees, 10).toFixed(2) * (Math.PI/180);
             };
+
+            $scope.$watch('view.rotation', function(value) {
+                $scope.degrees = ($scope.view.rotation*180/Math.PI).toFixed(2);
+            });
        }]);
     </script>
   </head>
@@ -31,7 +35,7 @@
     <h1>View rotation example</h1>
     <p>You can interact with the view rotation of your map.</p>
 
-    <p><input type="range" min="0" max="360" ng-change="degreesToRadians()" ng-model="degrees" /> Degrees: {{ degrees }}</p>
+    <p><input type="range" min="-180" max="180" ng-change="degreesToRadians()" ng-model="degrees" /> Degrees: {{ degrees }}</p>
     <pre ng-bind="view | json"></pre>
   </body>
 </html>

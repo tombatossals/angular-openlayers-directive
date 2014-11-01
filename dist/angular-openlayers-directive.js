@@ -453,10 +453,12 @@ angular.module('openlayers-directive')
         link: function(scope, element, attrs, controller) {
             var olScope   = controller.getOpenlayersScope();
             var isNumber = olHelpers.isNumber;
+            var safeApply         = olHelpers.safeApply;
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
                 var view = olScope.view;
+                var mapView = map.getView();
 
                 if (!view.projection) {
                     view.projection = defaults.view.projection;
@@ -476,10 +478,16 @@ angular.module('openlayers-directive')
 
                 olScope.$watch('view', function(view) {
                     if (isNumber(view.rotation)) {
-                        var mapView = map.getView();
                         mapView.setRotation(view.rotation);
                     }
                 }, true);
+
+                mapView.on('change:rotation', function() {
+                    safeApply(olScope, function(scope) {
+                        scope.view.rotation = map.getView().getRotation();
+                    });
+                });
+
             });
         }
     };
