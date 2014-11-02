@@ -134,7 +134,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                 break;
 
             case 'GeoJSON':
-                if (!(source.features || source.url)) {
+                if (!(source.geojson || source.url)) {
                     $log.error('[AngularJS - Openlayers] - You need a GeoJSON features ' +
                                'property to add a GeoJSON layer.');
                     return;
@@ -151,7 +151,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
 
                 break;
             case 'TopoJSON':
-                if (!(source.features || source.url)) {
+                if (!(source.topojson || source.url)) {
                     $log.error('[AngularJS - Openlayers] - You need a TopoJSON features ' +
                                'property to add a GeoJSON layer.');
                     return;
