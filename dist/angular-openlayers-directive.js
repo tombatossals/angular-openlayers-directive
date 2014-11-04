@@ -67,6 +67,11 @@ angular.module('openlayers-directive', [])
                 view: view
             });
 
+            // If we don't have to sync controls, set the controls in olData
+            if (!isDefined(attrs.controls)) {
+                olData.setControls(map.getControls());
+            }
+
             // If no layer is defined, set the default tileLayer
             if (!isDefined(attrs.layers)) {
                 var layer = createLayer(defaults.layers.main);
@@ -622,6 +627,7 @@ angular.module('openlayers-directive').service('olData', ["$log", "$q", "olHelpe
     var maps = {};
     var layers = {};
     var markers = {};
+    var controls = {};
 
     var setResolvedDefer = function(d, mapId) {
         var id = obtainEffectiveMapId(d, mapId);
@@ -687,6 +693,17 @@ angular.module('openlayers-directive').service('olData', ["$log", "$q", "olHelpe
         var defer = getUnresolvedDefer(markers, scopeId);
         defer.resolve(olMarkers);
         setResolvedDefer(markers, scopeId);
+    };
+
+    this.getControls = function(scopeId) {
+        var defer = getDefer(controls, scopeId);
+        return defer.promise;
+    };
+
+    this.setControls = function(olControls, scopeId) {
+        var defer = getUnresolvedDefer(controls, scopeId);
+        defer.resolve(olControls);
+        setResolvedDefer(controls, scopeId);
     };
 
 }]);
@@ -1168,7 +1185,7 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                 dragZoom: true
             },
             view: {
-                projection: 'EPSG:4326',
+                projection: 'EPSG:3857',
                 minZoom: undefined,
                 maxZoom: undefined,
                 rotation: 0

@@ -13,7 +13,7 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                 dragZoom: true
             },
             view: {
-                projection: 'EPSG:4326',
+                projection: 'EPSG:3857',
                 minZoom: undefined,
                 maxZoom: undefined,
                 rotation: 0

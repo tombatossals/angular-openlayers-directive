@@ -63,6 +63,11 @@ angular.module('openlayers-directive', [])
                 view: view
             });
 
+            // If we don't have to sync controls, set the controls in olData
+            if (!isDefined(attrs.controls)) {
+                olData.setControls(map.getControls());
+            }
+
             // If no layer is defined, set the default tileLayer
             if (!isDefined(attrs.layers)) {
                 var layer = createLayer(defaults.layers.main);

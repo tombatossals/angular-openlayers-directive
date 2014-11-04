@@ -51,7 +51,6 @@ describe('Directive: openlayers center', function() {
         };
 
         scope.center = center;
-
         var element = angular.element('<openlayers center="center"></openlayers>');
         element = $compile(element)(scope);
         scope.$digest();
@@ -59,10 +58,9 @@ describe('Directive: openlayers center', function() {
         olData.getMap().then(function(map) {
             var zoom = map.getView().getZoom();
             var center = map.getView().getCenter();
-            center = ol.proj.transform([center[1], center[0]], 'EPSG:3857', 'EPSG:4326');
             expect(zoom).toEqual(4);
-            expect(center[0]).toBeCloseTo(0.96658);
-            expect(center[1]).toBeCloseTo(2.02);
+            expect(center[1]).toBeCloseTo(0.96658);
+            expect(center[0]).toBeCloseTo(2.02);
         });
     });
 
@@ -84,9 +82,8 @@ describe('Directive: openlayers center', function() {
         scope.$digest();
 
         var mapCenter = map.getView().getCenter();
-        mapCenter = ol.proj.transform([mapCenter[1], mapCenter[0]], 'EPSG:3857', 'EPSG:4326');
-        expect(mapCenter[0]).toBeCloseTo(0.96658);
-        expect(mapCenter[1]).toBeCloseTo(2.01958);
+        expect(mapCenter[1]).toBeCloseTo(0.96658);
+        expect(mapCenter[0]).toBeCloseTo(2.01958);
         expect(map.getView().getZoom()).toEqual(4);
 
         scope.center = {
@@ -98,9 +95,8 @@ describe('Directive: openlayers center', function() {
         scope.$digest();
 
         mapCenter = map.getView().getCenter();
-        mapCenter = ol.proj.transform([mapCenter[1], mapCenter[0]], 'EPSG:3857', 'EPSG:4326');
-        expect(mapCenter[0]).toBeCloseTo(2.0304);
-        expect(mapCenter[1]).toBeCloseTo(4.0366);
+        expect(mapCenter[1]).toBeCloseTo(2.0304);
+        expect(mapCenter[0]).toBeCloseTo(4.0366);
         expect(map.getView().getZoom()).toEqual(8);
     });
 });
