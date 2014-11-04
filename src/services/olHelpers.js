@@ -47,7 +47,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         });
     };
 
-    var _detectLayerType = function(layer) {
+    var detectLayerType = function(layer) {
         if (layer.type) {
             return layer.type;
         } else {
@@ -216,7 +216,15 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             return angular.isNumber(value);
         },
 
-        createProjection: createProjection,
+        createView: function(view) {
+            var projection = createProjection(view.projection);
+
+            return new ol.View({
+                projection: projection,
+                maxZoom: view.maxZoom,
+                minZoom: view.minZoom,
+            });
+        },
 
         // Determine if a reference is defined and not null
         isDefinedAndNotNull: function(value) {
@@ -323,11 +331,11 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             }
         },
 
-        detectLayerType: _detectLayerType,
+        detectLayerType: detectLayerType,
 
         createLayer: function(layer, projection) {
             var oLayer;
-            var type = _detectLayerType(layer);
+            var type = detectLayerType(layer);
             var oSource = createSource(layer.source, projection);
 
             if (!oSource) {

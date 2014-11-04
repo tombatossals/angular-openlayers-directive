@@ -29,7 +29,7 @@ angular.module('openlayers-directive', [])
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined;
             var createLayer = olHelpers.createLayer;
-            var createProjection = olHelpers.createProjection;
+            var createView = olHelpers.createView;
             var setEvents = olHelpers.setEvents;
             var defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
@@ -52,7 +52,7 @@ angular.module('openlayers-directive', [])
 
             var controls = ol.control.defaults(defaults.controls);
             var interactions = ol.interaction.defaults(defaults.interactions);
-            var projection = createProjection(defaults.view.projection);
+            var view = createView(defaults.view);
 
             // Create the Openlayers Map Object with the options
             var map = new ol.Map({
@@ -60,17 +60,15 @@ angular.module('openlayers-directive', [])
                 controls: controls,
                 interactions: interactions,
                 renderer: defaults.renderer,
-                view: new ol.View({
-                    projection: projection,
-                    maxZoom: defaults.view.maxZoom,
-                    minZoom: defaults.view.minZoom,
-                })
+                view: view
             });
 
             // If no layer is defined, set the default tileLayer
             if (!isDefined(attrs.layers)) {
                 var layer = createLayer(defaults.layers.main);
                 map.addLayer(layer);
+                var olLayers = map.getLayers();
+                olData.setLayers(olLayers, attrs.id);
             }
 
             // If no events ared defined, set the default events
@@ -79,7 +77,6 @@ angular.module('openlayers-directive', [])
             }
 
             if (!isDefined(attrs.center)) {
-                var view = map.getView();
                 view.setCenter([defaults.center.lon, defaults.center.lat]);
                 view.setZoom(defaults.center.zoom);
             }
