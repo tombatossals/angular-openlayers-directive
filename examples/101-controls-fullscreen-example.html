@@ -5,18 +5,6 @@
     <script src="../bower_components/openlayers3/build/ol.js"></script>
     <script src="../dist/angular-openlayers-directive.js"></script>
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
-    <style>
-      .angular-openlayers-map:-moz-full-screen {
-        height: 100%;
-      }
-      .angular-openlayers-map:-webkit-full-screen {
-        height: 100%;
-      }
-      .angular-openlayers-map:full-screen {
-        height: 100%;
-      }
-    </style>
-
     <script>
       var app = angular.module("demoapp", ["openlayers-directive"]);
       app.controller("GeoJSONController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
@@ -57,7 +45,9 @@
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers center="center" controls="controls" layers="layers" view="view" height="400px"></openlayers>
+     <div style="height: 400px;">
+         <openlayers center="center" controls="controls" layers="layers" view="view"></openlayers>
+     </div>
      <h1>Controls example</h1>
      <p><input type="range" min="-180" max="180" ng-change="degreesToRadians()" ng-model="degrees" /> Degrees: {{ degrees }}</p>
      <p>You can add/remove controls to the map via the <strong>controls</strong> attribute:</p>
