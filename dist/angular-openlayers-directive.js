@@ -18,7 +18,7 @@ angular.module('openlayers-directive', [])
             events: '=events'
         },
         transclude: true,
-        template: '<div class="angular-openlayers-map"><div ng-transclude></div></div>',
+        template: '<div class="angular-openlayers-map"></div>',
         controller: ["$scope", function($scope) {
             _olMap = $q.defer();
             this.getMap = function() {
@@ -33,7 +33,7 @@ angular.module('openlayers-directive', [])
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined;
             var createLayer = olHelpers.createLayer;
-            var createProjection = olHelpers.createProjection;
+            var createView = olHelpers.createView;
             var setEvents = olHelpers.setEvents;
             var defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
@@ -56,7 +56,7 @@ angular.module('openlayers-directive', [])
 
             var controls = ol.control.defaults(defaults.controls);
             var interactions = ol.interaction.defaults(defaults.interactions);
-            var projection = createProjection(defaults.view.projection);
+            var view = createView(defaults.view);
 
             // Create the Openlayers Map Object with the options
             var map = new ol.Map({
@@ -64,17 +64,20 @@ angular.module('openlayers-directive', [])
                 controls: controls,
                 interactions: interactions,
                 renderer: defaults.renderer,
-                view: new ol.View({
-                    projection: projection,
-                    maxZoom: defaults.view.maxZoom,
-                    minZoom: defaults.view.minZoom,
-                })
+                view: view
             });
+
+            // If we don't have to sync controls, set the controls in olData
+            if (!isDefined(attrs.controls)) {
+                olData.setControls(map.getControls());
+            }
 
             // If no layer is defined, set the default tileLayer
             if (!isDefined(attrs.layers)) {
                 var layer = createLayer(defaults.layers.main);
                 map.addLayer(layer);
+                var olLayers = map.getLayers();
+                olData.setLayers(olLayers, attrs.id);
             }
 
             // If no events ared defined, set the default events
@@ -83,7 +86,6 @@ angular.module('openlayers-directive', [])
             }
 
             if (!isDefined(attrs.center)) {
-                var view = map.getView();
                 view.setCenter([defaults.center.lon, defaults.center.lat]);
                 view.setZoom(defaults.center.zoom);
             }
@@ -625,6 +627,7 @@ angular.module('openlayers-directive').service('olData', ["$log", "$q", "olHelpe
     var maps = {};
     var layers = {};
     var markers = {};
+    var controls = {};
 
     var setResolvedDefer = function(d, mapId) {
         var id = obtainEffectiveMapId(d, mapId);
@@ -692,6 +695,17 @@ angular.module('openlayers-directive').service('olData', ["$log", "$q", "olHelpe
         setResolvedDefer(markers, scopeId);
     };
 
+    this.getControls = function(scopeId) {
+        var defer = getDefer(controls, scopeId);
+        return defer.promise;
+    };
+
+    this.setControls = function(olControls, scopeId) {
+        var defer = getUnresolvedDefer(controls, scopeId);
+        defer.resolve(olControls);
+        setResolvedDefer(controls, scopeId);
+    };
+
 }]);
 
 angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", function($q, $log) {
@@ -743,7 +757,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         });
     };
 
-    var _detectLayerType = function(layer) {
+    var detectLayerType = function(layer) {
         if (layer.type) {
             return layer.type;
         } else {
@@ -830,8 +844,8 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                 break;
 
             case 'GeoJSON':
-                if (!(source.features || source.url)) {
-                    $log.error('[AngularJS - Openlayers] - You need a GeoJSON features ' +
+                if (!(source.geojson || source.url)) {
+                    $log.error('[AngularJS - Openlayers] - You need a geojson ' +
                                'property to add a GeoJSON layer.');
                     return;
                 }
@@ -847,9 +861,9 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
 
                 break;
             case 'TopoJSON':
-                if (!(source.features || source.url)) {
-                    $log.error('[AngularJS - Openlayers] - You need a TopoJSON features ' +
-                               'property to add a GeoJSON layer.');
+                if (!(source.topojson || source.url)) {
+                    $log.error('[AngularJS - Openlayers] - You need a topojson ' +
+                               'property to add a TopoJSON layer.');
                     return;
                 }
 
@@ -912,7 +926,15 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             return angular.isNumber(value);
         },
 
-        createProjection: createProjection,
+        createView: function(view) {
+            var projection = createProjection(view.projection);
+
+            return new ol.View({
+                projection: projection,
+                maxZoom: view.maxZoom,
+                minZoom: view.minZoom,
+            });
+        },
 
         // Determine if a reference is defined and not null
         isDefinedAndNotNull: function(value) {
@@ -1019,11 +1041,11 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             }
         },
 
-        detectLayerType: _detectLayerType,
+        detectLayerType: detectLayerType,
 
         createLayer: function(layer, projection) {
             var oLayer;
-            var type = _detectLayerType(layer);
+            var type = detectLayerType(layer);
             var oSource = createSource(layer.source, projection);
 
             if (!oSource) {
@@ -1163,7 +1185,7 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                 dragZoom: true
             },
             view: {
-                projection: 'EPSG:4326',
+                projection: 'EPSG:3857',
                 minZoom: undefined,
                 maxZoom: undefined,
                 rotation: 0
