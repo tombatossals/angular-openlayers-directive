@@ -33,39 +33,45 @@ describe('Directive: openlayers center', function() {
         element = $compile(element)(scope);
         scope.$digest();
 
-        olData.getMap().then(function(map) {
-            var zoom = map.getView().getZoom();
-            var center = map.getView().getCenter();
-            expect(zoom).toEqual(1);
-            expect(center[0]).toBeCloseTo(0);
-            expect(center[1]).toBeCloseTo(0);
+        var map;
+        olData.getMap().then(function(olMap) {
+            map = olMap;
         });
+
+        scope.$digest();
+        var zoom = map.getView().getZoom();
+        var center = map.getView().getCenter();
+        expect(zoom).toEqual(1);
+        expect(center[0]).toBeCloseTo(0);
+        expect(center[1]).toBeCloseTo(0);
     });
 
     it('should update the map center if the initial center scope properties are set', function() {
-
-        var center = {
+        scope.center = {
             lat: 0.96658,
             lon: 2.02,
             zoom: 4
         };
 
-        scope.center = center;
         var element = angular.element('<openlayers center="center"></openlayers>');
         element = $compile(element)(scope);
-        scope.$digest();
 
-        olData.getMap().then(function(map) {
-            var zoom = map.getView().getZoom();
-            var center = map.getView().getCenter();
-            expect(zoom).toEqual(4);
-            expect(center[1]).toBeCloseTo(0.96658);
-            expect(center[0]).toBeCloseTo(2.02);
+        var map;
+        olData.getMap().then(function(olMap) {
+            map = olMap;
         });
+
+        scope.$digest();
+        var defaults = olMapDefaults.getDefaults();
+        var zoom = map.getView().getZoom();
+        var mapCenter = map.getView().getCenter();
+        mapCenter = ol.proj.transform([mapCenter[1], mapCenter[0]], defaults.view.projection, scope.center.projection);
+        expect(zoom).toEqual(4);
+        expect(mapCenter[0]).toBeCloseTo(0.96658);
+        expect(mapCenter[1]).toBeCloseTo(2.02);
     });
 
     it('should update the map center if the scope center properties changes', function() {
-
         scope.center = {
             lat: 0.96658,
             lon: 2.02,
@@ -81,9 +87,11 @@ describe('Directive: openlayers center', function() {
         });
         scope.$digest();
 
+        var defaults = olMapDefaults.getDefaults();
         var mapCenter = map.getView().getCenter();
-        expect(mapCenter[1]).toBeCloseTo(0.96658);
-        expect(mapCenter[0]).toBeCloseTo(2.01958);
+        mapCenter = ol.proj.transform([mapCenter[1], mapCenter[0]], defaults.view.projection, scope.center.projection);
+        expect(mapCenter[0]).toBeCloseTo(0.96658);
+        expect(mapCenter[1]).toBeCloseTo(2.01958);
         expect(map.getView().getZoom()).toEqual(4);
 
         scope.center = {
@@ -95,8 +103,9 @@ describe('Directive: openlayers center', function() {
         scope.$digest();
 
         mapCenter = map.getView().getCenter();
-        expect(mapCenter[1]).toBeCloseTo(2.0304);
-        expect(mapCenter[0]).toBeCloseTo(4.0366);
+        mapCenter = ol.proj.transform([mapCenter[1], mapCenter[0]], defaults.view.projection, scope.center.projection);
+        expect(mapCenter[0]).toBeCloseTo(2.0304);
+        expect(mapCenter[1]).toBeCloseTo(4.0366);
         expect(map.getView().getZoom()).toEqual(8);
     });
 });

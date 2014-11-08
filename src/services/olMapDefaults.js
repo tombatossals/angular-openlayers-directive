@@ -33,7 +33,7 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                 autodiscover: false,
                 bounds: [],
                 centerUrlHash: false,
-                projection: 'EPSG:3857'
+                projection: 'EPSG:4326'
             },
             controls: {
                 attribution: true,

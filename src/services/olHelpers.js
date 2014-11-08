@@ -71,6 +71,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             case 'EPSG:3857':
                 oProjection = new ol.proj.get(projection);
                 break;
+            case 'EPSG:4326':
+                oProjection = new ol.proj.get(projection);
+                break;
             case 'pixel':
                 oProjection = new ol.proj.Projection({
                     code: 'pixel',
@@ -279,6 +282,15 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                 return true;
             }
             return false;
+        },
+
+        setCenter: function(view, projection, newCenter) {
+            if (newCenter.projection === projection) {
+                view.setCenter([newCenter.lon, newCenter.lat]);
+            } else {
+                var coord = [newCenter.lon, newCenter.lat];
+                view.setCenter(ol.proj.transform(coord, newCenter.projection, projection));
+            }
         },
 
         obtainEffectiveMapId: function(d, mapId) {
