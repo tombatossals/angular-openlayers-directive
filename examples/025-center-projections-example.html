@@ -39,7 +39,7 @@
     </form>
     <h2>Center object</h2>
     <pre>{{ center | json }}</pre>
-    <h2>Center object transformed to EPSG:4236</h2>
-    <pre>{{ center | transform: 'EPSG:4326' | json }}</pre>
+    <h2>Center object transformed to view projection EPSG:3857</h2>
+    <pre>{{ center | transform: 'EPSG:3857' | json }}</pre>
   </body>
 </html>
