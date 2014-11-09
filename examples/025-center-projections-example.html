@@ -17,6 +17,15 @@
                 return p;
             };
         });
+
+        var deg2dms = function(deg) {
+            var d = parseInt(deg);
+            var mm = (deg - d) * 60;
+            var m = parseInt(mm);
+            var ss = (mm - m)*60;
+            return  d + ' ' + m + '\' ' + parseInt(ss) + '"';
+        };
+
         app.controller('DemoController', [ '$scope', function($scope) {
             angular.extend($scope, {
                 center: {
@@ -24,8 +33,19 @@
                     lon: 24.94,
                     zoom: 12,
                     projection: 'EPSG:4326'
-                }
+                },
+                sexaGesimal: ''
             });
+
+            $scope.$watch('center', function(center) {
+                var lat = deg2dms(center.lat);
+                var lon = deg2dms(center.lon);
+
+                var ew = (center.lon < 0) ? 'W' : 'E';
+                var ns = (center.lat < 0) ? 'S' : 'N';
+
+                $scope.sexagesimalCenter = ns + ' ' + lat + ', ' + ew + ' ' + lon;
+            }, true);
        }]);
     </script>
   </head>
@@ -39,6 +59,7 @@
     </form>
     <h2>Center object</h2>
     <pre>{{ center | json }}</pre>
+    <p><strong>Sexagesimal system conversion:</strong> {{ sexagesimalCenter }}</p>
     <h2>Center object transformed to view projection EPSG:3857</h2>
     <pre>{{ center | transform: 'EPSG:3857' | json }}</pre>
   </body>
