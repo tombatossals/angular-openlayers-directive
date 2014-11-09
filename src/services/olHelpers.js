@@ -94,6 +94,16 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         var oSource;
 
         switch (source.type) {
+            case 'TileWMS':
+                if(!source.url || !source.params) {
+                    $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url and params properties');
+                }
+                oSource = new ol.source.TileWMS({
+                  url: source.url,
+                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
+                  params: source.params
+                });
+                break;
             case 'OSM':
                 if (source.attribution) {
                     oSource = new ol.source.OSM({
