@@ -68,18 +68,15 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         var oProjection;
 
         switch (projection) {
-            case 'EPSG:3857':
-                oProjection = new ol.proj.get(projection);
-                break;
-            case 'EPSG:4326':
-                oProjection = new ol.proj.get(projection);
-                break;
             case 'pixel':
                 oProjection = new ol.proj.Projection({
                     code: 'pixel',
                     units: 'pixels',
                     extent: [0, 0, 4500, 2234]
                 });
+                break;
+            default:
+                oProjection = new ol.proj.get(projection);
                 break;
         }
 
