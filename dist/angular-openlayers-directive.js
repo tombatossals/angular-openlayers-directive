@@ -886,7 +886,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     url: source.url,
                     projection: source.projection,
                     radius: source.radius,
-                    extractStyles: false,
+                    extractStyles: false
                 });
                 break;
             case 'Stamen':
@@ -931,7 +931,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             return new ol.View({
                 projection: projection,
                 maxZoom: view.maxZoom,
-                minZoom: view.minZoom,
+                minZoom: view.minZoom
             });
         },
 
