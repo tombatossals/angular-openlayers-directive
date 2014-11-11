@@ -56,14 +56,13 @@ angular.module('openlayers-directive', [])
             var controls = ol.control.defaults(defaults.controls);
             var interactions = ol.interaction.defaults(defaults.interactions);
             var view = createView(defaults.view);
-
             // Create the Openlayers Map Object with the options
             var map = new ol.Map({
                 target: element[0],
                 controls: controls,
                 interactions: interactions,
                 renderer: defaults.renderer,
-                view: view
+                view : view
             });
 
             // If we don't have to sync controls, set the controls in olData
@@ -446,14 +445,14 @@ angular.module('openlayers-directive')
         replace: false,
         require: 'openlayers',
         link: function(scope, element, attrs, controller) {
-            var olScope   = controller.getOpenlayersScope();
+            var olScope = controller.getOpenlayersScope();
             var isNumber = olHelpers.isNumber;
-            var safeApply         = olHelpers.safeApply;
+            var safeApply = olHelpers.safeApply;
+            var createView = olHelpers.createView;
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
                 var view = olScope.view;
-                var mapView = map.getView();
 
                 if (!view.projection) {
                     view.projection = defaults.view.projection;
@@ -470,6 +469,9 @@ angular.module('openlayers-directive')
                 if (!view.rotation) {
                     view.rotation = defaults.view.rotation;
                 }
+
+                var mapView = createView(view);
+                map.setView(mapView);
 
                 olScope.$watch('view', function(view) {
                     if (isNumber(view.rotation)) {
@@ -765,18 +767,15 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         var oProjection;
 
         switch (projection) {
-            case 'EPSG:3857':
-                oProjection = new ol.proj.get(projection);
-                break;
-            case 'EPSG:4326':
-                oProjection = new ol.proj.get(projection);
-                break;
             case 'pixel':
                 oProjection = new ol.proj.Projection({
                     code: 'pixel',
                     units: 'pixels',
                     extent: [0, 0, 4500, 2234]
                 });
+                break;
+            default:
+                oProjection = new ol.proj.get(projection);
                 break;
         }
 
@@ -791,6 +790,16 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         var oSource;
 
         switch (source.type) {
+            case 'TileWMS':
+                if(!source.url || !source.params) {
+                    $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url and params properties');
+                }
+                oSource = new ol.source.TileWMS({
+                  url: source.url,
+                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
+                  params: source.params
+                });
+                break;
             case 'OSM':
                 if (source.attribution) {
                     oSource = new ol.source.OSM({
