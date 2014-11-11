@@ -332,7 +332,7 @@ angular.module('openlayers-directive').directive('layers', ["$log", "$q", "olDat
                             var activeLayers = map.getLayers();
                             for (var i in activeLayers) {
                                 if (activeLayers[i] === layer) {
-                                    map.removeLayer(layers);
+                                    map.removeLayer(layer);
                                 }
                             }
                             delete olLayers[name];
@@ -765,18 +765,15 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         var oProjection;
 
         switch (projection) {
-            case 'EPSG:3857':
-                oProjection = new ol.proj.get(projection);
-                break;
-            case 'EPSG:4326':
-                oProjection = new ol.proj.get(projection);
-                break;
             case 'pixel':
                 oProjection = new ol.proj.Projection({
                     code: 'pixel',
                     units: 'pixels',
                     extent: [0, 0, 4500, 2234]
                 });
+                break;
+            default:
+                oProjection = new ol.proj.get(projection);
                 break;
         }
 
@@ -791,6 +788,16 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         var oSource;
 
         switch (source.type) {
+            case 'TileWMS':
+                if(!source.url || !source.params) {
+                    $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url and params properties');
+                }
+                oSource = new ol.source.TileWMS({
+                  url: source.url,
+                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
+                  params: source.params
+                });
+                break;
             case 'OSM':
                 if (source.attribution) {
                     oSource = new ol.source.OSM({
