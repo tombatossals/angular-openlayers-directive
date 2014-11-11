@@ -16,7 +16,8 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                 projection: 'EPSG:3857',
                 minZoom: undefined,
                 maxZoom: undefined,
-                rotation: 0
+                rotation: 0,
+                extent: undefined
             },
             layers: {
                 main: {
@@ -83,6 +84,7 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                     newDefaults.view.maxZoom = userDefaults.view.maxZoom || newDefaults.view.maxZoom;
                     newDefaults.view.minZoom = userDefaults.view.minZoom || newDefaults.view.minZoom;
                     newDefaults.view.projection = userDefaults.view.projection || newDefaults.view.projection;
+                    newDefaults.view.extent = userDefaults.view.extent || newDefaults.view.extent;
                 }
 
             }

@@ -39,7 +39,7 @@ angular.module('openlayers-directive').directive('center', function($log, $locat
                     if (defaults.view.projection !== 'pixel') {
                         center.projection = defaults.center.projection;
                     } else {
-                        center.projection = defaults.view.projection;
+                        center.projection = 'pixel';
                     }
                 }
 

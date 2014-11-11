@@ -64,19 +64,24 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         }
     };
 
-    var createProjection = function(projection) {
+    var createProjection = function(view) {
         var oProjection;
 
-        switch (projection) {
+        switch (view.projection) {
             case 'pixel':
+                if (!isDefined(view.extent)) {
+                    $log.error('[AngularJS - Openlayers] - You must provide the extent of the image ' +
+                               'if using pixel projection');
+                    return;
+                }
                 oProjection = new ol.proj.Projection({
                     code: 'pixel',
                     units: 'pixels',
-                    extent: [0, 0, 4500, 2234]
+                    extent: view.extent
                 });
                 break;
             default:
-                oProjection = new ol.proj.get(projection);
+                oProjection = new ol.proj.get(view.projection);
                 break;
         }
 
@@ -227,7 +232,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         },
 
         createView: function(view) {
-            var projection = createProjection(view.projection);
+            var projection = createProjection(view);
 
             return new ol.View({
                 projection: projection,

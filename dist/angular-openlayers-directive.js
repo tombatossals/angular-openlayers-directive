@@ -137,7 +137,7 @@ angular.module('openlayers-directive').directive('center', ["$log", "$location",
                     if (defaults.view.projection !== 'pixel') {
                         center.projection = defaults.center.projection;
                     } else {
-                        center.projection = defaults.view.projection;
+                        center.projection = 'pixel';
                     }
                 }
 
@@ -763,19 +763,24 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         }
     };
 
-    var createProjection = function(projection) {
+    var createProjection = function(view) {
         var oProjection;
 
-        switch (projection) {
+        switch (view.projection) {
             case 'pixel':
+                if (!isDefined(view.extent)) {
+                    $log.error('[AngularJS - Openlayers] - You must provide the extent of the image ' +
+                               'if using pixel projection');
+                    return;
+                }
                 oProjection = new ol.proj.Projection({
                     code: 'pixel',
                     units: 'pixels',
-                    extent: [0, 0, 4500, 2234]
+                    extent: view.extent
                 });
                 break;
             default:
-                oProjection = new ol.proj.get(projection);
+                oProjection = new ol.proj.get(view.projection);
                 break;
         }
 
@@ -886,7 +891,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     url: source.url,
                     projection: source.projection,
                     radius: source.radius,
-                    extractStyles: false
+                    extractStyles: false,
                 });
                 break;
             case 'Stamen':
@@ -926,12 +931,12 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         },
 
         createView: function(view) {
-            var projection = createProjection(view.projection);
+            var projection = createProjection(view);
 
             return new ol.View({
                 projection: projection,
                 maxZoom: view.maxZoom,
-                minZoom: view.minZoom
+                minZoom: view.minZoom,
             });
         },
 
@@ -1196,7 +1201,8 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                 projection: 'EPSG:3857',
                 minZoom: undefined,
                 maxZoom: undefined,
-                rotation: 0
+                rotation: 0,
+                extent: undefined
             },
             layers: {
                 main: {
@@ -1263,6 +1269,7 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                     newDefaults.view.maxZoom = userDefaults.view.maxZoom || newDefaults.view.maxZoom;
                     newDefaults.view.minZoom = userDefaults.view.minZoom || newDefaults.view.minZoom;
                     newDefaults.view.projection = userDefaults.view.projection || newDefaults.view.projection;
+                    newDefaults.view.extent = userDefaults.view.extent || newDefaults.view.extent;
                 }
 
             }
