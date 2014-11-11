@@ -43,7 +43,6 @@ angular.module('openlayers-directive').directive('center', function($log, $locat
                     }
                 }
 
-
                 if (!isNumber(center.zoom)) {
                     center.zoom = 1;
                 }

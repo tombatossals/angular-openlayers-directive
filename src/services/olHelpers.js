@@ -92,7 +92,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
 
         switch (source.type) {
             case 'TileWMS':
-                if(!source.url || !source.params) {
+                if (!source.url || !source.params) {
                     $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url and params properties');
                 }
                 oSource = new ol.source.TileWMS({
@@ -394,9 +394,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
 
         notifyCenterUrlHashChanged: function(scope, center, search) {
             if (center.centerUrlHash) {
-                var centerUrlHash = center.lat.toFixed(4) + ":" + center.lon.toFixed(4) + ":" + center.zoom;
+                var centerUrlHash = center.lat.toFixed(4) + ':' + center.lon.toFixed(4) + ':' + center.zoom;
                 if (!isDefined(search.c) || search.c !== centerUrlHash) {
-                    scope.$emit("centerUrlHash", centerUrlHash);
+                    scope.$emit('centerUrlHash', centerUrlHash);
                 }
             }
         },

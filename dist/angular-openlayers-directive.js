@@ -56,13 +56,14 @@ angular.module('openlayers-directive', [])
             var controls = ol.control.defaults(defaults.controls);
             var interactions = ol.interaction.defaults(defaults.interactions);
             var view = createView(defaults.view);
+
             // Create the Openlayers Map Object with the options
             var map = new ol.Map({
                 target: element[0],
                 controls: controls,
                 interactions: interactions,
                 renderer: defaults.renderer,
-                view : view
+                view: view
             });
 
             // If we don't have to sync controls, set the controls in olData
@@ -139,7 +140,6 @@ angular.module('openlayers-directive').directive('center', ["$log", "$location",
                         center.projection = defaults.view.projection;
                     }
                 }
-
 
                 if (!isNumber(center.zoom)) {
                     center.zoom = 1;
@@ -791,7 +791,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
 
         switch (source.type) {
             case 'TileWMS':
-                if(!source.url || !source.params) {
+                if (!source.url || !source.params) {
                     $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url and params properties');
                 }
                 oSource = new ol.source.TileWMS({
@@ -1093,9 +1093,9 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
 
         notifyCenterUrlHashChanged: function(scope, center, search) {
             if (center.centerUrlHash) {
-                var centerUrlHash = center.lat.toFixed(4) + ":" + center.lon.toFixed(4) + ":" + center.zoom;
+                var centerUrlHash = center.lat.toFixed(4) + ':' + center.lon.toFixed(4) + ':' + center.zoom;
                 if (!isDefined(search.c) || search.c !== centerUrlHash) {
-                    scope.$emit("centerUrlHash", centerUrlHash);
+                    scope.$emit('centerUrlHash', centerUrlHash);
                 }
             }
         },
