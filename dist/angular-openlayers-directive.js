@@ -137,10 +137,9 @@ angular.module('openlayers-directive').directive('center', ["$log", "$location",
                     if (defaults.view.projection !== 'pixel') {
                         center.projection = defaults.center.projection;
                     } else {
-                        center.projection = defaults.view.projection;
+                        center.projection = 'pixel';
                     }
                 }
-
 
                 if (!isNumber(center.zoom)) {
                     center.zoom = 1;
@@ -332,7 +331,7 @@ angular.module('openlayers-directive').directive('layers', ["$log", "$q", "olDat
                             var activeLayers = map.getLayers();
                             for (var i in activeLayers) {
                                 if (activeLayers[i] === layer) {
-                                    map.removeLayer(layers);
+                                    map.removeLayer(layer);
                                 }
                             }
                             delete olLayers[name];
@@ -446,14 +445,14 @@ angular.module('openlayers-directive')
         replace: false,
         require: 'openlayers',
         link: function(scope, element, attrs, controller) {
-            var olScope   = controller.getOpenlayersScope();
+            var olScope = controller.getOpenlayersScope();
             var isNumber = olHelpers.isNumber;
-            var safeApply         = olHelpers.safeApply;
+            var safeApply = olHelpers.safeApply;
+            var createView = olHelpers.createView;
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
                 var view = olScope.view;
-                var mapView = map.getView();
 
                 if (!view.projection) {
                     view.projection = defaults.view.projection;
@@ -470,6 +469,9 @@ angular.module('openlayers-directive')
                 if (!view.rotation) {
                     view.rotation = defaults.view.rotation;
                 }
+
+                var mapView = createView(view);
+                map.setView(mapView);
 
                 olScope.$watch('view', function(view) {
                     if (isNumber(view.rotation)) {
@@ -761,22 +763,24 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         }
     };
 
-    var createProjection = function(projection) {
+    var createProjection = function(view) {
         var oProjection;
 
-        switch (projection) {
-            case 'EPSG:3857':
-                oProjection = new ol.proj.get(projection);
-                break;
-            case 'EPSG:4326':
-                oProjection = new ol.proj.get(projection);
-                break;
+        switch (view.projection) {
             case 'pixel':
+                if (!isDefined(view.extent)) {
+                    $log.error('[AngularJS - Openlayers] - You must provide the extent of the image ' +
+                               'if using pixel projection');
+                    return;
+                }
                 oProjection = new ol.proj.Projection({
                     code: 'pixel',
                     units: 'pixels',
-                    extent: [0, 0, 4500, 2234]
+                    extent: view.extent
                 });
+                break;
+            default:
+                oProjection = new ol.proj.get(view.projection);
                 break;
         }
 
@@ -791,6 +795,16 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         var oSource;
 
         switch (source.type) {
+            case 'TileWMS':
+                if (!source.url || !source.params) {
+                    $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url and params properties');
+                }
+                oSource = new ol.source.TileWMS({
+                  url: source.url,
+                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
+                  params: source.params
+                });
+                break;
             case 'OSM':
                 if (source.attribution) {
                     oSource = new ol.source.OSM({
@@ -917,7 +931,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         },
 
         createView: function(view) {
-            var projection = createProjection(view.projection);
+            var projection = createProjection(view);
 
             return new ol.View({
                 projection: projection,
@@ -1084,9 +1098,9 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
 
         notifyCenterUrlHashChanged: function(scope, center, search) {
             if (center.centerUrlHash) {
-                var centerUrlHash = center.lat.toFixed(4) + ":" + center.lon.toFixed(4) + ":" + center.zoom;
+                var centerUrlHash = center.lat.toFixed(4) + ':' + center.lon.toFixed(4) + ':' + center.zoom;
                 if (!isDefined(search.c) || search.c !== centerUrlHash) {
-                    scope.$emit("centerUrlHash", centerUrlHash);
+                    scope.$emit('centerUrlHash', centerUrlHash);
                 }
             }
         },
@@ -1187,7 +1201,8 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                 projection: 'EPSG:3857',
                 minZoom: undefined,
                 maxZoom: undefined,
-                rotation: 0
+                rotation: 0,
+                extent: undefined
             },
             layers: {
                 main: {
@@ -1254,6 +1269,7 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                     newDefaults.view.maxZoom = userDefaults.view.maxZoom || newDefaults.view.maxZoom;
                     newDefaults.view.minZoom = userDefaults.view.minZoom || newDefaults.view.minZoom;
                     newDefaults.view.projection = userDefaults.view.projection || newDefaults.view.projection;
+                    newDefaults.view.extent = userDefaults.view.extent || newDefaults.view.extent;
                 }
 
             }

@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <script>
         var app = angular.module('demoapp', ['openlayers-directive']);
-        app.controller('DemoController', [ '$scope', '$location', function($scope, $location) {
+        app.controller('DemoController', [ '$scope', '$location', '$timeout', function($scope, $location, $timeout) {
             angular.extend($scope, {
                 london: {
                     lat: 51.505,
@@ -16,8 +16,14 @@
                     centerUrlHash: true
                 }
             });
+            var promise;
             $scope.$on("centerUrlHash", function(event, centerHash) {
-                //$location.search({ c: centerHash });
+                if (promise) {
+                    $timeout.cancel(promise);
+                }
+                promise = $timeout(function() {
+                    $location.search({ c: centerHash });
+                }, 300);
             });
         }]);
     </script>
