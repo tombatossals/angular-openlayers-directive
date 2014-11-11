@@ -331,7 +331,7 @@ angular.module('openlayers-directive').directive('layers', ["$log", "$q", "olDat
                             var activeLayers = map.getLayers();
                             for (var i in activeLayers) {
                                 if (activeLayers[i] === layer) {
-                                    map.removeLayer(layers);
+                                    map.removeLayer(layer);
                                 }
                             }
                             delete olLayers[name];
