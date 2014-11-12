@@ -6,7 +6,26 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
     var setEvent = function(map, eventType, scope) {
         if (eventType === "pointermove") {
             map.on('pointermove', function(e) {
-                scope.$emit('openlayers.map.' + eventType, e);
+                var pixel = [e.originalEvent.offsetX, e.originalEvent.offsetY];
+                var coord = map.getCoordinateFromPixel(pixel);
+
+                scope.$emit('openlayers.map.' + eventType, {
+                    lat: coord[1],
+                    lon: coord[0],
+                    projection: map.getView().getProjection().getCode()
+                });
+            });
+        } else if (eventType === 'singleclick') {
+            map.on('singleclick', function(e) {
+                var pixel = [e.originalEvent.offsetX, e.originalEvent.offsetY];
+                var coord = map.getCoordinateFromPixel(pixel);
+
+                console.log('hola');
+                scope.$emit('openlayers.map.' + eventType, {
+                    lat: coord[1],
+                    lon: coord[0],
+                    projection: map.getView().getProjection().getCode()
+                });
             });
         }
     };
@@ -347,10 +366,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     for (var i in events.map) {
                         var event = events.map[i];
                         setEvent(map, event, scope);
-                        console.log(event);
                     }
                 }
-
 
                 if (isDefined(layers)) {
                     if (isDefined(events.layers) && angular.isArray(events.layers.vector)) {
