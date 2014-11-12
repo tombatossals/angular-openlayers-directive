@@ -1,17 +1,6 @@
 angular.module('openlayers-directive').factory('olMapDefaults', function($q, olHelpers) {
     var _getDefaults = function() {
         return {
-            interactions: {
-                dragRotate: true,
-                doubleClickZoom: true,
-                dragPan: true,
-                pinchRotate: true,
-                pinchZoom: true,
-                keyboardPan: true,
-                keyboardZoom: true,
-                mouseWheelZoom: true,
-                dragZoom: true
-            },
             view: {
                 projection: 'EPSG:3857',
                 minZoom: undefined,
@@ -35,13 +24,13 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                 centerUrlHash: false,
                 projection: 'EPSG:4326'
             },
+            events: {
+                map: ['click']
+            },
             controls: {
                 attribution: true,
                 rotate: false,
                 zoom: true
-            },
-            events: {
-                map: ['click']
             },
             renderer: 'canvas'
         };

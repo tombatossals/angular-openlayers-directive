@@ -3,6 +3,14 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         return angular.isDefined(value);
     };
 
+    var setEvent = function(map, eventType, scope) {
+        if (eventType === "pointermove") {
+            map.on('pointermove', function(e) {
+                scope.$emit('openlayers.map.' + eventType, e);
+            });
+        }
+    };
+
     var bingImagerySets = [
       'Road',
       'Aerial',
@@ -334,6 +342,16 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
 
         setEvents: function(events, map, scope, layers) {
             if (isDefined(events)) {
+
+                if (angular.isArray(events.map)) {
+                    for (var i in events.map) {
+                        var event = events.map[i];
+                        setEvent(map, event, scope);
+                        console.log(event);
+                    }
+                }
+
+
                 if (isDefined(layers)) {
                     if (isDefined(events.layers) && angular.isArray(events.layers.vector)) {
                         angular.forEach(events.layers.vector, function(eventType) {

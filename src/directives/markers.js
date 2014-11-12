@@ -18,7 +18,7 @@ angular.module('openlayers-directive')
                 var getLayers;
 
                 // If the layers attribute is used, we must wait until the layers are created
-                if (isDefined(controller[1])) {
+                if (isDefined(controller[1]) && controller[1] !== null) {
                     getLayers = controller[1].getLayers;
                 } else {
                     getLayers = function() {

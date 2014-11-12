@@ -3,7 +3,7 @@ angular.module('openlayers-directive').directive('events', function($log, $q, ol
         restrict: 'A',
         scope: false,
         replace: false,
-        require: ['openlayers', 'layers'],
+        require: ['openlayers', '?layers'],
         link: function(scope, element, attrs, controller) {
             var setEvents     = olHelpers.setEvents;
             var isDefined     = olHelpers.isDefined;
@@ -13,7 +13,7 @@ angular.module('openlayers-directive').directive('events', function($log, $q, ol
             mapController.getMap().then(function(map) {
 
                 var getLayers;
-                if (isDefined(controller[1])) {
+                if (isDefined(controller[1]) && controller[1] !== null) {
                     getLayers = controller[1].getLayers;
                 } else {
                     getLayers = function() {

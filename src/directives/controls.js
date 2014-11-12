@@ -35,7 +35,8 @@ angular.module('openlayers-directive')
                     }
 
                     for (c in controls) {
-                        if (controls[c] === true && !actualControls.hasOwnProperty(c)) {
+                        if ((controls[c] === true || angular.isObject(controls[c])) && !actualControls.hasOwnProperty(c)) {
+                            console.log(controlClasses[c]);
                             map.addControl(new controlClasses[c]());
                         }
                     }
