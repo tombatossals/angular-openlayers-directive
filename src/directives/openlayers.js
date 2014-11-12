@@ -29,7 +29,6 @@ angular.module('openlayers-directive', [])
             var isDefined = olHelpers.isDefined;
             var createLayer = olHelpers.createLayer;
             var createView = olHelpers.createView;
-            var setEvents = olHelpers.setEvents;
             var defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
@@ -50,7 +49,7 @@ angular.module('openlayers-directive', [])
             }
 
             var controls = ol.control.defaults(defaults.controls);
-            var interactions = ol.interaction.defaults(defaults.interactions);
+            var interactions = ol.interaction.defaults();
             var view = createView(defaults.view);
 
             // Create the Openlayers Map Object with the options
@@ -73,11 +72,6 @@ angular.module('openlayers-directive', [])
                 map.addLayer(layer);
                 var olLayers = map.getLayers();
                 olData.setLayers(olLayers, attrs.id);
-            }
-
-            // If no events ared defined, set the default events
-            if (!isDefined(attrs.events)) {
-                setEvents(defaults.events, map, scope);
             }
 
             if (!isDefined(attrs.center)) {

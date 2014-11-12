@@ -3,6 +3,33 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         return angular.isDefined(value);
     };
 
+    var setEvent = function(map, eventType, scope) {
+        if (eventType === 'pointermove') {
+            map.on('pointermove', function(e) {
+                var pixel = [e.originalEvent.offsetX, e.originalEvent.offsetY];
+                var coord = map.getCoordinateFromPixel(pixel);
+
+                scope.$emit('openlayers.map.' + eventType, {
+                    lat: coord[1],
+                    lon: coord[0],
+                    projection: map.getView().getProjection().getCode()
+                });
+            });
+        } else if (eventType === 'singleclick') {
+            map.on('singleclick', function(e) {
+                var pixel = [e.originalEvent.offsetX, e.originalEvent.offsetY];
+                var coord = map.getCoordinateFromPixel(pixel);
+
+                console.log('hola');
+                scope.$emit('openlayers.map.' + eventType, {
+                    lat: coord[1],
+                    lon: coord[0],
+                    projection: map.getView().getProjection().getCode()
+                });
+            });
+        }
+    };
+
     var bingImagerySets = [
       'Road',
       'Aerial',
@@ -339,6 +366,14 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
 
         setEvents: function(events, map, scope, layers) {
             if (isDefined(events)) {
+
+                if (angular.isArray(events.map)) {
+                    for (var i in events.map) {
+                        var event = events.map[i];
+                        setEvent(map, event, scope);
+                    }
+                }
+
                 if (isDefined(layers)) {
                     if (isDefined(events.layers) && angular.isArray(events.layers.vector)) {
                         angular.forEach(events.layers.vector, function(eventType) {
