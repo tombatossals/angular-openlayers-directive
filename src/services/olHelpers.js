@@ -323,13 +323,31 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             return false;
         },
 
-        setCenter: function(view, projection, newCenter) {
+        setCenter: function(view, projection, newCenter, map) {
+
+            if (map && view.getCenter()) {
+                var pan = ol.animation.pan({
+                    duration: 150,
+                    source: (view.getCenter())
+                });
+                map.beforeRender(pan);
+            }
+
             if (newCenter.projection === projection) {
                 view.setCenter([newCenter.lon, newCenter.lat]);
             } else {
                 var coord = [newCenter.lon, newCenter.lat];
                 view.setCenter(ol.proj.transform(coord, newCenter.projection, projection));
             }
+        },
+
+        setZoom: function(view, zoom, map) {
+            var z = ol.animation.zoom({
+                duration: 150,
+                resolution: map.getView().getResolution()
+            });
+            map.beforeRender(z);
+            view.setZoom(zoom);
         },
 
         obtainEffectiveMapId: function(d, mapId) {

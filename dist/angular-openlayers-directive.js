@@ -105,6 +105,7 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
             var isNumber          = olHelpers.isNumber;
             var isSameCenterOnMap = olHelpers.isSameCenterOnMap;
             var setCenter         = olHelpers.setCenter;
+            var setZoom           = olHelpers.setZoom;
             var olScope           = controller.getOpenlayersScope();
 
             controller.getMap().then(function(map) {
@@ -115,7 +116,7 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
                 if (attrs.olCenter.search('-') !== -1) {
                     $log.error('[AngularJS - Openlayers] The "center" variable can\'t use ' +
                                'a "-" on his key name: "' + attrs.center + '".');
-                    setCenter(view, defaults.view.projection, defaults.center);
+                    setCenter(view, defaults.view.projection, defaults.center, map);
                     return;
                 }
 
@@ -139,7 +140,7 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
                     center.zoom = 1;
                 }
 
-                setCenter(view, defaults.view.projection, center);
+                setCenter(view, defaults.view.projection, center, map);
                 view.setZoom(center.zoom);
 
                 var centerUrlHash;
@@ -220,12 +221,12 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
                         }
                         var actualCenter = ol.proj.transform(viewCenter, defaults.view.projection, center.projection);
                         if (!(actualCenter[1] === center.lat && actualCenter[0] === center.lon)) {
-                            setCenter(view, defaults.view.projection, center);
+                            setCenter(view, defaults.view.projection, center, map);
                         }
                     }
 
                     if (view.getZoom() !== center.zoom) {
-                        view.setZoom(center.zoom);
+                        setZoom(view, center.zoom, map);
                     }
                 }, true);
 
@@ -1002,13 +1003,31 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             return false;
         },
 
-        setCenter: function(view, projection, newCenter) {
+        setCenter: function(view, projection, newCenter, map) {
+
+            if (map && view.getCenter()) {
+                var pan = ol.animation.pan({
+                    duration: 150,
+                    source: (view.getCenter())
+                });
+                map.beforeRender(pan);
+            }
+
             if (newCenter.projection === projection) {
                 view.setCenter([newCenter.lon, newCenter.lat]);
             } else {
                 var coord = [newCenter.lon, newCenter.lat];
                 view.setCenter(ol.proj.transform(coord, newCenter.projection, projection));
             }
+        },
+
+        setZoom: function(view, zoom, map) {
+            var z = ol.animation.zoom({
+                duration: 150,
+                resolution: map.getView().getResolution()
+            });
+            map.beforeRender(z);
+            view.setZoom(zoom);
         },
 
         obtainEffectiveMapId: function(d, mapId) {
