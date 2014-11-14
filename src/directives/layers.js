@@ -1,4 +1,4 @@
-angular.module('openlayers-directive').directive('layers', function($log, $q, olData, olMapDefaults, olHelpers) {
+angular.module('openlayers-directive').directive('olLayers', function($log, $q, olData, olMapDefaults, olHelpers) {
     var _olLayers;
 
     return {

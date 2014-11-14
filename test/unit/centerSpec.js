@@ -29,7 +29,7 @@ describe('Directive: openlayers center', function() {
 
     it('should have default {[0, 0], 1} parameters on the map if not correctly defined', function() {
         scope.center = {};
-        var element = angular.element('<openlayers center="center"></openlayers>');
+        var element = angular.element('<openlayers ol-center="center"></openlayers>');
         element = $compile(element)(scope);
         scope.$digest();
 
@@ -53,7 +53,7 @@ describe('Directive: openlayers center', function() {
             zoom: 4
         };
 
-        var element = angular.element('<openlayers center="center"></openlayers>');
+        var element = angular.element('<openlayers ol-center="center"></openlayers>');
         element = $compile(element)(scope);
 
         var map;
@@ -78,7 +78,7 @@ describe('Directive: openlayers center', function() {
             zoom: 4
         };
 
-        var element = angular.element('<openlayers center="center"></openlayers>');
+        var element = angular.element('<openlayers ol-center="center"></openlayers>');
         element = $compile(element)(scope);
 
         var map;

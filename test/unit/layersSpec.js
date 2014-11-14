@@ -29,7 +29,7 @@ describe('Directive: openlayers layers', function() {
 
     it('should set main layer with default tiles if bad layers structure is provided', function() {
         angular.extend(scope, { layers: {} });
-        var element = angular.element('<openlayers layers="layers"></openlayers>');
+        var element = angular.element('<openlayers ol-layers="layers"></openlayers>');
         element = $compile(element)(scope);
         var layers;
         olData.getLayers().then(function(olLayers) {
@@ -50,7 +50,7 @@ describe('Directive: openlayers layers', function() {
             }
         });
 
-        var element = angular.element('<openlayers layers="layers"></openlayers>');
+        var element = angular.element('<openlayers ol-layers="layers"></openlayers>');
         element = $compile(element)(scope);
 
         var layers;
@@ -85,7 +85,7 @@ describe('Directive: openlayers layers', function() {
             }
         };
         angular.extend(scope, { layers: initLayers });
-        var element = angular.element('<openlayers layers="layers"></openlayers>');
+        var element = angular.element('<openlayers ol-layers="layers"></openlayers>');
         element = $compile(element)(scope);
 
         var map;

@@ -1,4 +1,4 @@
-angular.module('openlayers-directive').directive('events', function($log, $q, olData, olMapDefaults, olHelpers) {
+angular.module('openlayers-directive').directive('olEvents', function($log, $q, olData, olMapDefaults, olHelpers) {
     return {
         restrict: 'A',
         scope: false,

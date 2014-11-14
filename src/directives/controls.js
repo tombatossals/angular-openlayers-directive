@@ -1,5 +1,5 @@
 angular.module('openlayers-directive')
-       .directive('controls', function($log, $q, olData, olMapDefaults, olHelpers) {
+       .directive('olControls', function($log, $q, olData, olMapDefaults, olHelpers) {
 
     return {
         restrict: 'A',

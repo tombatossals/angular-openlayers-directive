@@ -1,4 +1,4 @@
-angular.module('openlayers-directive').directive('center', function($log, $location, olMapDefaults, olHelpers) {
+angular.module('openlayers-directive').directive('olCenter', function($log, $location, olMapDefaults, olHelpers) {
     return {
         restrict: 'A',
         scope: false,
@@ -20,7 +20,7 @@ angular.module('openlayers-directive').directive('center', function($log, $locat
                 var view = map.getView();
                 var center = olScope.center;
 
-                if (attrs.center.search('-') !== -1) {
+                if (attrs.olCenter.search('-') !== -1) {
                     $log.error('[AngularJS - Openlayers] The "center" variable can\'t use ' +
                                'a "-" on his key name: "' + attrs.center + '".');
                     setCenter(view, defaults.view.projection, defaults.center);

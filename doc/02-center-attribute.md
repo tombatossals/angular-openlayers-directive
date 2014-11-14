@@ -1,10 +1,10 @@
-'center' Attribute Documentation
-================================
+'ol-center' Attribute Documentation
+===================================
 
 This is an attribute of the **openlayers** main directive, and we will use it like this:
 
 ```
-<openlayers center="center"><openlayers>
+<openlayers ol-center="center"><openlayers>
 ```
 
 It will map an object *center* of our controller scope with the corresponding object on our directive isolated scope. It's a bidirectional relationship, so a change in this object on the controller scope will affect the map center position, or an interaction on the map which changes the map center will update our *center* values. Let's define the center model with an example:
@@ -34,7 +34,7 @@ angular.extend($scope, {
 And after that, in our HTML code we will define our openlayers directive like this:
 
 ```
-<openlayers center="center"></openlayers>
+<openlayers ol-center="center"></openlayers>
 ```
 
 And that's all. A simple example of using this attribute can be found [here](http://tombatossals.github.io/angular-openlayers-directive/examples/020-center-example.html).
