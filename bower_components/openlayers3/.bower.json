@@ -1,0 +1,14 @@
+{
+  "name": "openlayers3",
+  "homepage": "https://github.com/openlayers/ol3",
+  "version": "3.1.0-pre.2",
+  "_release": "3.1.0-pre.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v3.1.0-pre.2",
+    "commit": "8f0dc88682221e0d91e98fd8a430dd040167894b"
+  },
+  "_source": "https://github.com/openlayers/ol3.git",
+  "_target": "v3.1.0-pre.2",
+  "_originalSource": "https://github.com/openlayers/ol3.git"
+}
