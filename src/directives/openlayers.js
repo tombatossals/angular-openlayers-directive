@@ -6,12 +6,12 @@ angular.module('openlayers-directive', [])
         replace: true,
         scope: {
             center: '=olCenter',
-            defaults: '=defaults',
-            layers: '=layers',
-            markers: '=markers',
-            view: '=view',
-            controls: '=controls',
-            events: '=events'
+            defaults: '=olDefaults',
+            layers: '=olLayers',
+            markers: '=olMarkers',
+            view: '=olView',
+            controls: '=olControls',
+            events: '=olEvents'
         },
         template: '<div class="angular-openlayers-map"></div>',
         controller: function($scope) {
@@ -62,12 +62,12 @@ angular.module('openlayers-directive', [])
             });
 
             // If we don't have to sync controls, set the controls in olData
-            if (!isDefined(attrs.controls)) {
+            if (!isDefined(attrs.olControls)) {
                 olData.setControls(map.getControls());
             }
 
             // If no layer is defined, set the default tileLayer
-            if (!isDefined(attrs.layers)) {
+            if (!isDefined(attrs.olLayers)) {
                 var layer = createLayer(defaults.layers.main);
                 map.addLayer(layer);
                 var olLayers = map.getLayers();

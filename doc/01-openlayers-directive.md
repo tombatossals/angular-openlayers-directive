@@ -82,7 +82,7 @@ Attributes Documentation
 
 We have much more possibilities than showing a simple map, but this will need that we take a closer look at the attributes, listed below:
 
-- [Defaults attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/defaults-attribute.md)
-- [Center attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/center-attribute.md)
-- [Layers attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/layers-attribute.md)
-- [Markers attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/markers-attribute.md)
+- [ol-defaults attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/defaults-attribute.md)
+- [ol-center attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/center-attribute.md)
+- [ol-layers attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/layers-attribute.md)
+- [ol-markers attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/markers-attribute.md)

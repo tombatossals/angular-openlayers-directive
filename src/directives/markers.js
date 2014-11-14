@@ -1,5 +1,5 @@
 angular.module('openlayers-directive')
-       .directive('markers', function($log, $q, olData, olMapDefaults, olHelpers) {
+       .directive('olMarkers', function($log, $q, olData, olMapDefaults, olHelpers) {
     return {
         restrict: 'A',
         scope: false,
