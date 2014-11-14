@@ -9,13 +9,13 @@ angular.module('openlayers-directive', [])
         restrict: 'EA',
         replace: true,
         scope: {
-            center: '=center',
-            defaults: '=defaults',
-            layers: '=layers',
-            markers: '=markers',
-            view: '=view',
-            controls: '=controls',
-            events: '=events'
+            center: '=olCenter',
+            defaults: '=olDefaults',
+            layers: '=olLayers',
+            markers: '=olMarkers',
+            view: '=olView',
+            controls: '=olControls',
+            events: '=olEvents'
         },
         template: '<div class="angular-openlayers-map"></div>',
         controller: ["$scope", function($scope) {
@@ -66,19 +66,19 @@ angular.module('openlayers-directive', [])
             });
 
             // If we don't have to sync controls, set the controls in olData
-            if (!isDefined(attrs.controls)) {
+            if (!isDefined(attrs.olControls)) {
                 olData.setControls(map.getControls());
             }
 
             // If no layer is defined, set the default tileLayer
-            if (!isDefined(attrs.layers)) {
+            if (!isDefined(attrs.olLayers)) {
                 var layer = createLayer(defaults.layers.main);
                 map.addLayer(layer);
                 var olLayers = map.getLayers();
                 olData.setLayers(olLayers, attrs.id);
             }
 
-            if (!isDefined(attrs.center)) {
+            if (!isDefined(attrs.olCenter)) {
                 view.setCenter([defaults.center.lon, defaults.center.lat]);
                 view.setZoom(defaults.center.zoom);
             }
@@ -90,7 +90,7 @@ angular.module('openlayers-directive', [])
     };
 }]);
 
-angular.module('openlayers-directive').directive('center', ["$log", "$location", "olMapDefaults", "olHelpers", function($log, $location, olMapDefaults, olHelpers) {
+angular.module('openlayers-directive').directive('olCenter', ["$log", "$location", "olMapDefaults", "olHelpers", function($log, $location, olMapDefaults, olHelpers) {
     return {
         restrict: 'A',
         scope: false,
@@ -112,7 +112,7 @@ angular.module('openlayers-directive').directive('center', ["$log", "$location",
                 var view = map.getView();
                 var center = olScope.center;
 
-                if (attrs.center.search('-') !== -1) {
+                if (attrs.olCenter.search('-') !== -1) {
                     $log.error('[AngularJS - Openlayers] The "center" variable can\'t use ' +
                                'a "-" on his key name: "' + attrs.center + '".');
                     setCenter(view, defaults.view.projection, defaults.center);
@@ -278,7 +278,7 @@ angular.module('openlayers-directive').directive('center', ["$log", "$location",
     };
 }]);
 
-angular.module('openlayers-directive').directive('layers', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
+angular.module('openlayers-directive').directive('olLayers', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
     var _olLayers;
 
     return {
@@ -396,7 +396,7 @@ angular.module('openlayers-directive').directive('layers', ["$log", "$q", "olDat
     };
 }]);
 
-angular.module('openlayers-directive').directive('events', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
+angular.module('openlayers-directive').directive('olEvents', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
     return {
         restrict: 'A',
         scope: false,
@@ -432,7 +432,7 @@ angular.module('openlayers-directive').directive('events', ["$log", "$q", "olDat
 }]);
 
 angular.module('openlayers-directive')
-       .directive('view', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
+       .directive('olView', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
     return {
         restrict: 'A',
         scope: false,
@@ -485,7 +485,7 @@ angular.module('openlayers-directive')
 }]);
 
 angular.module('openlayers-directive')
-       .directive('controls', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
+       .directive('olControls', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
 
     return {
         restrict: 'A',
@@ -533,7 +533,7 @@ angular.module('openlayers-directive')
 }]);
 
 angular.module('openlayers-directive')
-       .directive('markers', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
+       .directive('olMarkers', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
     return {
         restrict: 'A',
         scope: false,

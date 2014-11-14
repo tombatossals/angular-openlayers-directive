@@ -34,7 +34,7 @@
       </script>
   </head>
   <body ng-controller="StaticImageController">
-     <openlayers layers="layers" center="center" defaults="defaults" height="600px"></openlayers>
+     <openlayers ol-layers="layers" ol-center="center" ol-defaults="defaults" height="600px"></openlayers>
      <h1>Static Image Layer example</h1>
      <p>You can load an static image (no tiles) easily, look at the source of the <strong>layers</strong> attribute:</p>
      <pre ng-bind="layers | json"></pre>

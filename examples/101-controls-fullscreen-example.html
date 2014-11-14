@@ -46,7 +46,7 @@
   </head>
   <body ng-controller="GeoJSONController">
      <div style="height: 400px;">
-         <openlayers center="center" controls="controls" layers="layers" view="view"></openlayers>
+         <openlayers ol-center="center" ol-controls="controls" ol-layers="layers" ol-view="view"></openlayers>
      </div>
      <h1>Controls example</h1>
      <p><input type="range" min="-180" max="180" ng-change="degreesToRadians()" ng-model="degrees" /> Degrees: {{ degrees }}</p>

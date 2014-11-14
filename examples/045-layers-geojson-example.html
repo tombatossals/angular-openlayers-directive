@@ -91,7 +91,7 @@
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers center="europe" layers="layers" defaults="defaults" height="400px"></openlayers>
+     <openlayers ol-center="europe" ol-layers="layers" ol-defaults="defaults" height="400px"></openlayers>
      <h1>Layers GeoJSON example</h1>
      <p>You can load GeoJSON as new layers easily, look at the source of the <strong>layers</strong> attribute:</p>
      <pre ng-bind="layers | json"></pre>
