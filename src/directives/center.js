@@ -137,26 +137,11 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                     }
                 }, true);
 
-                view.on('change:resolution', function() {
-                    safeApply(olScope, function(scope) {
-                        scope.center.zoom = view.getZoom();
-
-                        // Notify the controller about a change in the center position
-                        olHelpers.notifyCenterUrlHashChanged(olScope, scope.center, $location.search());
-
-                        // Calculate the bounds if needed
-                        if (isArray(scope.center.bounds)) {
-                            var extent = view.calculateExtent(map.getSize());
-                            var centerProjection = scope.center.projection;
-                            var viewProjection = defaults.view.projection;
-                            scope.center.bounds = ol.proj.transform(extent, viewProjection, centerProjection);
-                        }
-                    });
-                });
-
-                view.on('change:center', function() {
+                map.on('moveend', function() {
                     safeApply(olScope, function(scope) {
                         var center = map.getView().getCenter();
+                        scope.center.zoom = view.getZoom();
+
                         if (defaults.view.projection === 'pixel') {
                             scope.center.coord = center;
                             return;
