@@ -2,7 +2,6 @@
 goog.provide('ol.DragBoxEvent');
 goog.provide('ol.interaction.DragBox');
 
-goog.require('goog.asserts');
 goog.require('goog.events.Event');
 goog.require('goog.functions');
 goog.require('ol');
@@ -43,7 +42,8 @@ ol.DragBoxEventType = {
 
 /**
  * @classdesc
- * Object representing a dragbox event.
+ * Events emitted by {@link ol.interaction.DragBox} instances are instances of
+ * this type.
  *
  * @param {string} type The event type.
  * @param {ol.Coordinate} coordinate The event coordinate.
@@ -133,7 +133,7 @@ ol.interaction.DragBox.prototype.handlePointerDrag = function(mapBrowserEvent) {
 
 /**
  * Returns geometry of last drawn box.
- * @return {ol.geom.Geometry} Geometry.
+ * @return {ol.geom.Polygon} Geometry.
  * @api stable
  */
 ol.interaction.DragBox.prototype.getGeometry = function() {

@@ -19,7 +19,7 @@ goog.require('ol.pointer.PointerEventHandler');
  * @constructor
  * @extends {ol.control.Control}
  * @param {olx.control.ZoomToExtentOptions=} opt_options Options.
- * @api
+ * @api stable
  */
 ol.control.ZoomToExtent = function(opt_options) {
   var options = goog.isDef(opt_options) ? opt_options : {};
@@ -39,7 +39,8 @@ ol.control.ZoomToExtent = function(opt_options) {
     'role' : 'tooltip'
   }, tipLabel);
   var button = goog.dom.createDom(goog.dom.TagName.BUTTON, {
-    'class': 'ol-has-tooltip'
+    'class': 'ol-has-tooltip',
+    'type': 'button'
   });
   goog.dom.appendChild(button, tip);
 
