@@ -32,7 +32,7 @@
     </script>
   </head>
   <body ng-controller="DemoZoomLevelController">
-      <openlayers center="london" layers="layers" height="400px"></openlayers>
+      <openlayers ol-center="london" layers="layers" height="400px"></openlayers>
       <h1>Tiles zoom changer example</h1>
       <p>This is a map with dynamic tile change depending on zoom level</p>
       <p>Current TileLayer Url: <pre>{{ tiles | json }}</pre></p>

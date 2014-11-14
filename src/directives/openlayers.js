@@ -5,7 +5,7 @@ angular.module('openlayers-directive', [])
         restrict: 'EA',
         replace: true,
         scope: {
-            center: '=center',
+            center: '=olCenter',
             defaults: '=defaults',
             layers: '=layers',
             markers: '=markers',
@@ -74,7 +74,7 @@ angular.module('openlayers-directive', [])
                 olData.setLayers(olLayers, attrs.id);
             }
 
-            if (!isDefined(attrs.center)) {
+            if (!isDefined(attrs.olCenter)) {
                 view.setCenter([defaults.center.lon, defaults.center.lat]);
                 view.setZoom(defaults.center.zoom);
             }

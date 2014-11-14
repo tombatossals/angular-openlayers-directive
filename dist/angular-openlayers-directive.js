@@ -9,7 +9,7 @@ angular.module('openlayers-directive', [])
         restrict: 'EA',
         replace: true,
         scope: {
-            center: '=center',
+            center: '=olCenter',
             defaults: '=defaults',
             layers: '=layers',
             markers: '=markers',
@@ -78,7 +78,7 @@ angular.module('openlayers-directive', [])
                 olData.setLayers(olLayers, attrs.id);
             }
 
-            if (!isDefined(attrs.center)) {
+            if (!isDefined(attrs.olCenter)) {
                 view.setCenter([defaults.center.lon, defaults.center.lat]);
                 view.setZoom(defaults.center.zoom);
             }
@@ -90,7 +90,7 @@ angular.module('openlayers-directive', [])
     };
 }]);
 
-angular.module('openlayers-directive').directive('center', ["$log", "$location", "olMapDefaults", "olHelpers", function($log, $location, olMapDefaults, olHelpers) {
+angular.module('openlayers-directive').directive('olCenter', ["$log", "$location", "olMapDefaults", "olHelpers", function($log, $location, olMapDefaults, olHelpers) {
     return {
         restrict: 'A',
         scope: false,
@@ -112,7 +112,7 @@ angular.module('openlayers-directive').directive('center', ["$log", "$location",
                 var view = map.getView();
                 var center = olScope.center;
 
-                if (attrs.center.search('-') !== -1) {
+                if (attrs.olCenter.search('-') !== -1) {
                     $log.error('[AngularJS - Openlayers] The "center" variable can\'t use ' +
                                'a "-" on his key name: "' + attrs.center + '".');
                     setCenter(view, defaults.view.projection, defaults.center);
