@@ -33,7 +33,6 @@ angular.module('openlayers-directive', [])
             var isDefined = olHelpers.isDefined;
             var createLayer = olHelpers.createLayer;
             var createView = olHelpers.createView;
-            var setEvents = olHelpers.setEvents;
             var defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
 
             // Set width and height if they are defined
@@ -54,7 +53,7 @@ angular.module('openlayers-directive', [])
             }
 
             var controls = ol.control.defaults(defaults.controls);
-            var interactions = ol.interaction.defaults(defaults.interactions);
+            var interactions = ol.interaction.defaults();
             var view = createView(defaults.view);
 
             // Create the Openlayers Map Object with the options
@@ -77,11 +76,6 @@ angular.module('openlayers-directive', [])
                 map.addLayer(layer);
                 var olLayers = map.getLayers();
                 olData.setLayers(olLayers, attrs.id);
-            }
-
-            // If no events ared defined, set the default events
-            if (!isDefined(attrs.events)) {
-                setEvents(defaults.events, map, scope);
             }
 
             if (!isDefined(attrs.center)) {
@@ -407,7 +401,7 @@ angular.module('openlayers-directive').directive('events', ["$log", "$q", "olDat
         restrict: 'A',
         scope: false,
         replace: false,
-        require: ['openlayers', 'layers'],
+        require: ['openlayers', '?layers'],
         link: function(scope, element, attrs, controller) {
             var setEvents     = olHelpers.setEvents;
             var isDefined     = olHelpers.isDefined;
@@ -417,7 +411,7 @@ angular.module('openlayers-directive').directive('events', ["$log", "$q", "olDat
             mapController.getMap().then(function(map) {
 
                 var getLayers;
-                if (isDefined(controller[1])) {
+                if (isDefined(controller[1]) && controller[1] !== null) {
                     getLayers = controller[1].getLayers;
                 } else {
                     getLayers = function() {
@@ -527,7 +521,8 @@ angular.module('openlayers-directive')
                     }
 
                     for (c in controls) {
-                        if (controls[c] === true && !actualControls.hasOwnProperty(c)) {
+                        if ((controls[c] === true || angular.isObject(controls[c])) &&
+                            !actualControls.hasOwnProperty(c)) {
                             map.addControl(new controlClasses[c]());
                         }
                     }
@@ -557,7 +552,7 @@ angular.module('openlayers-directive')
                 var getLayers;
 
                 // If the layers attribute is used, we must wait until the layers are created
-                if (isDefined(controller[1])) {
+                if (isDefined(controller[1]) && controller[1] !== null) {
                     getLayers = controller[1].getLayers;
                 } else {
                     getLayers = function() {
@@ -700,6 +695,33 @@ angular.module('openlayers-directive').service('olData', ["$log", "$q", "olHelpe
 angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", function($q, $log) {
     var isDefined = function(value) {
         return angular.isDefined(value);
+    };
+
+    var setEvent = function(map, eventType, scope) {
+        if (eventType === 'pointermove') {
+            map.on('pointermove', function(e) {
+                var pixel = [e.originalEvent.offsetX, e.originalEvent.offsetY];
+                var coord = map.getCoordinateFromPixel(pixel);
+
+                scope.$emit('openlayers.map.' + eventType, {
+                    lat: coord[1],
+                    lon: coord[0],
+                    projection: map.getView().getProjection().getCode()
+                });
+            });
+        } else if (eventType === 'singleclick') {
+            map.on('singleclick', function(e) {
+                var pixel = [e.originalEvent.offsetX, e.originalEvent.offsetY];
+                var coord = map.getCoordinateFromPixel(pixel);
+
+                console.log('hola');
+                scope.$emit('openlayers.map.' + eventType, {
+                    lat: coord[1],
+                    lon: coord[0],
+                    projection: map.getView().getProjection().getCode()
+                });
+            });
+        }
     };
 
     var bingImagerySets = [
@@ -1038,6 +1060,14 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
 
         setEvents: function(events, map, scope, layers) {
             if (isDefined(events)) {
+
+                if (angular.isArray(events.map)) {
+                    for (var i in events.map) {
+                        var event = events.map[i];
+                        setEvent(map, event, scope);
+                    }
+                }
+
                 if (isDefined(layers)) {
                     if (isDefined(events.layers) && angular.isArray(events.layers.vector)) {
                         angular.forEach(events.layers.vector, function(eventType) {
@@ -1186,17 +1216,6 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
 angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelpers", function($q, olHelpers) {
     var _getDefaults = function() {
         return {
-            interactions: {
-                dragRotate: true,
-                doubleClickZoom: true,
-                dragPan: true,
-                pinchRotate: true,
-                pinchZoom: true,
-                keyboardPan: true,
-                keyboardZoom: true,
-                mouseWheelZoom: true,
-                dragZoom: true
-            },
             view: {
                 projection: 'EPSG:3857',
                 minZoom: undefined,
@@ -1221,13 +1240,13 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                 centerUrlHash: false,
                 projection: 'EPSG:4326'
             },
+            events: {
+                map: ['click']
+            },
             controls: {
                 attribution: true,
                 rotate: false,
                 zoom: true
-            },
-            events: {
-                map: ['click']
             },
             renderer: 'canvas'
         };
