@@ -324,6 +324,15 @@ angular.module('openlayers-directive').directive('olLayers', ["$log", "$q", "olD
                         layer = layers[name];
                         var olLayer;
                         var style;
+
+                        if (!isDefined(layer.visible)) {
+                            layer.visible = true;
+                        }
+
+                        if (!isDefined(layer.opacity)) {
+                            layer.opacity = 1;
+                        }
+
                         if (!olLayers.hasOwnProperty(name)) {
                             olLayer = createLayer(layers[name], projection);
                             if (isDefined(olLayer)) {
@@ -349,18 +358,23 @@ angular.module('openlayers-directive').directive('olLayers', ["$log", "$q", "olD
                             olLayer = olLayers[name];
                             if (isDefined(oldLayer) && !equals(layer, oldLayer)) {
                                 if (!equals(layer.source, oldLayer.source)) {
-                                    map.removeLayer(olLayer);
-                                    delete olLayers[name];
-                                    olLayer = createLayer(layer, projection);
-                                    if (isDefined(olLayer)) {
-                                        olLayers[name] = olLayer;
-                                        map.addLayer(olLayer);
+
+                                    var layerCollection = map.getLayers();
+
+                                    for (var j=0; j<layerCollection.getLength(); j++) {
+                                        var l = layerCollection.item(j);
+                                        if (l === olLayer) {
+                                            layerCollection.removeAt(j);
+                                            olLayer = createLayer(layer, projection);
+                                            if (isDefined(olLayer)) {
+                                                olLayers[name] = olLayer;
+                                                layerCollection.insertAt(j, olLayer);
+                                            }
+                                        }
                                     }
                                 }
 
-                                console.log(layer.visible);
                                 if (isBoolean(layer.visible) && layer.visible !== oldLayer.visible) {
-                                    console.log('hola', layer.visible);
                                     olLayer.setVisible(layer.visible);
                                 }
 
