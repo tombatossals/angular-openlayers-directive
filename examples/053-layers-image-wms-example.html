@@ -9,7 +9,7 @@
         var app = angular.module("demoapp", ["openlayers-directive"]);
         app.controller('DemoController', [ '$scope', function($scope) {
             angular.extend($scope, {
-                newyork: {
+                usa: {
                     lat: 37.7,
                     lon: -96.67,
                     zoom: 5
@@ -17,8 +17,7 @@
                 layers: {
                     main: {
                         source: {
-                            type: 'Stamen',
-                            layer: 'terrain'
+                            type: 'OSM'
                         }
                     },
                     wms: {
@@ -34,20 +33,10 @@
     </script>
   </head>
   <body ng-controller="DemoController">
-    <openlayers ol-center="newyork" ol-layers="layers" height="400px"></openlayers>
+    <openlayers ol-center="usa" ol-layers="layers" height="400px"></openlayers>
 
-    <h1>Using Stamen Maps Layer</h1>
-    <p>This map uses a <a href="http://maps.stamen.com">Stamen</a> layer. Click on the buttons to see the three types of layers:</p>
-
-    <ul>
-        <li style="display: inline" ng-repeat="layer in [ 'watercolor', 'terrain', 'toner' ]">
-            <button ng-click="layers.main.source.layer=layer" class="btn btn-default" ng-bind="layer"></button>
-        </li>
-    </ul>
-
-    <p>Current TileLayer Url:
-        <pre>{{ layers | json }}</pre>
-    </p>
+    <h1>WMS Image Layer</h1>
+    <p>This map uses a WMS image layer from a geoserver.</p>
   </div>
 
   </body>
