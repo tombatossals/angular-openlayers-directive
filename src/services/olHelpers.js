@@ -363,6 +363,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             view.setZoom(zoom);
         },
 
+        isBoolean: function(value) {
+            return typeof value === 'boolean';
+        },
+
         obtainEffectiveMapId: function(d, mapId) {
             var id;
             var i;

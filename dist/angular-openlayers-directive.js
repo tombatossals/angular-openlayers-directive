@@ -285,6 +285,7 @@ angular.module('openlayers-directive').directive('olLayers', ["$log", "$q", "olD
             var olScope     = controller.getOpenlayersScope();
             var createLayer = olHelpers.createLayer;
             var createStyle = olHelpers.createStyle;
+            var isBoolean   = olHelpers.isBoolean;
 
             controller.getMap().then(function(map) {
                 var defaults = olMapDefaults.getDefaults(attrs.id);
@@ -355,6 +356,12 @@ angular.module('openlayers-directive').directive('olLayers', ["$log", "$q", "olD
                                         olLayers[name] = olLayer;
                                         map.addLayer(olLayer);
                                     }
+                                }
+
+                                console.log(layer.visible);
+                                if (isBoolean(layer.visible) && layer.visible !== oldLayer.visible) {
+                                    console.log('hola', layer.visible);
+                                    olLayer.setVisible(layer.visible);
                                 }
 
                                 if (layer.opacity && layer.opacity !== oldLayer.opacity) {
@@ -1041,6 +1048,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             });
             map.beforeRender(z);
             view.setZoom(zoom);
+        },
+
+        isBoolean: function(value) {
+            return typeof value === 'boolean';
         },
 
         obtainEffectiveMapId: function(d, mapId) {

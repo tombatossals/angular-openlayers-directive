@@ -16,12 +16,14 @@
                 },
                 layers: {
                     openstreetmap: {
+                        visible: true,
                         opacity: 0.5,
                         source: {
                             type: 'OSM'
                         }
                     },
                     mapbox_geographyclass: {
+                        visible: true,
                         opacity: 0.5,
                         source: {
                             type: 'TileJSON',
@@ -43,8 +45,9 @@
 
         <form>
             <div ng-repeat="(key, layer) in layers">
-                <input type="range" min="0" max="1" step="0.01" ng-model="layer.opacity">
+                <input type="checkbox" ng-model="layer.visible" />
                 {{ key }}
+                <input type="range" min="0" max="1" step="0.01" ng-model="layer.opacity">
             </div>
         </form>
       </div>
