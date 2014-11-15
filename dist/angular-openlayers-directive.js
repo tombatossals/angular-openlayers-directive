@@ -759,6 +759,8 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             return layer.type;
         } else {
             switch (layer.source.type) {
+                case 'ImageWMS':
+                    return 'Image';
                 case 'ImageStatic':
                     return 'Image';
                 case 'GeoJSON':
@@ -803,6 +805,17 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         var oSource;
 
         switch (source.type) {
+            case 'ImageWMS':
+                if (!source.url || !source.params) {
+                    $log.error('[AngularJS - Openlayers] - ImageWMS Layer needs valid server url and params properties');
+                }
+                oSource = new ol.source.ImageWMS({
+                  url: source.url,
+                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
+                  params: source.params
+                });
+                break;
+
             case 'TileWMS':
                 if (!source.url || !source.params) {
                     $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url and params properties');
