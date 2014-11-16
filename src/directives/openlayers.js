@@ -1,19 +1,19 @@
 angular.module('openlayers-directive', [])
-       .directive('openlayers', function($log, $q, olHelpers, olMapDefaults, olData) {
+       .directive('openlayers', function($log, $q, $compile, olHelpers, olMapDefaults, olData) {
     var _olMap;
     return {
         restrict: 'EA',
+        transclude: true,
         replace: true,
         scope: {
             center: '=olCenter',
             defaults: '=olDefaults',
             layers: '=olLayers',
-            markers: '=olMarkers',
             view: '=olView',
             controls: '=olControls',
             events: '=olEvents'
         },
-        template: '<div class="angular-openlayers-map"></div>',
+        template: '<div class="angular-openlayers-map" ng-transclude></div>',
         controller: function($scope) {
             _olMap = $q.defer();
             this.getMap = function() {

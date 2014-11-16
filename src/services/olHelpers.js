@@ -20,7 +20,6 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                 var pixel = [e.originalEvent.offsetX, e.originalEvent.offsetY];
                 var coord = map.getCoordinateFromPixel(pixel);
 
-                console.log('hola');
                 scope.$emit('openlayers.map.' + eventType, {
                     lat: coord[1],
                     lon: coord[0],
@@ -550,6 +549,15 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
 
             marker.setStyle(style);
             return marker;
+        },
+
+        createOverlay: function(element) {
+            var ov = new ol.Overlay({
+                element: element,
+                positioning: 'bottom-center'
+            });
+
+            return ov;
         }
     };
 });
