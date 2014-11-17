@@ -50,40 +50,40 @@ describe('Directive: openlayers', function() {
     xit('should set default tile if not tiles nor layers are provided', function() {
         var element = angular.element('<openlayers></openlayers>');
         element = $compile(element)(scope);
-        var leafletTiles;
+        var olTiles;
         var defaults;
-        leafletData.getTiles().then(function(tiles) {
-            leafletTiles = tiles;
+        olData.getTiles().then(function(tiles) {
+            olTiles = tiles;
         });
-        leafletMapDefaults.getDefaults().then(function(d) {
+        olMapDefaults.getDefaults().then(function(d) {
             defaults = d;
         });
         $rootScope.$digest();
-        expect(leafletTiles._url).toEqual(defaults.tileLayer);
+        expect(olTiles._url).toEqual(defaults.tileLayer);
     });
 
     xit('should set the max zoom if specified', function() {
         angular.extend(scope, { defaults: { maxZoom: 15 } });
-        var element = angular.element('<leaflet defaults="defaults"></leaflet>');
+        var element = angular.element('<openlayers defaults="defaults"></openlayers>');
         element = $compile(element)(scope);
-        var leafletMap;
-        leafletData.getMap().then(function(map) {
-            leafletMap = map;
+        var olMap;
+        olData.getMap().then(function(map) {
+            olMap = map;
         });
         $rootScope.$digest();
-        expect(leafletMap.getMaxZoom()).toEqual(15);
+        expect(olMap.getMaxZoom()).toEqual(15);
     });
 
     xit('should set the min zoom if specified', function() {
         angular.extend($rootScope, { defaults: { minZoom: 4 } });
-        var element = angular.element('<leaflet defaults="defaults"></leaflet>');
+        var element = angular.element('<openlayers defaults="defaults"></openlayers>');
         element = $compile(element)(scope);
-        var leafletMap;
-        leafletData.getMap().then(function(map) {
-            leafletMap = map;
+        var olMap;
+        olData.getMap().then(function(map) {
+            olMap = map;
         });
         $rootScope.$digest();
-        expect(leafletMap.getMinZoom()).toEqual(4);
+        expect(olMap.getMinZoom()).toEqual(4);
     });
 
     xit('should unset the minzoom if maxbounds specified', function() {
@@ -102,14 +102,14 @@ describe('Directive: openlayers', function() {
                 }
             }
         });
-        var element = angular.element('<leaflet defaults="defaults" maxBounds="maxBounds"></leaflet>');
+        var element = angular.element('<openlayers defaults="defaults" maxBounds="maxBounds"></openlayers>');
         element = $compile(element)($rootScope);
-        var leafletMap;
-        leafletData.getMap().then(function(map) {
-            leafletMap = map;
+        var olMap;
+        olData.getMap().then(function(map) {
+            olMap = map;
         });
         $rootScope.$digest();
-        expect(leafletMap.getMinZoom()).toEqual(0);
+        expect(olMap.getMinZoom()).toEqual(0);
     });
 
     xit('should set tileLayer and tileLayer options if specified', function() {
@@ -122,21 +122,21 @@ describe('Directive: openlayers', function() {
                 }
             }
         });
-        var element = angular.element('<leaflet defaults="defaults"></leaflet>');
+        var element = angular.element('<openlayers defaults="defaults"></openlayers>');
         element = $compile(element)($rootScope);
-        var leafletTiles;
+        var olTiles;
         var defaults;
-        leafletData.getTiles().then(function(tiles) {
-            leafletTiles = tiles;
+        olData.getTiles().then(function(tiles) {
+            olTiles = tiles;
         });
-        leafletMapDefaults.getDefaults().then(function(d) {
+        olMapDefaults.getDefaults().then(function(d) {
             defaults = d;
         });
 
         $rootScope.$digest();
-        expect(leafletTiles.options.detectRetina).toEqual(true);
-        expect(leafletTiles.options.opacity).toEqual(0.8);
-        expect(leafletTiles._url).toEqual('http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png');
+        expect(olTiles.options.detectRetina).toEqual(true);
+        expect(olTiles.options.opacity).toEqual(0.8);
+        expect(olTiles._url).toEqual('http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png');
         expect(defaults.tileLayer).toEqual('http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png');
     });
 
@@ -146,14 +146,14 @@ describe('Directive: openlayers', function() {
                 zoomControlPosition: 'topright'
             }
         });
-        var element = angular.element('<leaflet defaults="defaults"></leaflet>');
+        var element = angular.element('<openlayers defaults="defaults"></openlayers>');
         element = $compile(element)($rootScope);
-        var leafletMap;
-        leafletData.getMap().then(function(map) {
-            leafletMap = map;
+        var olMap;
+        olData.getMap().then(function(map) {
+            olMap = map;
         });
         $rootScope.$digest();
-        expect(leafletMap.zoomControl.getPosition()).toEqual('topright');
+        expect(olMap.zoomControl.getPosition()).toEqual('topright');
     });
 
     xit('should remove zoom control button if unset on defaults', function() {
@@ -162,13 +162,13 @@ describe('Directive: openlayers', function() {
                 zoomControl: false
             }
         });
-        var element = angular.element('<leaflet defaults="defaults"></leaflet>');
+        var element = angular.element('<openlayers defaults="defaults"></openlayers>');
         element = $compile(element)($rootScope);
-        var leafletMap;
-        leafletData.getMap().then(function(map) {
-            leafletMap = map;
+        var olMap;
+        olData.getMap().then(function(map) {
+            olMap = map;
         });
         $rootScope.$digest();
-        expect(leafletMap.zoomControl).toBe(undefined);
+        expect(olMap.zoomControl).toBe(undefined);
     });
 });
