@@ -85,5 +85,5 @@ angular.extend($scope, {
 ```
 Finally, you must include the markup directive on your HTML page, like this:
 ```html
-<openlayers center="center" height="480px" width="640px"></openlayers>
+<openlayers ol-center="center" height="480px" width="640px"></openlayers>
 ```
