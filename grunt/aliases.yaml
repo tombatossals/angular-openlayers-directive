@@ -44,6 +44,7 @@ build:
  - 'jshint'
  - 'jscs'
  - 'concat:dist'
+ - 'concat:css'
  - 'ngAnnotate'
  - 'uglify'
  - 'test-unit'

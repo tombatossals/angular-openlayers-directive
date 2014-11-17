@@ -17,7 +17,7 @@ angular.module('openlayers-directive', [])
             controls: '=olControls',
             events: '=olEvents'
         },
-        template: '<div class="angular-openlayers-map" ng-transclude></div>',
+        template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',
         controller: ["$scope", function($scope) {
             _olMap = $q.defer();
             this.getMap = function() {
@@ -361,7 +361,7 @@ angular.module('openlayers-directive').directive('olLayers', ["$log", "$q", "olD
 
                                     var layerCollection = map.getLayers();
 
-                                    for (var j=0; j<layerCollection.getLength(); j++) {
+                                    for (var j = 0; j < layerCollection.getLength(); j++) {
                                         var l = layerCollection.item(j);
                                         if (l === olLayer) {
                                             layerCollection.removeAt(j);
@@ -546,10 +546,11 @@ angular.module('openlayers-directive')
         scope: {
             lat: '=lat',
             lon: '=lon',
-            message: '=message'
+            label: '=label'
         },
         require: '^openlayers',
-        replace: false,
+        replace: true,
+        template: '<div class="marker popup-label">{{ message }}</div>',
 
         link: function(scope, element, attrs, olScope) {
             var isDefined = olHelpers.isDefined;
@@ -567,7 +568,7 @@ angular.module('openlayers-directive')
                 var data = {
                     lat: scope.lat,
                     lon: scope.lon,
-                    message: scope.message
+                    message: attrs.message
                 };
 
                 var marker = createMarker(data, element);
@@ -578,8 +579,10 @@ angular.module('openlayers-directive')
                 markerLayer.getSource().addFeature(marker);
                 map.addLayer(markerLayer);
 
-                if (scope.message) {
-                    var ov = createOverlay(element);
+                if (attrs.message) {
+                    scope.message = attrs.message;
+                    var pos = ol.proj.transform([data.lon, data.lat], 'EPSG:4326', 'EPSG:3857');
+                    var ov = createOverlay(element, pos);
                     map.addOverlay(ov);
                 }
                 scope.$on('$destroy', function() {
@@ -806,7 +809,8 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         switch (source.type) {
             case 'ImageWMS':
                 if (!source.url || !source.params) {
-                    $log.error('[AngularJS - Openlayers] - ImageWMS Layer needs valid server url and params properties');
+                    $log.error('[AngularJS - Openlayers] - ImageWMS Layer needs ' +
+                               'valid server url and params properties');
                 }
                 oSource = new ol.source.ImageWMS({
                   url: source.url,
@@ -1231,10 +1235,12 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             return marker;
         },
 
-        createOverlay: function(element) {
+        createOverlay: function(element, pos) {
+            console.log(element);
             var ov = new ol.Overlay({
+                position: pos,
                 element: element,
-                positioning: 'bottom-center'
+                positioning: 'center-center'
             });
 
             return ov;

@@ -5,10 +5,11 @@ angular.module('openlayers-directive')
         scope: {
             lat: '=lat',
             lon: '=lon',
-            message: '=message'
+            label: '=label'
         },
         require: '^openlayers',
-        replace: false,
+        replace: true,
+        template: '<div class="marker popup-label">{{ message }}</div>',
 
         link: function(scope, element, attrs, olScope) {
             var isDefined = olHelpers.isDefined;
@@ -26,7 +27,7 @@ angular.module('openlayers-directive')
                 var data = {
                     lat: scope.lat,
                     lon: scope.lon,
-                    message: scope.message
+                    message: attrs.message
                 };
 
                 var marker = createMarker(data, element);
@@ -37,8 +38,10 @@ angular.module('openlayers-directive')
                 markerLayer.getSource().addFeature(marker);
                 map.addLayer(markerLayer);
 
-                if (scope.message) {
-                    var ov = createOverlay(element);
+                if (attrs.message) {
+                    scope.message = attrs.message;
+                    var pos = ol.proj.transform([data.lon, data.lat], 'EPSG:4326', 'EPSG:3857');
+                    var ov = createOverlay(element, pos);
                     map.addOverlay(ov);
                 }
                 scope.$on('$destroy', function() {

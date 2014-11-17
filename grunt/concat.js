@@ -21,6 +21,12 @@ module.exports = function (grunt, options) {
             ],
             dest: 'dist/angular-openlayers-directive.pre.js',
         },
+        css: {
+            src: [
+                'css/markers.css'
+            ],
+            dest: 'dist/angular-openlayers-directive.css'
+        },
         license: {
             src: [
                 'src/header-MIT-license.txt',

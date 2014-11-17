@@ -95,7 +95,7 @@ angular.module('openlayers-directive').directive('olLayers', function($log, $q, 
 
                                     var layerCollection = map.getLayers();
 
-                                    for (var j=0; j<layerCollection.getLength(); j++) {
+                                    for (var j = 0; j < layerCollection.getLength(); j++) {
                                         var l = layerCollection.item(j);
                                         if (l === olLayer) {
                                             layerCollection.removeAt(j);

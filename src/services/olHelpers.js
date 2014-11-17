@@ -126,7 +126,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         switch (source.type) {
             case 'ImageWMS':
                 if (!source.url || !source.params) {
-                    $log.error('[AngularJS - Openlayers] - ImageWMS Layer needs valid server url and params properties');
+                    $log.error('[AngularJS - Openlayers] - ImageWMS Layer needs ' +
+                               'valid server url and params properties');
                 }
                 oSource = new ol.source.ImageWMS({
                   url: source.url,
@@ -551,10 +552,12 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             return marker;
         },
 
-        createOverlay: function(element) {
+        createOverlay: function(element, pos) {
+            console.log(element);
             var ov = new ol.Overlay({
+                position: pos,
                 element: element,
-                positioning: 'bottom-center'
+                positioning: 'center-center'
             });
 
             return ov;

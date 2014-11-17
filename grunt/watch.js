@@ -9,7 +9,9 @@ module.exports = function (grunt, options) {
             files: ['src/**/*.js', 'test/unit/**.js', 'test/e2e/**.js'],
             tasks: [
                 'jshint',
+                'jscs',
                 'concat:dist',
+                'concat:css',
                 'ngAnnotate',
                 'uglify',
                 'test-unit',

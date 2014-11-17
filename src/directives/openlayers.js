@@ -13,7 +13,7 @@ angular.module('openlayers-directive', [])
             controls: '=olControls',
             events: '=olEvents'
         },
-        template: '<div class="angular-openlayers-map" ng-transclude></div>',
+        template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',
         controller: function($scope) {
             _olMap = $q.defer();
             this.getMap = function() {
