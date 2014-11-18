@@ -20,35 +20,17 @@
 	pointer-events: none;
 	white-space: nowrap;
 	z-index: 6;
-}
-
-.popup-label.popup-clickable {
-	cursor: pointer;
-	pointer-events: auto;
-}
-
-.popup-label:before,
-.popup-label:after {
-	border-top: 6px solid transparent;
-	border-bottom: 6px solid transparent;
-	content: none;
-	position: absolute;
-	top: 5px;
+	top: -35px;
+	left: 20px;
 }
 
 .popup-label:before {
+	border-top: 6px solid transparent;
+	border-bottom: 6px solid transparent;
+	content: "";
 	border-right: 6px solid black;
 	border-right-color: inherit;
+	position: absolute;
 	left: -10px;
-}
-
-.popup-label:after {
-	border-left: 6px solid black;
-	border-left-color: inherit;
-	right: -10px;
-}
-
-.popup-label-right:before,
-.popup-label-left:after {
-	content: "";
+	top: 5px;
 }
