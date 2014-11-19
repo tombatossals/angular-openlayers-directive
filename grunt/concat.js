@@ -14,10 +14,18 @@ module.exports = function (grunt, options) {
                 'src/directives/events.js',
                 'src/directives/view.js',
                 'src/directives/controls.js',
-                'src/directives/markers.js',
-                'src/services/*.js'
+                'src/directives/marker.js',
+                'src/services/olData.js',
+                'src/services/olHelpers.js',
+                'src/services/olMapDefaults.js'
             ],
             dest: 'dist/angular-openlayers-directive.pre.js',
+        },
+        css: {
+            src: [
+                'css/markers.css'
+            ],
+            dest: 'dist/angular-openlayers-directive.css'
         },
         license: {
             src: [

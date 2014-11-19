@@ -6,10 +6,12 @@ module.exports = function (grunt, options) {
             livereload: 7777
         },
         source: {
-            files: ['src/**/*.js', 'test/unit/**.js', 'test/e2e/**.js'],
+            files: ['src/**/*.js', 'test/unit/**.js', 'test/e2e/**.js', 'css/*.css'],
             tasks: [
                 'jshint',
+                'jscs',
                 'concat:dist',
+                'concat:css',
                 'ngAnnotate',
                 'uglify',
                 'test-unit',
