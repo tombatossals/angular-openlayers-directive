@@ -72,7 +72,7 @@ angular.extend($scope, {
 
 If you want to set the start of the map to a precise position, you can define
 the "center" property of the scope (lat, lng, zoom). It will be updated
-interacting on the scope and on the leaflet map in two-way binding. Example:
+interacting on the scope and on the OpenLayers map in two-way binding. Example:
 ```javascript
 angular.extend($scope, {
     center: {

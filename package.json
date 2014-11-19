@@ -50,5 +50,5 @@
   "scripts": {
     "test": "grunt travis --verbose"
   },
-  "main": "dist/angular-leaflet-directive"
+  "main": "dist/angular-openlayers-directive"
 }

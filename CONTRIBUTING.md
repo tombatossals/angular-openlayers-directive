@@ -83,13 +83,10 @@ Running "karma:unit" (karma) task
 INFO [karma]: Karma v0.10.8 server started at http://localhost:9018/
 INFO [launcher]: Starting browser PhantomJS
 INFO [PhantomJS 1.9.2 (Linux)]: Connected on socket WUeY410y1MZhG5OYnoyc
-WARN [web-server]: 404: /base/bower_components/leaflet-dist/images/marker-icon.png
-WARN [web-server]: 404: /base/bower_components/leaflet-dist/images/marker-shadow.png
-WARN [web-server]: 404: /url
 PhantomJS 1.9.2 (Linux): Executed 108 of 108 SUCCESS (0.875 secs / 0.625 secs)
 
 Running "concat:license" (concat) task
-File "dist/angular-leaflet-directive.min.js" created.
+File "dist/angular-openlayers-directive.min.js" created.
 
 Done, without errors.
 Completed in 9.714s at Sun Dec 15 2013 10:37:59 GMT+0100 (CET) - Waiting...
@@ -97,6 +94,6 @@ Completed in 9.714s at Sun Dec 15 2013 10:37:59 GMT+0100 (CET) - Waiting...
 
 After a successful build, a new library distribution file will be generated inside the "dist" folder, which will be ready to use on your project:
 ```
-$ ls -l dist/angular-leaflet-directive.min.js
--rw-r--r-- 1 dave dave 35255 dic 15 10:37 dist/angular-leaflet-directive.min.js
+$ ls -l dist/angular-openlayers-directive.min.js
+-rw-r--r-- 1 dave dave 35255 dic 15 10:37 dist/angular-openlayers-directive.min.js
 ```
