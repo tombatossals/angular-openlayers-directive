@@ -12,13 +12,22 @@
 
             angular.extend($scope, {
                 center: {
-                    lat: 41.02,
-                    lon: 29.08,
+                    lat: -34.55,
+                    lon: -418.50,
                     zoom: 11
                 },
                 defaults: {
                     interactions: {
                       mouseWheelZoom: false
+                    }
+                },
+                markerProperties: {
+                    lat: -34.625,
+                    lon: -418.416,
+                    message: 'Boedo',
+                    label: {
+                        focus: false,
+                        showOnMouseOver: true
                     }
                 }
             });
@@ -28,10 +37,13 @@
   </head>
   <body ng-controller="DemoController">
       <openlayers ol-center="center" ol-defaults="defaults" height="400px" width="100%">
-          <ol-marker name="Istanbul"  lat="41.01" lon="28.96" message="This is Istanbul. Oh my god, such a great city!"></ol-marker>
+          <ol-marker ol-marker-properties="markerProperties" ></ol-marker>
       </openlayers>
       <h1>Markers label example</h1>
-      <p>You can show a label on the marker adding a simple property to it, and it will be shown when you mouseover the marker. The style of the markers is the same used in <a href="https://github.com/Leaflet/Leaflet.label">Leaflet label</a>, and you can personalize it with CSS.</p>
-      <pre ng-bind="markers | json"></pre>
+      <input type="input" ng-model="markerProperties.message" />
+      <input type="checkbox" ng-model="markerProperties.label.focus" /> Label focus
+      <input type="checkbox" ng-model="markerProperties.label.showOnMouseOver" /> Label focus on marker mouse over
+      <p>You can interact with the marker properties to modify its behaviour.</p>
+      <pre ng-bind="markerProperties | json"></pre>
   </body>
 </html>

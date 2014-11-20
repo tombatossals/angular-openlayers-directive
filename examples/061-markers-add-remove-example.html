@@ -54,7 +54,7 @@
   </head>
   <body ng-controller="DemoController">
       <openlayers ol-center="center" ol-markers="markers" ol-defaults="defaults" height="400px" width="100%">
-          <ol-marker ng-repeat="marker in markers" name="marker.name" lat="marker.lat" lon="marker.lon"></ol-marker>
+          <ol-marker ng-repeat="marker in markers" lat="marker.lat" lon="marker.lon"></ol-marker>
       </openlayers>
       <h1>Markers simple example</h1>
       <input type="button" ng-click="toggleMarker()" value="Add/remove marker" />
