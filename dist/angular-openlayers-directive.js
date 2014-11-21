@@ -575,9 +575,10 @@ angular.module('openlayers-directive')
                          'cNYGqfDm5YRzLBBCCDl/2bk8a8gdbqcfwECu62Fg/HrggAAAABJRU5ErkJggg==';
         return {
             projection: 'EPSG:4326',
-            clickable: false,
             lat: 0,
             lon: 0,
+            focus: true,
+            showOnMouseOver: false,
             style: new ol.style.Style({
                 image: new ol.style.Icon({
                     anchor: [0.5, 1],
@@ -595,11 +596,12 @@ angular.module('openlayers-directive')
         scope: {
             lat: '=lat',
             lon: '=lon',
-            label: '=label'
+            label: '=label',
+            properties: '=olMarkerProperties'
         },
         require: '^openlayers',
         replace: true,
-        template: '<div class="marker popup-label">{{ message }}</div>',
+        template: '<div class="popup-label">{{ message }}</div>',
 
         link: function(scope, element, attrs, olScope) {
             var isDefined = olHelpers.isDefined;
@@ -610,30 +612,102 @@ angular.module('openlayers-directive')
             olScope.getMap().then(function(map) {
                 // Create the markers layer and add it to the map
                 var markerLayer = createMarkerLayer();
-                var data = getMarkerDefaults();
-                data.lat = scope.lat ? scope.lat : data.lat;
-                data.lon = scope.lon ? scope.lon : data.lon;
-                data.message = attrs.message;
-
-                var mapDefaults = olMapDefaults.getDefaults(attrs.id);
-                var viewProjection = mapDefaults.view.projection;
-                var marker = createMarker(data, viewProjection);
-                if (!isDefined(marker)) {
-                    $log.error('[AngularJS - Openlayers] Received invalid data on ' +
-                               'the marker.');
-                }
-                markerLayer.getSource().addFeature(marker);
                 map.addLayer(markerLayer);
 
-                if (attrs.message) {
-                    scope.message = attrs.message;
-                    var pos = ol.proj.transform([data.lon, data.lat], data.projection, viewProjection);
-                    var ov = createOverlay(element, pos);
-                    map.addOverlay(ov);
-                }
+                var data = getMarkerDefaults();
+                var mapDefaults = olMapDefaults.getDefaults(attrs.id);
+                var viewProjection = mapDefaults.view.projection;
+                var label;
+                var pos;
+                var marker;
+
                 scope.$on('$destroy', function() {
                     map.removeLayer(markerLayer);
                 });
+
+                if (!isDefined(scope.properties)) {
+                    data.lat = scope.lat ? scope.lat : data.lat;
+                    data.lon = scope.lon ? scope.lon : data.lon;
+                    data.message = attrs.message;
+
+                    marker = createMarker(data, viewProjection);
+                    if (!isDefined(marker)) {
+                        $log.error('[AngularJS - Openlayers] Received invalid data on ' +
+                                   'the marker.');
+                    }
+                    markerLayer.getSource().addFeature(marker);
+
+                    if (data.message) {
+                        scope.message = attrs.message;
+                        pos = ol.proj.transform([data.lon, data.lat], data.projection, viewProjection);
+                        label = createOverlay(element, pos);
+                        map.addOverlay(label);
+                    }
+                    return;
+                }
+
+                scope.$watch('properties', function(properties) {
+                    if (!isDefined(marker)) {
+                        data.lat = properties.lat ? properties.lat : data.lat;
+                        data.lon = properties.lon ? properties.lon : data.lon;
+
+                        marker = createMarker(data, viewProjection);
+                        if (!isDefined(marker)) {
+                            $log.error('[AngularJS - Openlayers] Received invalid data on ' +
+                                       'the marker.');
+                        }
+                        markerLayer.getSource().addFeature(marker);
+                    }
+
+                    if (isDefined(label)) {
+                        map.removeOverlay(label);
+                    }
+
+                    scope.message = properties.label.message;
+                    if (!isDefined(scope.message) || scope.message.length === 0) {
+                        return;
+                    }
+
+                    if (properties.label && properties.label.focus === true) {
+                        pos = ol.proj.transform([data.lon, data.lat], data.projection, viewProjection);
+                        label = createOverlay(element, pos);
+                        map.addOverlay(label);
+                    }
+
+                    if (label && properties.label && properties.label.focus === false) {
+                        map.removeOverlay(label);
+                        label = undefined;
+                    }
+
+                    if (properties.label && properties.label.focus === false && properties.label.showOnMouseOver) {
+                        map.getViewport().addEventListener('mousemove', function(evt) {
+                            if (properties.label.focus) {
+                                return;
+                            }
+                            var found = false;
+                            var pixel = map.getEventPixel(evt);
+                            var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+                                return feature;
+                            });
+
+                            if (feature === marker) {
+                                found = true;
+                                if (!isDefined(label)) {
+                                    pos = ol.proj.transform([data.lon, data.lat], data.projection, viewProjection);
+                                    label = createOverlay(element, pos);
+                                    map.addOverlay(label);
+                                }
+                                map.getTarget().style.cursor = 'pointer';
+                            }
+
+                            if (!found && label) {
+                                map.removeOverlay(label);
+                                label = undefined;
+                                map.getTarget().style.cursor = '';
+                            }
+                        });
+                    }
+                }, true);
             });
         }
     };
@@ -1224,6 +1298,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         createMarker: function(data, viewProjection) {
             var geometry = new ol.geom.Point([data.lon, data.lat])
                                       .transform(data.projection, viewProjection);
+
             var marker = new ol.Feature({
                 geometry: geometry
             });
