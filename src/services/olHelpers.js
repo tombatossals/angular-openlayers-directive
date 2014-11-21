@@ -496,6 +496,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         createMarker: function(data, viewProjection) {
             var geometry = new ol.geom.Point([data.lon, data.lat])
                                       .transform(data.projection, viewProjection);
+
             var marker = new ol.Feature({
                 geometry: geometry
             });

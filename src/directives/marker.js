@@ -60,7 +60,7 @@ angular.module('openlayers-directive')
         },
         require: '^openlayers',
         replace: true,
-        template: '<div class="marker popup-label">{{ message }}</div>',
+        template: '<div class="popup-label">{{ message }}</div>',
 
         link: function(scope, element, attrs, olScope) {
             var isDefined = olHelpers.isDefined;
@@ -109,7 +109,6 @@ angular.module('openlayers-directive')
                     if (!isDefined(marker)) {
                         data.lat = properties.lat ? properties.lat : data.lat;
                         data.lon = properties.lon ? properties.lon : data.lon;
-                        data.message = properties.message;
 
                         marker = createMarker(data, viewProjection);
                         if (!isDefined(marker)) {
@@ -119,8 +118,16 @@ angular.module('openlayers-directive')
                         markerLayer.getSource().addFeature(marker);
                     }
 
+                    if (isDefined(label)) {
+                        map.removeOverlay(label);
+                    }
+
+                    scope.message = properties.label.message;
+                    if (!isDefined(scope.message) || scope.message.length === 0) {
+                        return;
+                    }
+
                     if (properties.label && properties.label.focus === true) {
-                        scope.message = data.message;
                         pos = ol.proj.transform([data.lon, data.lat], data.projection, viewProjection);
                         label = createOverlay(element, pos);
                         map.addOverlay(label);
@@ -131,24 +138,31 @@ angular.module('openlayers-directive')
                         label = undefined;
                     }
 
-                    if (properties.label && properties.label.showOnMouseOver) {
-                        map.on('pointermove', function(evt) {
+                    if (properties.label && properties.label.focus === false && properties.label.showOnMouseOver) {
+                        map.getViewport().addEventListener('mousemove', function(evt) {
+                            if (properties.label.focus) {
+                                return;
+                            }
                             var found = false;
-                            map.forEachFeatureAtPixel(evt.pixel, function(feature) {
-                                if (feature === marker) {
-                                    found = true;
-                                    if (!isDefined(label)) {
-                                        scope.message = data.message;
-                                        pos = ol.proj.transform([data.lon, data.lat], data.projection, viewProjection);
-                                        label = createOverlay(element, pos);
-                                        map.addOverlay(label);
-                                    }
-                                }
+                            var pixel = map.getEventPixel(evt);
+                            var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+                                return feature;
                             });
+
+                            if (feature === marker) {
+                                found = true;
+                                if (!isDefined(label)) {
+                                    pos = ol.proj.transform([data.lon, data.lat], data.projection, viewProjection);
+                                    label = createOverlay(element, pos);
+                                    map.addOverlay(label);
+                                }
+                                map.getTarget().style.cursor = 'pointer';
+                            }
 
                             if (!found && label) {
                                 map.removeOverlay(label);
                                 label = undefined;
+                                map.getTarget().style.cursor = '';
                             }
                         });
                     }
