@@ -1,24 +1,22 @@
 .popup-label {
-
     background-color: #fff;
     border: 2px #444 solid;
     border-radius: 7px;
     -webkit-box-shadow: 4px 4px 5px 0px rgba(50, 50, 50, 0.75);
     -moz-box-shadow:    4px 4px 5px 0px rgba(50, 50, 50, 0.75);
     box-shadow:         4px 4px 5px 0px rgba(50, 50, 50, 0.75);
-    padding: 10px;
-    display: none;
 	color: #111;
-	display: block;
 	font: 12px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;
 	font-weight: bold;
-	padding: 1px 6px;
+	padding: 3px 6px;
 	position: absolute;
-	pointer-events: none;
 	white-space: nowrap;
-	z-index: 6;
 	top: -35px;
 	left: 20px;
+}
+
+.popup-label img {
+    vertical-align: middle;
 }
 
 .popup-label:before {

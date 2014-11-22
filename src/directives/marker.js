@@ -60,7 +60,7 @@ angular.module('openlayers-directive')
         },
         require: '^openlayers',
         replace: true,
-        template: '<div class="popup-label">{{ message }}</div>',
+        template: '<div class="popup-label" ng-bind-html="message"></div>',
 
         link: function(scope, element, attrs, olScope) {
             var isDefined = olHelpers.isDefined;
