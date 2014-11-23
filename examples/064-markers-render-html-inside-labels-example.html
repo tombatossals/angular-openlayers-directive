@@ -60,6 +60,15 @@
                     }
                 }
             });
+
+            $scope.centerAndShow = function(id) {
+                if (!$scope[id].label.focus) {
+                    $scope.center.lat = $scope[id].lat;
+                    $scope.center.lon = $scope[id].lon;
+                }
+                $scope[id].label.focus = !$scope[id].label.focus
+            };
+
         } ]);
 
     </script>
@@ -72,5 +81,8 @@
       </openlayers>
       <h1>Render HTML inside a marker label</h1>
       <p>Mouse over the markers to show an image associated with each one.</p>
+      <input type="button" ng-click="centerAndShow('eiffel')" value="Eiffel Tower" />
+      <input type="button" ng-click="centerAndShow('notredame')" value="Notre Dame de Paris" />
+      <input type="button" ng-click="centerAndShow('versailles')" value="Palace of Versailles" />
   </body>
 </html>
