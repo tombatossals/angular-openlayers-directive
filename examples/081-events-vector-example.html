@@ -42,13 +42,17 @@
 
         $scope.$on('openlayers.geojson.mousemove', function(event, feature) {
             $scope.$apply(function(scope) {
-                $scope.mouseMoveCountry = feature?$scope.countries[feature.S].name:'';
+                if(feature) {
+                    $scope.mouseMoveCountry = feature?$scope.countries[feature.getId()].name:'';
+                }
             });
         });
 
         $scope.$on('openlayers.geojson.click', function(event, feature) {
             $scope.$apply(function(scope) {
-                $scope.mouseClickCountry = feature?$scope.countries[feature.S].name:'';
+                if(feature) {
+                    $scope.mouseClickCountry = feature?$scope.countries[feature.getId()].name:'';
+                }
             });
         });
 
