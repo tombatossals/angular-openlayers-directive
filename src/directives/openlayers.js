@@ -1,4 +1,4 @@
-angular.module('openlayers-directive', [])
+angular.module('openlayers-directive', ['ngSanitize'])
        .directive('openlayers', function($log, $q, $compile, olHelpers, olMapDefaults, olData) {
     var _olMap;
     return {

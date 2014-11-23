@@ -31,6 +31,8 @@ Let's start with some basic examples. Look at the source code of the example to 
 * [Marker example](http://tombatossals.github.io/angular-openlayers-directive/examples/060-marker-example.html)
 * [Marker add/remove from map example](http://tombatossals.github.io/angular-openlayers-directive/examples/061-markers-add-remove-example.html)
 * [Marker with label example](http://tombatossals.github.io/angular-openlayers-directive/examples/062-markers-label-example.html)
+* [Dynamic marker properties example](http://tombatossals.github.io/angular-openlayers-directive/examples/063-markers-properties-example.html)
+* [Marker with HTML render inside label example](http://tombatossals.github.io/angular-openlayers-directive/examples/064-markers-render-html-inside-labels-example.html)
 * [View rotation example](http://tombatossals.github.io/angular-openlayers-directive/examples/070-view-rotation-example.html)
 * [Multiple maps example](http://tombatossals.github.io/angular-openlayers-directive/examples/090-multiple-maps-example.html)
 * [Controls example](http://tombatossals.github.io/angular-openlayers-directive/examples/100-controls-example.html)
