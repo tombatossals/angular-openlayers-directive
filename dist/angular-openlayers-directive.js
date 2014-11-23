@@ -680,7 +680,6 @@ angular.module('openlayers-directive')
                                     found = true;
                                     if (!isDefined(label)) {
                                         scope.message = data.message;
-                                        console.log('create', data, scope.message);
                                         pos = ol.proj.transform([data.lon, data.lat], data.projection, viewProjection);
                                         label = createOverlay(element, pos);
                                         map.addOverlay(label);
