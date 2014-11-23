@@ -3,7 +3,7 @@ angular.module('openlayers-directive').directive('olEvents', function($log, $q, 
         restrict: 'A',
         scope: false,
         replace: false,
-        require: ['openlayers', '?layers'],
+        require: ['openlayers', '?olLayers'],
         link: function(scope, element, attrs, controller) {
             var setEvents     = olHelpers.setEvents;
             var isDefined     = olHelpers.isDefined;

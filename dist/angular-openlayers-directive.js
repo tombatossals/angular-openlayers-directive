@@ -1087,7 +1087,7 @@ angular.module('openlayers-directive').directive('olEvents', ["$log", "$q", "olD
         restrict: 'A',
         scope: false,
         replace: false,
-        require: ['openlayers', '?layers'],
+        require: ['openlayers', '?olLayers'],
         link: function(scope, element, attrs, controller) {
             var setEvents     = olHelpers.setEvents;
             var isDefined     = olHelpers.isDefined;
@@ -1364,22 +1364,9 @@ angular.module('openlayers-directive')
                                 return;
                             }
                             var found = false;
-<<<<<<< HEAD
-                            map.forEachFeatureAtPixel(evt.pixel, function(feature) {
-                                if (feature === marker) {
-                                    found = true;
-                                    if (!isDefined(label)) {
-                                        scope.message = data.message;
-                                        pos = ol.proj.transform([data.lon, data.lat], data.projection, viewProjection);
-                                        label = createOverlay(element, pos);
-                                        map.addOverlay(label);
-                                    }
-                                }
-=======
                             var pixel = map.getEventPixel(evt);
                             var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
                                 return feature;
->>>>>>> upstream/master
                             });
 
                             if (feature === marker) {
