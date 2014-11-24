@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <style>
+        html, body {
+            height: 98.5%;
+        }
+
+        .info {
+            background-color: #fff;
+            border: 2px #444 solid;
+            border-radius: 7px;
+            -webkit-box-shadow: 4px 4px 5px 0px rgba(50, 50, 50, 0.75);
+            -moz-box-shadow:    4px 4px 5px 0px rgba(50, 50, 50, 0.75);
+            box-shadow:         4px 4px 5px 0px rgba(50, 50, 50, 0.75);
+            color: #111;
+            font-size: 32px;
+            position: absolute;
+            bottom: 1em;
+            left: 1em;
+            z-index: 100;
+            font-weight: bold;
+            padding: .2em .5em;
+            white-space: nowrap;
+            line-height: 1.1em;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .info:before {
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            content: "";
+            border-right: 6px solid black;
+            border-right-color: inherit;
+            position: absolute;
+            left: -8px;
+            top: 20px;
+        }
+
+
+    </style>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <link rel="stylesheet" type="text/css" href="http://cloud.github.com/downloads/lafeber/world-flags-sprite/flags32.css" />
+    <script>
+      var app = angular.module("demoapp", ["openlayers-directive"]);
+      var overlay;
+
+      app.controller("GeoJSONController", [ '$scope', '$http', 'olData', 'olHelpers', function($scope, $http, olData, olHelpers) {
+
+        var continentProperties= {
+            "009": {
+                    name: 'Oceania',
+                    colors: [ '#CC0066', '#993366', '#990066', '#CC3399', '#CC6699' ]
+            },
+            "019": {
+                    name: 'America',
+                    colors: [ '#006699', '#336666', '#003366', '#3399CC', '#6699CC' ]
+            },
+            "150": {
+                    name: 'Europe',
+                    colors: [ '#FF0000', '#CC3333', '#990000', '#FF3333', '#FF6666' ]
+            },
+            "002": {
+                    name: 'Africa',
+                    colors: [ '#00CC00', '#339933', '#009900', '#33FF33', '#66FF66' ]
+            },
+            "142": {
+                    name: 'Asia',
+                    colors: [ '#FFCC00', '#CC9933', '#999900', '#FFCC33', '#FFCC66' ]
+            }
+        };
+
+        // Get a country paint color from the continents array of colors
+        var getColor = function(country) {
+            if (!country || !country["region-code"]) {
+                return "#FFF";
+            }
+
+            var colors = continentProperties[country["region-code"]].colors;
+            var index = country["alpha-3"].charCodeAt(0) % colors.length ;
+            return colors[index];
+        };
+
+        var getStyle = function(feature) {
+            var style = olHelpers.createStyle({
+                fill: {
+                    color: getColor($scope.countries[feature.getId()]),
+                    opacity: 0.4
+                },
+                stroke: {
+                    color: 'white',
+                    width: 3
+                }
+            });
+            return [ style ];
+        };
+
+        angular.extend($scope, {
+            center: {
+                lat: 30,
+                lon: 0,
+                zoom: 2
+            },
+            defaults: {
+                interactions: {
+                    mouseWheelZoom: false
+                }
+            },
+            layers: {
+                main: {
+                    source: {
+                        type: 'OSM'
+                    }
+                },
+                geojson: {
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/countries.geo.json'
+                    },
+                    style: getStyle
+                }
+            },
+            events: {
+                layers: {
+                    vector: [ 'mousemove', 'click' ]
+                }
+            }
+        });
+
+        // Get the countries data from a JSON
+        $http.get("json/all.json").success(function(data, status) {
+            // Put the countries on an associative array
+            $scope.countries = {};
+            for (var i=0; i< data.length; i++) {
+                var country = data[i];
+                $scope.countries[country['alpha-3']] = country;
+            }
+        });
+
+        olData.getMap().then(function(map) {
+            overlay = new ol.Overlay({
+                element: document.getElementById('countrybox'),
+                positioning: 'center-center',
+                position: [0, 0]
+            });
+
+            var updateBox = function(ev) {
+                overlay.setPosition(map.getCoordinateFromPixel([ ev.x-35, ev.y+50]));
+            };
+
+            var previousFeature;
+            // Mouse over function, called from the Leaflet Map Events
+            $scope.$on('openlayers.geojson.mousemove', function(event, feature, olEvent) {
+                if (!feature) {
+                    map.removeOverlay(overlay);
+                    return;
+                }
+
+                map.addOverlay(overlay);
+                $scope.$apply(function(scope) {
+                    scope.selectedCountry = feature?$scope.countries[feature.getId()]:'';
+                });
+
+                updateBox(olEvent);
+                feature.setStyle(olHelpers.createStyle({
+                    fill: {
+                        color: '#FFF'
+                    }
+                }));
+
+                if (previousFeature && feature !== previousFeature) {
+                  previousFeature.setStyle(getStyle(previousFeature));
+                }
+
+                previousFeature = feature;
+
+            });
+
+        });
+
+      } ]);
+      </script>
+  </head>
+  <body ng-controller="GeoJSONController">
+     <openlayers ol-center="center" ol-layers="layers" ol-events="events" height="100%"></openlayers>
+     <div id="countrybox" class="info country f32">
+        <div ng-show="selectedCountry" class="flag" ng-class="selectedCountry['alpha-2']|lowercase"></div>
+        {{ selectedCountry.name || 'No country'}}
+     </div>
+  </body>
+</html>
