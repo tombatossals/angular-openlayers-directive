@@ -1087,7 +1087,7 @@ angular.module('openlayers-directive').directive('olEvents', ["$log", "$q", "olD
         restrict: 'A',
         scope: false,
         replace: false,
-        require: ['openlayers', '?layers'],
+        require: ['openlayers', '?olLayers'],
         link: function(scope, element, attrs, controller) {
             var setEvents     = olHelpers.setEvents;
             var isDefined     = olHelpers.isDefined;
@@ -1898,7 +1898,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                                 var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
                                     return feature;
                                 });
-                                scope.$emit('openlayers.geojson.' + eventType, feature);
+                                scope.$emit('openlayers.geojson.' + eventType, feature, evt);
                             });
                         });
                     }
@@ -1912,7 +1912,6 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             var oLayer;
             var type = detectLayerType(layer);
             var oSource = createSource(layer.source, projection);
-
             if (!oSource) {
                 return;
             }
@@ -1930,7 +1929,11 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                 case 'Vector':
                     var style;
                     if (layer.style) {
-                        style = createStyle(layer.style);
+                        if (angular.isFunction(layer.style)) {
+                            style = layer.style;
+                        } else {
+                            style = createStyle(layer.style);
+                        }
                     }
                     oLayer = new ol.layer.Vector({ source: oSource, style: style });
                     break;
