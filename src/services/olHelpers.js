@@ -431,7 +431,6 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             var oLayer;
             var type = detectLayerType(layer);
             var oSource = createSource(layer.source, projection);
-
             if (!oSource) {
                 return;
             }
@@ -449,7 +448,11 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                 case 'Vector':
                     var style;
                     if (layer.style) {
-                        style = createStyle(layer.style);
+                        if (angular.isFunction(layer.style)) {
+                            style = layer.style;
+                        } else {
+                            style = createStyle(layer.style);
+                        }
                     }
                     oLayer = new ol.layer.Vector({ source: oSource, style: style });
                     break;

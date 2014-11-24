@@ -7,7 +7,20 @@
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <script>
       var app = angular.module("demoapp", ["openlayers-directive"]);
-      app.controller("GeoJSONController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
+      app.controller("GeoJSONController", [ '$scope', '$http', 'olData', 'olHelpers', function($scope, $http, olData, olHelpers) {
+
+        var setStyle = function(feature) {
+            console.log('hola');
+            return {
+                fillColor: getColor($scope.countries[feature.id]),
+                weight: 2,
+                opacity: 1,
+                color: 'white',
+                dashArray: '3',
+                fillOpacity: 0.7
+            };
+        };
+
         angular.extend($scope, {
             center: {
                 lat: 30,
@@ -22,15 +35,15 @@
             layers: {
                 main: {
                     source: {
-                        type: 'TileJSON',
-                        url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
+                        type: 'OSM'
                     }
                 },
                 geojson: {
                     source: {
                         type: 'GeoJSON',
                         url: 'json/countries.geo.json'
-                    }
+                    },
+                    style: setStyle
                 }
             },
             events: {
@@ -39,6 +52,53 @@
                 }
             }
         });
+
+        var continentProperties= {
+            "009": {
+                    name: 'Oceania',
+                    colors: [ '#CC0066', '#993366', '#990066', '#CC3399', '#CC6699' ]
+            },
+            "019": {
+                    name: 'America',
+                    colors: [ '#006699', '#336666', '#003366', '#3399CC', '#6699CC' ]
+            },
+            "150": {
+                    name: 'Europe',
+                    colors: [ '#FF0000', '#CC3333', '#990000', '#FF3333', '#FF6666' ]
+            },
+            "002": {
+                    name: 'Africa',
+                    colors: [ '#00CC00', '#339933', '#009900', '#33FF33', '#66FF66' ]
+            },
+            "142": {
+                    name: 'Asia',
+                    colors: [ '#FFCC00', '#CC9933', '#999900', '#FFCC33', '#FFCC66' ]
+            }
+        };
+
+        // Get a country paint color from the continents array of colors
+        var getColor = function(country) {
+            if (!country || !country["region-code"]) {
+                return "#FFF";
+            }
+
+            var colors = continentProperties[country["region-code"]].colors;
+            var index = country["alpha-3"].charCodeAt(0) % colors.length ;
+            return colors[index];
+        };
+
+        // Mouse over function, called from the Leaflet Map Events
+        var countryMouseover = function(feature, leafletEvent) {
+            var layer = leafletEvent.target;
+            layer.setStyle({
+                weight: 2,
+                color: '#666',
+                fillColor: 'white'
+            });
+            layer.bringToFront();
+            $scope.selectedCountry = feature;
+            console.log(feature);
+        };
 
         $scope.$on('openlayers.geojson.mousemove', function(event, feature) {
             $scope.$apply(function(scope) {
