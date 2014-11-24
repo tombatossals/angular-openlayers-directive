@@ -9,50 +9,6 @@
       var app = angular.module("demoapp", ["openlayers-directive"]);
       app.controller("GeoJSONController", [ '$scope', '$http', 'olData', 'olHelpers', function($scope, $http, olData, olHelpers) {
 
-        var setStyle = function(feature) {
-            console.log('hola');
-            return {
-                fillColor: getColor($scope.countries[feature.id]),
-                weight: 2,
-                opacity: 1,
-                color: 'white',
-                dashArray: '3',
-                fillOpacity: 0.7
-            };
-        };
-
-        angular.extend($scope, {
-            center: {
-                lat: 30,
-                lon: 0,
-                zoom: 2
-            },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
-            },
-            layers: {
-                main: {
-                    source: {
-                        type: 'OSM'
-                    }
-                },
-                geojson: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'json/countries.geo.json'
-                    },
-                    style: setStyle
-                }
-            },
-            events: {
-                layers: {
-                    vector: [ 'mousemove', 'click' ]
-                }
-            }
-        });
-
         var continentProperties= {
             "009": {
                     name: 'Oceania',
@@ -99,6 +55,52 @@
             $scope.selectedCountry = feature;
             console.log(feature);
         };
+
+        var setStyle = function(feature) {
+            var style = olHelpers.createStyle({
+                fill: {
+                    color: getColor($scope.countries[feature.getId()]),
+                    opacity: 0.4
+                },
+                stroke: {
+                    color: 'white',
+                    width: 3
+                }
+            });
+            return [ style ];
+        };
+
+        angular.extend($scope, {
+            center: {
+                lat: 30,
+                lon: 0,
+                zoom: 2
+            },
+            defaults: {
+                interactions: {
+                    mouseWheelZoom: false
+                }
+            },
+            layers: {
+                main: {
+                    source: {
+                        type: 'OSM'
+                    }
+                },
+                geojson: {
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/countries.geo.json'
+                    },
+                    style: setStyle
+                }
+            },
+            events: {
+                layers: {
+                    vector: [ 'mousemove', 'click' ]
+                }
+            }
+        });
 
         $scope.$on('openlayers.geojson.mousemove', function(event, feature) {
             $scope.$apply(function(scope) {
