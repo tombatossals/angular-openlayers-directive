@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+        var app = angular.module('demoapp', ['openlayers-directive']);
+        app.controller('DemoController', [ '$scope', function($scope) {
+            angular.extend($scope, {
+                london: {
+                    lat: 51.505,
+                    lon: -0.09,
+                    zoom: 4
+                },
+                events: {
+                    map: [ 'singleclick', 'pointermove' ]
+                },
+                mouseposition: {},
+                mouseclickposition: {},
+                projection: 'EPSG:4326'
+            });
+
+            $scope.$on('openlayers.map.pointermove', function(event, coord) {
+                $scope.$apply(function() {
+                    if ($scope.projection === coord.projection) {
+                        $scope.mouseposition = coord;
+                    } else {
+                        var p = ol.proj.transform([ coord.lon, coord.lat ], coord.projection, $scope.projection);
+                        $scope.mouseposition = {
+                            lat: p[1],
+                            lon: p[0],
+                            projection: $scope.projection
+                        }
+                    }
+                });
+            });
+
+            $scope.$on('openlayers.map.singleclick', function(event, coord) {
+                $scope.$apply(function() {
+                    if ($scope.projection === coord.projection) {
+                        $scope.mouseclickposition = coord;
+                    } else {
+                        var p = ol.proj.transform([ coord.lon, coord.lat ], coord.projection, $scope.projection);
+                        $scope.mouseclickposition = {
+                            lat: p[1],
+                            lon: p[0],
+                            projection: $scope.projection
+                        }
+                    }
+                });
+            });
+
+       }]);
+    </script>
+  </head>
+  <body ng-controller="DemoController">
+    <openlayers ol-center="london" ol-events="events" height="400"></openlayers>
+    <h1>Events defaults example</h1>
+    <p>In this example we propagate two events in our map, the mouse position and the mouse click.</p>
+    <p>Set desired projection:
+        <input type="button" ng-click="projection='EPSG:3857'" value="EPSG:3857" />
+        <input type="button" ng-click="projection='EPSG:4326'" value="EPSG:4326" />
+    </p>
+    <h3>Mouse position</h3>
+    <pre ng-bind="mouseposition | json"></pre>
+    <h3>Mouse click position</h3>
+    <pre ng-bind="mouseclickposition | json"></pre>
+  </body>
+</html>

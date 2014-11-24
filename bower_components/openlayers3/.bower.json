@@ -1,14 +1,14 @@
 {
   "name": "openlayers3",
   "homepage": "https://github.com/openlayers/ol3",
-  "version": "3.0.0-gamma.4",
-  "_release": "3.0.0-gamma.4",
+  "version": "3.1.0-pre.2",
+  "_release": "3.1.0-pre.2",
   "_resolution": {
     "type": "version",
-    "tag": "v3.0.0-gamma.4",
-    "commit": "000f8a59006731f33df1675d136ec419ecd5c57e"
+    "tag": "v3.1.0-pre.2",
+    "commit": "8f0dc88682221e0d91e98fd8a430dd040167894b"
   },
   "_source": "https://github.com/openlayers/ol3.git",
-  "_target": "v3.0.0-gamma.4",
+  "_target": "v3.1.0-pre.2",
   "_originalSource": "https://github.com/openlayers/ol3.git"
 }

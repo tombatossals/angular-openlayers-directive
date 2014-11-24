@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <style>
+        .half {
+            margin: 0 .2em .2em .2em;
+            float: left;
+            width: 49%;
+        }
+    </style>
+    <script>
+        var app = angular.module("demoapp", ["openlayers-directive"]);
+        app.controller("DemoController", [ "$scope", "$log", "$http", function($scope, $log, $http) {
+            angular.extend($scope, {
+                center: {
+                    lat: 43.7350,
+                    lon: -79.3734,
+                    zoom: 11
+                },
+                center2: {
+                    lat: 43.7350,
+                    lon: -79.3734,
+                    zoom: 13
+                },
+                defaults: {
+                    view: {
+                        maxZoom: 11,
+                        minZoom: 3
+                    },
+                    interactions: {
+                      mouseWheelZoom: false
+                    }
+                },
+                defaults2: {
+                    view: {
+                        maxZoom: 14,
+                        minZoom: 3
+                    }
+                },
+                layers1: {
+                    main: {
+                        source: {
+                            type: 'OSM'
+                        }
+                    },
+                    geojson: {
+                        source: {
+                            type: 'GeoJSON',
+                            url: 'json/toronto1.json'
+                        }
+                    }
+                },
+                layers2: {
+                    main: {
+                        source: {
+                            type: 'OSM'
+                        }
+                    },
+                    geojson: {
+                        source: {
+                            type: 'GeoJSON',
+                            url: 'json/toronto2.json'
+                        }
+                    }
+                },
+                markers1: {
+                    one: {
+                        lat: 43.75,
+                        lon: -79.56
+                    },
+                    two: {
+                        lat: 43.76,
+                        lon: -79.50
+                    }
+                },
+                markers2: {
+                    one: {
+                        lat: 43.75,
+                        lon: -79.56
+                    },
+                    two: {
+                        lat: 43.75,
+                        lon: -79.45
+                    },
+                    three: {
+                        lat: 43.81,
+                        lon: -79.26
+                    }
+                }
+            });
+        }]);
+
+    </script>
+  </head>
+  <body ng-controller="DemoController">
+    <div class="half">
+        <openlayers id="map1" ol-layers="layers1" ol-defaults="defaults" ol-center="center" ol-markers="markers1" width="100%" height="480px"></openlayers>
+    </div>
+    <div class="half">
+        <openlayers id="map2" ol-layers="layers2" ol-defaults="defaults2" ol-center="center" ol-markers="markers2" width="100%" height="480px"></openlayers>
+    </div>
+    <h1>Two maps sharing center example</h1>
+    <p>Drag the center in any of the maps</p>
+  </body>
+</html>

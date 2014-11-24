@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+        var app = angular.module('demoapp', ['openlayers-directive']);
+        app.filter('transform', function() {
+            return function(point, projection) {
+                var p = angular.copy(point);
+                var converted = ol.proj.transform([ p.lon, p.lat ], p.projection, projection);
+                p.lon = converted[0];
+                p.lat = converted[1];
+                p.projection = projection;
+                return p;
+            };
+        });
+
+        var deg2dms = function(deg) {
+            var d = parseInt(deg);
+            var mm = (deg - d) * 60;
+            var m = parseInt(mm);
+            var ss = (mm - m)*60;
+            return  d + ' ' + m + '\' ' + parseInt(ss) + '"';
+        };
+
+        app.controller('DemoController', [ '$scope', function($scope) {
+            angular.extend($scope, {
+                center: {
+                    lat: 60.19,
+                    lon: 24.94,
+                    zoom: 12,
+                    projection: 'EPSG:4326'
+                },
+                sexaGesimal: ''
+            });
+
+            $scope.$watch('center', function(center) {
+                var lat = deg2dms(center.lat);
+                var lon = deg2dms(center.lon);
+
+                var ew = (center.lon < 0) ? 'W' : 'E';
+                var ns = (center.lat < 0) ? 'S' : 'N';
+
+                $scope.sexagesimalCenter = ns + ' ' + lat + ', ' + ew + ' ' + lon;
+            }, true);
+       }]);
+    </script>
+  </head>
+  <body ng-controller="DemoController">
+    <openlayers ol-center="center" height="400"></openlayers>
+    <h1>Center map example</h1>
+    <form>
+        Latitude : <input type="number" step="any" ng-model="center.lat" />
+        Longitude : <input type="number" step="any" ng-model="center.lon" />
+        Zoom : <input type="number" step="any" ng-model="center.zoom" />
+    </form>
+    <h2>Center object</h2>
+    <pre>{{ center | json }}</pre>
+    <p><strong>Sexagesimal system conversion:</strong> {{ sexagesimalCenter }}</p>
+    <h2>Center object transformed to view projection EPSG:3857</h2>
+    <pre>{{ center | transform: 'EPSG:3857' | json }}</pre>
+  </body>
+</html>

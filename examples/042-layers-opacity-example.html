@@ -16,12 +16,14 @@
                 },
                 layers: {
                     openstreetmap: {
+                        visible: true,
                         opacity: 0.5,
                         source: {
                             type: 'OSM'
                         }
                     },
                     mapbox_geographyclass: {
+                        visible: true,
                         opacity: 0.5,
                         source: {
                             type: 'TileJSON',
@@ -36,15 +38,16 @@
   <body>
   <div class="container">
       <div ng-controller="DemoController">
-        <openlayers center="london" layers="layers" height="400px"></openlayers>
+        <openlayers ol-center="london" ol-layers="layers" height="400px"></openlayers>
 
-        <h1>Layers change tiles example</h1>
+        <h1>Layers opacity example</h1>
         <p>This is a map that can change the tiles of the main layer by demand</p>
 
         <form>
             <div ng-repeat="(key, layer) in layers">
-                <input type="range" min="0" max="1" step="0.01" ng-model="layer.opacity">
+                <input type="checkbox" ng-model="layer.visible" />
                 {{ key }}
+                <input type="range" min="0" max="1" step="0.01" ng-model="layer.opacity">
             </div>
         </form>
       </div>

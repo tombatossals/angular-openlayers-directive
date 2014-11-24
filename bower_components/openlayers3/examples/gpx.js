@@ -96,7 +96,7 @@ map.on('click', function(evt) {
 
 var exportGPXElement = document.getElementById('export-gpx');
 if ('download' in exportGPXElement) {
-  var vectorSource = /** @type {ol.source.Vector} */ (vector.getSource());
+  var vectorSource = vector.getSource();
   exportGPXElement.addEventListener('click', function(e) {
     if (!exportGPXElement.href) {
       var features = [];
@@ -110,7 +110,7 @@ if ('download' in exportGPXElement) {
           /** @type {Node} */ (node));
       var base64 = exampleNS.strToBase64(string);
       exportGPXElement.href =
-          'data:gpx+xml;base64,' + base64;
+          'data:text/gpx+xml;base64,' + base64;
     }
   }, false);
 } else {

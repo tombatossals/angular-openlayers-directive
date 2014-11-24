@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+<script src="../bower_components/angular/angular.min.js"></script>
+<script src="../bower_components/openlayers3/build/ol.js"></script>
+<script src="../dist/angular-openlayers-directive.js"></script>
+<link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+      var app = angular.module("demoapp", ["openlayers-directive"]);
+      app.controller("GeoJSONController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
+        angular.extend($scope, {
+            europe: {
+                lat: 39.2,
+                lon: -1.27,
+                zoom: 5
+            },
+            defaults: {
+                interactions: {
+                    mouseWheelZoom: false
+                }
+            },
+            layers: {
+                main: {
+                    source: {
+                        type: "OSM"
+                    }
+                },
+                esp: {
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
+                    },
+                    style: {
+                        fill: {
+                            color: '#FF0000'
+                        },
+                        stroke: {
+                            color: '#FFFFFF',
+                            width: 3
+                        }
+                    }
+                }
+            }
+        });
+
+      } ]);
+      </script>
+  </head>
+  <body ng-controller="GeoJSONController">
+     <openlayers ol-center="europe" ol-layers="layers" ol-defaults="defaults" height="400px"></openlayers>
+     <h1>Layers GeoJSON change style</h1>
+     <p>Stroke color: <input type="color" ng-model="layers.esp.style.stroke.color">
+     <p>Stroke width: <input type="range" min="0" max="20" value="3" ng-model="layers.esp.style.stroke.width">
+     <p>Fill color: <input type="color" ng-model="layers.esp.style.fill.color">
+  </body>
+</html>
