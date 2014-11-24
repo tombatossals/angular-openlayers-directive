@@ -5,14 +5,14 @@
     -webkit-box-shadow: 4px 4px 5px 0px rgba(50, 50, 50, 0.75);
     -moz-box-shadow:    4px 4px 5px 0px rgba(50, 50, 50, 0.75);
     box-shadow:         4px 4px 5px 0px rgba(50, 50, 50, 0.75);
-	color: #111;
-	font: 12px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;
-	font-weight: bold;
-	padding: 3px 6px;
-	position: absolute;
-	white-space: nowrap;
-	top: -35px;
-	left: 20px;
+  	color: #111;
+  	font: 12px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  	font-weight: bold;
+  	padding: 3px 6px;
+  	position: absolute;
+  	white-space: nowrap;
+  	top: -35px;
+  	left: 20px;
 }
 
 .popup-label img {
@@ -20,12 +20,12 @@
 }
 
 .popup-label:before {
-	border-top: 6px solid transparent;
-	border-bottom: 6px solid transparent;
-	content: "";
-	border-right: 6px solid black;
-	border-right-color: inherit;
-	position: absolute;
-	left: -8px;
-	top: 5px;
+  	border-top: 6px solid transparent;
+  	border-bottom: 6px solid transparent;
+  	content: "";
+  	border-right: 6px solid black;
+  	border-right-color: inherit;
+  	position: absolute;
+  	left: -8px;
+  	top: 5px;
 }

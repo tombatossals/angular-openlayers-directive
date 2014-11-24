@@ -1898,7 +1898,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                                 var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
                                     return feature;
                                 });
-                                scope.$emit('openlayers.geojson.' + eventType, feature);
+                                scope.$emit('openlayers.geojson.' + eventType, feature, evt);
                             });
                         });
                     }

@@ -6,27 +6,49 @@
             height: 98.5%;
         }
 
-        #countrybox {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 5px;
-            font-size: 2em;
-            font-weight: bold;
+        .info {
+            background-color: #fff;
+            border: 2px #444 solid;
+            border-radius: 7px;
+            -webkit-box-shadow: 4px 4px 5px 0px rgba(50, 50, 50, 0.75);
+            -moz-box-shadow:    4px 4px 5px 0px rgba(50, 50, 50, 0.75);
+            box-shadow:         4px 4px 5px 0px rgba(50, 50, 50, 0.75);
+            color: #111;
+            font-size: 32px;
             position: absolute;
             bottom: 1em;
             left: 1em;
             z-index: 100;
+            font-weight: bold;
             padding: .2em .5em;
+            white-space: nowrap;
             line-height: 1.1em;
             text-align: center;
+            z-index: 100;
         }
+
+        .info:before {
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            content: "";
+            border-right: 6px solid black;
+            border-right-color: inherit;
+            position: absolute;
+            left: -8px;
+            top: 20px;
+        }
+
 
     </style>
     <script src="../bower_components/angular/angular.min.js"></script>
     <script src="../bower_components/openlayers3/build/ol.js"></script>
     <script src="../dist/angular-openlayers-directive.js"></script>
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <link rel="stylesheet" type="text/css" href="http://cloud.github.com/downloads/lafeber/world-flags-sprite/flags32.css" />
     <script>
       var app = angular.module("demoapp", ["openlayers-directive"]);
+      var overlay;
+
       app.controller("GeoJSONController", [ '$scope', '$http', 'olData', 'olHelpers', function($scope, $http, olData, olHelpers) {
 
         var continentProperties= {
@@ -52,8 +74,6 @@
             }
         };
 
-        var ov;
-
         // Get a country paint color from the continents array of colors
         var getColor = function(country) {
             if (!country || !country["region-code"]) {
@@ -65,27 +85,7 @@
             return colors[index];
         };
 
-        // Mouse over function, called from the Leaflet Map Events
-        $scope.$on('openlayers.geojson.mousemove', function(feature, event) {
-            /*
-            var layer = event.target;
-            layer.setStyle({
-                weight: 2,
-                color: '#666',
-                fillColor: 'white'
-            });
-            layer.bringToFront();
-            */
-            console.log(feature.setStyle);
-            feature.setStyle(olHelpers.createStyle({
-                fill: {
-                    color: '#FFF'
-                }
-            }));
-            $scope.selectedCountry = feature;
-        });
-
-        var setStyle = function(feature) {
+        var getStyle = function(feature) {
             var style = olHelpers.createStyle({
                 fill: {
                     color: getColor($scope.countries[feature.getId()]),
@@ -121,7 +121,7 @@
                         type: 'GeoJSON',
                         url: 'json/countries.geo.json'
                     },
-                    style: setStyle
+                    style: getStyle
                 }
             },
             events: {
@@ -142,9 +142,44 @@
         });
 
         olData.getMap().then(function(map) {
-            var ov = new ol.Overlay({
-                element: document.getElementById('countrybox')
+            overlay = new ol.Overlay({
+                element: document.getElementById('countrybox'),
+                positioning: 'center-center',
+                position: [0, 0]
             });
+
+            var updateBox = function(ev) {
+                overlay.setPosition(map.getCoordinateFromPixel([ ev.x-35, ev.y+50]));
+            };
+
+            var previousFeature;
+            // Mouse over function, called from the Leaflet Map Events
+            $scope.$on('openlayers.geojson.mousemove', function(event, feature, olEvent) {
+                if (!feature) {
+                    map.removeOverlay(overlay);
+                    return;
+                }
+
+                map.addOverlay(overlay);
+                $scope.$apply(function(scope) {
+                    scope.selectedCountry = feature?$scope.countries[feature.getId()]:'';
+                });
+
+                updateBox(olEvent);
+                feature.setStyle(olHelpers.createStyle({
+                    fill: {
+                        color: '#FFF'
+                    }
+                }));
+
+                if (previousFeature && feature !== previousFeature) {
+                  previousFeature.setStyle(getStyle(previousFeature));
+                }
+
+                previousFeature = feature;
+
+            });
+
         });
 
       } ]);
