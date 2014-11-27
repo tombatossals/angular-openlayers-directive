@@ -30,8 +30,12 @@ describe('Directive: openlayers', function() {
     it('should have loaded openlayers library inside the directive', function() {
         var element = angular.element('<openlayers></openlayers>');
         element = $compile(element)(scope);
+        var map;
+        olData.getMap().then(function(olMap) {
+            map = olMap;
+        });
         scope.$digest();
-        expect(element.text()).toEqual('Zoom in+Zoom out−iAttributions');
+        expect(map).toBeDefined();
     });
 
     it('should set default center if not center is provided', function() {

@@ -28,6 +28,10 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                     return;
                 }
 
+                if (!isDefined(center)) {
+                    center = {};
+                }
+
                 if (!isValidCenter(center)) {
                     $log.warn('[AngularJS - Openlayers] invalid \'center\'');
                     center.lat = defaults.center.lat;
@@ -140,6 +144,11 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
 
                 map.on('moveend', function() {
                     safeApply(olScope, function(scope) {
+
+                        if (!isDefined(scope.center)) {
+                            return;
+                        }
+
                         var center = map.getView().getCenter();
                         scope.center.zoom = view.getZoom();
 
