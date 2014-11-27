@@ -49,7 +49,7 @@ angular.module('openlayers-directive', ['ngSanitize'])
             }
 
             var controls = ol.control.defaults(defaults.controls);
-            var interactions = ol.interaction.defaults();
+            var interactions = ol.interaction.defaults(defaults.interactions);
             var view = createView(defaults.view);
 
             // Create the Openlayers Map Object with the options

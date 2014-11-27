@@ -3,7 +3,7 @@
 "use strict";
 
 /**
- * @license AngularJS v1.3.3
+ * @license AngularJS v1.3.4
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -665,13 +665,13 @@ angular.module('ngSanitize').filter('linky', ['$sanitize', function($sanitize) {
     function addLink(url, text) {
       html.push('<a ');
       if (angular.isDefined(target)) {
-        html.push('target="');
-        html.push(target);
-        html.push('" ');
+        html.push('target="',
+                  target,
+                  '" ');
       }
-      html.push('href="');
-      html.push(url);
-      html.push('">');
+      html.push('href="',
+                url.replace('"', '&quot;'),
+                '">');
       addText(text);
       html.push('</a>');
     }
@@ -732,7 +732,7 @@ angular.module('openlayers-directive', ['ngSanitize'])
             }
 
             var controls = ol.control.defaults(defaults.controls);
-            var interactions = ol.interaction.defaults();
+            var interactions = ol.interaction.defaults(defaults.interactions);
             var view = createView(defaults.view);
 
             // Create the Openlayers Map Object with the options
@@ -797,6 +797,10 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
                                'a "-" on his key name: "' + attrs.center + '".');
                     setCenter(view, defaults.view.projection, defaults.center, map);
                     return;
+                }
+
+                if (!isDefined(center)) {
+                    center = {};
                 }
 
                 if (!isValidCenter(center)) {
@@ -911,6 +915,11 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
 
                 map.on('moveend', function() {
                     safeApply(olScope, function(scope) {
+
+                        if (!isDefined(scope.center)) {
+                            return;
+                        }
+
                         var center = map.getView().getCenter();
                         scope.center.zoom = view.getZoom();
 
