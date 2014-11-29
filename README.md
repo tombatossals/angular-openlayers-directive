@@ -33,6 +33,7 @@ Let's start with some basic examples. Look at the source code of the example to 
 * [Marker with label example](http://tombatossals.github.io/angular-openlayers-directive/examples/062-markers-label-example.html)
 * [Dynamic marker properties example](http://tombatossals.github.io/angular-openlayers-directive/examples/063-markers-properties-example.html)
 * [Marker with HTML render inside label example](http://tombatossals.github.io/angular-openlayers-directive/examples/064-markers-render-html-inside-labels-example.html)
+* [Marker in static image layer example](http://tombatossals.github.io/angular-openlayers-directive/examples/065-markers-static-image-layer-example.html)
 * [View rotation example](http://tombatossals.github.io/angular-openlayers-directive/examples/070-view-rotation-example.html)
 * [Events propagation example](http://tombatossals.github.io/angular-openlayers-directive/examples/080-events-propagation-example.html)
 * [Events with vectors example](http://tombatossals.github.io/angular-openlayers-directive/examples/081-events-vector-example.html)
