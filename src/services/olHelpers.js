@@ -497,13 +497,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         },
 
         createMarker: function(data, viewProjection) {
-            var geometry = new ol.geom.Point([data.lon, data.lat])
-                                      .transform(data.projection, viewProjection);
+            var geometry;
+            if (viewProjection === 'pixel') {
+                geometry = new ol.geom.Point(data.coord);
+            } else {
+                geometry = new ol.geom.Point([data.lon, data.lat])
+                                          .transform(data.projection, viewProjection);
+            }
 
             var marker = new ol.Feature({
                 geometry: geometry
             });
-
             marker.setStyle(data.style);
             return marker;
         },
