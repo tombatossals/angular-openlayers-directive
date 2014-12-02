@@ -201,6 +201,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                         url: source.url
                     });
                 } else {
+                    if (!isDefined(source.geojson.projection)) {
+                        source.geojson.projection = projection;
+                    }
                     oSource = new ol.source.GeoJSON(source.geojson);
                 }
 
@@ -454,6 +457,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                             style = createStyle(layer.style);
                         }
                     }
+
                     oLayer = new ol.layer.Vector({ source: oSource, style: style });
                     break;
             }
