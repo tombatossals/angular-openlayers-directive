@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+<script src="../bower_components/angular/angular.min.js"></script>
+<script src="../bower_components/openlayers3/build/ol.js"></script>
+<script src="../dist/angular-openlayers-directive.js"></script>
+<link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+      var app = angular.module("demoapp", ["openlayers-directive"]);
+      app.controller("GeoJSONController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
+
+        $http.get('json/ITA.geo.json').success(function(data) {
+            var italy = data;
+            $scope.layers['ita'] = {
+                source: {
+                    type: 'GeoJSON',
+                    geojson: {
+                        object: italy,
+                        projection: 'EPSG:3857'
+                    }
+                },
+                style: {
+                    fill: {
+                        color: 'rgba(255, 0, 0, 0.6)'
+                    },
+                    stroke: {
+                        color: 'white',
+                        width: 3
+                    }
+                }
+            }
+        });
+
+        angular.extend($scope, {
+            europe: {
+                lat: 43.88,
+                lon: 7.57,
+                zoom: 5
+            },
+            defaults: {
+                interactions: {
+                    mouseWheelZoom: false
+                }
+            },
+            layers: {
+                main: {
+                    source: {
+                        type: "OSM"
+                    }
+                }
+            }
+        });
+      } ]);
+      </script>
+  </head>
+  <body ng-controller="GeoJSONController">
+     <openlayers ol-center="europe" ol-layers="layers" ol-defaults="defaults" height="400px"></openlayers>
+     <h1>Layers inline GeoJSON example</h1>
+     <p>You can load inline GeoJSON as new layer easily, look at the source of the <strong>layers</strong> attribute:</p>
+     <pre ng-bind="layers | json"></pre>
+  </body>
+</html>
