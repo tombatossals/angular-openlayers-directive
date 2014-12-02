@@ -28,6 +28,8 @@ Let's start with some basic examples. Look at the source code of the example to 
 * [Layers GeoJSON change style with function example](http://tombatossals.github.io/angular-openlayers-directive/examples/051-layer-geojson-change-style-with-function-example.html)
 * [Layers Heatmap example](http://tombatossals.github.io/angular-openlayers-directive/examples/052-heatmap-example.html)
 * [Layers Image WMS example](http://tombatossals.github.io/angular-openlayers-directive/examples/053-layers-image-wms-example.html)
+* [Add/Remove/Change Layers dynamically example](http://tombatossals.github.io/angular-openlayers-directive/examples/054-add-remove-multiple-layers-example.html)
+* [Load inline GeoJson in layer example](http://tombatossals.github.io/angular-openlayers-directive/examples/055-layers-geojon-dynamic-load-example.html)
 * [Marker example](http://tombatossals.github.io/angular-openlayers-directive/examples/060-marker-example.html)
 * [Marker add/remove from map example](http://tombatossals.github.io/angular-openlayers-directive/examples/061-markers-add-remove-example.html)
 * [Marker with label example](http://tombatossals.github.io/angular-openlayers-directive/examples/062-markers-label-example.html)
