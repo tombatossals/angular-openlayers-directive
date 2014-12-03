@@ -6,9 +6,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
     var setEvent = function(map, eventType, scope) {
         if (eventType === 'pointermove') {
             map.on('pointermove', function(e) {
-                var pixel = [e.originalEvent.offsetX, e.originalEvent.offsetY];
-                var coord = map.getCoordinateFromPixel(pixel);
-
+                var coord = e.coordinate;
                 scope.$emit('openlayers.map.' + eventType, {
                     lat: coord[1],
                     lon: coord[0],
@@ -17,9 +15,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             });
         } else if (eventType === 'singleclick') {
             map.on('singleclick', function(e) {
-                var pixel = [e.originalEvent.offsetX, e.originalEvent.offsetY];
-                var coord = map.getCoordinateFromPixel(pixel);
-
+                var coord = e.coordinate;
                 scope.$emit('openlayers.map.' + eventType, {
                     lat: coord[1],
                     lon: coord[0],
