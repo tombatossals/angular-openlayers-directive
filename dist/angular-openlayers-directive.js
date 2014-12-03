@@ -3,7 +3,7 @@
 "use strict";
 
 /**
- * @license AngularJS v1.3.4
+ * @license AngularJS v1.3.5
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -670,7 +670,7 @@ angular.module('ngSanitize').filter('linky', ['$sanitize', function($sanitize) {
                   '" ');
       }
       html.push('href="',
-                url.replace('"', '&quot;'),
+                url.replace(/"/g, '&quot;'),
                 '">');
       addText(text);
       html.push('</a>');
@@ -1512,9 +1512,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
     var setEvent = function(map, eventType, scope) {
         if (eventType === 'pointermove') {
             map.on('pointermove', function(e) {
-                var pixel = [e.originalEvent.offsetX, e.originalEvent.offsetY];
-                var coord = map.getCoordinateFromPixel(pixel);
-
+                var coord = e.coordinate;
                 scope.$emit('openlayers.map.' + eventType, {
                     lat: coord[1],
                     lon: coord[0],
@@ -1523,9 +1521,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             });
         } else if (eventType === 'singleclick') {
             map.on('singleclick', function(e) {
-                var pixel = [e.originalEvent.offsetX, e.originalEvent.offsetY];
-                var coord = map.getCoordinateFromPixel(pixel);
-
+                var coord = e.coordinate;
                 scope.$emit('openlayers.map.' + eventType, {
                     lat: coord[1],
                     lon: coord[0],
@@ -1707,6 +1703,9 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                         url: source.url
                     });
                 } else {
+                    if (!isDefined(source.geojson.projection)) {
+                        source.geojson.projection = projection;
+                    }
                     oSource = new ol.source.GeoJSON(source.geojson);
                 }
 
@@ -1960,6 +1959,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                             style = createStyle(layer.style);
                         }
                     }
+
                     oLayer = new ol.layer.Vector({ source: oSource, style: style });
                     break;
             }
