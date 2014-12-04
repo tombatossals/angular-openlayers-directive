@@ -1288,20 +1288,31 @@ angular.module('openlayers-directive')
             label: '=label',
             properties: '=olMarkerProperties'
         },
-        require: ['^openlayers', '^olLayers'],
+        require: ['^openlayers', '?^olLayers'],
         replace: true,
         template: '<div class="popup-label" ng-bind-html="message"></div>',
 
         link: function(scope, element, attrs, controllers) {
             var isDefined = olHelpers.isDefined;
             var olScope = controllers[0];
-            var olLayersScope = controllers[1];
             var createMarkerLayer = olHelpers.createMarkerLayer;
             var createMarker = olHelpers.createMarker;
             var createOverlay = olHelpers.createOverlay;
 
+            var getLayers;
+            // If the layers attribute is used, we must wait until the layers are created
+            if (isDefined(controllers[1]) && controllers[1] !== null) {
+                getLayers = controllers[1].getLayers;
+            } else {
+                getLayers = function() {
+                    var deferred = $q.defer();
+                    deferred.resolve();
+                    return deferred.promise;
+                };
+            }
+
             olScope.getMap().then(function(map) {
-                olLayersScope.getLayers().then(function() {
+                getLayers().then(function() {
                     // Create the markers layer and add it to the map
                     var markerLayer = createMarkerLayer();
                     map.addLayer(markerLayer);
