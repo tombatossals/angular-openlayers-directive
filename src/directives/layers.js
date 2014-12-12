@@ -73,6 +73,10 @@ angular.module('openlayers-directive').directive('olLayers', function($log, $q, 
                                 olLayers[name] = olLayer;
                                 map.addLayer(olLayer);
 
+                                if (isBoolean(layer.visible)) {
+                                    olLayer.setVisible(layer.visible);
+                                }
+
                                 if (layer.opacity) {
                                     olLayer.setOpacity(layer.opacity);
                                 }
