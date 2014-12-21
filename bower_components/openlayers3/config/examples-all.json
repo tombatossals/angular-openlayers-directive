@@ -2,6 +2,7 @@
   "exports": [],
   "src": [
     "src/**/*.js",
+    "build/ol.ext/*.js",
     "build/examples/all.js"
   ],
   "compile": {
@@ -14,6 +15,7 @@
       "externs/bootstrap.js",
       "externs/closure-compiler.js",
       "externs/example.js",
+      "externs/fastclick.js",
       "externs/geojson.js",
       "externs/jquery-1.9.js",
       "externs/proj4js.js",
@@ -67,7 +69,8 @@
       "api", "observable"
     ],
     "compilation_level": "ADVANCED",
-    "output_wrapper": "// OpenLayers 3. See http://ol3js.org/\n(function(){%output%})();",
+    "warning_level": "VERBOSE",
+    "output_wrapper": "(function(){%output%})();",
     "use_types_for_optimization": true,
     "manage_closure_dependencies": true
 

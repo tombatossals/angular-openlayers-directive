@@ -146,6 +146,7 @@ SRC = [path
        if path.endswith('.js')
        if path not in SHADER_SRC]
 
+NPM_INSTALL = 'build/npm-install-timestamp'
 
 def report_sizes(t):
     stringio = StringIO()
@@ -176,18 +177,25 @@ virtual('check', 'lint', 'build/ol.js', 'test')
 virtual('todo', 'fixme')
 
 
-@target('build/ol.css', 'css/ol.css')
+@target(NPM_INSTALL, 'package.json')
+def npm_install(t):
+    t.run('npm', 'install')
+    t.touch()
+
+
+@target('build/ol.css', 'css/ol.css', NPM_INSTALL)
 def build_ol_css(t):
     t.output('%(CLEANCSS)s', 'css/ol.css')
 
 
-@target('build/ol.js', SRC, SHADER_SRC, 'config/ol.json')
+@target('build/ol.js', SRC, SHADER_SRC, 'config/ol.json', NPM_INSTALL)
 def build_ol_new_js(t):
     t.run('node', 'tasks/build.js', 'config/ol.json', 'build/ol.js')
     report_sizes(t)
 
 
-@target('build/ol-debug.js', SRC, SHADER_SRC, 'config/ol-debug.json')
+@target('build/ol-debug.js', SRC, SHADER_SRC, 'config/ol-debug.json',
+        NPM_INSTALL)
 def build_ol_debug_js(t):
     t.run('node', 'tasks/build.js', 'config/ol-debug.json', 'build/ol-debug.js')
     report_sizes(t)
@@ -236,7 +244,7 @@ def examples_examples_list_js(t):
 
 
 @target('build/examples/all.combined.js', 'build/examples/all.js',
-        SRC, SHADER_SRC, 'config/examples-all.json')
+        SRC, SHADER_SRC, 'config/examples-all.json', NPM_INSTALL)
 def build_examples_all_combined_js(t):
     t.run('node', 'tasks/build.js', 'config/examples-all.json',
           'build/examples/all.combined.js')
@@ -270,6 +278,7 @@ def examples_star_json(name, match):
           "exports": [],
           "src": [
             "src/**/*.js",
+            "build/ol.ext/*.js",
             "examples/%(id)s.js" % match.groupdict()],
           "compile": {
             "js": [
@@ -281,6 +290,7 @@ def examples_star_json(name, match):
               "externs/bootstrap.js",
               "externs/closure-compiler.js",
               "externs/example.js",
+              "externs/fastclick.js",
               "externs/geojson.js",
               "externs/jquery-1.9.js",
               "externs/proj4js.js",
@@ -336,14 +346,16 @@ def examples_star_json(name, match):
               "api", "observable"
             ],
             "compilation_level": "ADVANCED",
-            "output_wrapper": "// OpenLayers 3. See http://ol3.js.org/\n(function(){%output%})();",
+            "warning_level": "VERBOSE",
+            "output_wrapper": "(function(){%output%})();",
             "use_types_for_optimization": True,
             "manage_closure_dependencies": True
           }
         })
         with open(t.name, 'wb') as f:
             f.write(content)
-    return Target(name, action=action, dependencies=[__file__])
+    return Target(name, action=action,
+                  dependencies=[__file__, NPM_INSTALL])
 
 
 @rule(r'\Abuild/examples/(?P<id>.*).combined.js\Z')
@@ -354,11 +366,12 @@ def examples_star_combined_js(name, match):
         report_sizes(t)
     dependencies = [SRC, SHADER_SRC,
                     'examples/%(id)s.js' % match.groupdict(),
-                    'build/examples/%(id)s.json' % match.groupdict()]
+                    'build/examples/%(id)s.json' % match.groupdict(),
+                    NPM_INSTALL]
     return Target(name, action=action, dependencies=dependencies)
 
 
-@target('serve', 'examples')
+@target('serve', 'examples', NPM_INSTALL)
 def serve(t):
     t.run('node', 'tasks/serve.js')
 
@@ -376,11 +389,10 @@ def build_lint_src_timestamp(t):
           t.newer(t.dependencies))
     t.touch()
 
-
 virtual('jshint', 'build/jshint-timestamp')
 
 @target('build/jshint-timestamp', SRC, EXAMPLES_SRC, SPEC, TASKS,
-        precious=True)
+        NPM_INSTALL, precious=True)
 def build_jshint_timestamp(t):
     t.run(variables.JSHINT, '--verbose', t.newer(t.dependencies))
     t.touch()
@@ -586,7 +598,8 @@ virtual('apidoc', 'build/jsdoc-%(BRANCH)s-timestamp' % vars(variables))
 
 
 @target('build/jsdoc-%(BRANCH)s-timestamp' % vars(variables), 'host-resources',
-        SRC, SHADER_SRC, ifind('config/jsdoc/api/template'))
+        SRC, SHADER_SRC, ifind('config/jsdoc/api/template'),
+        NPM_INSTALL)
 def jsdoc_BRANCH_timestamp(t):
     t.run('%(JSDOC)s', 'config/jsdoc/api/index.md',
           '-c', 'config/jsdoc/api/conf.json',
@@ -660,8 +673,11 @@ def host_examples(t):
     t.rm_rf('build/hosted/%(BRANCH)s/ol')
     t.makedirs('build/hosted/%(BRANCH)s/ol')
     t.cp_r('src/ol', 'build/hosted/%(BRANCH)s/ol/ol')
+    t.rm_rf('build/hosted/%(BRANCH)s/ol.ext')
+    t.cp_r('build/ol.ext', 'build/hosted/%(BRANCH)s/ol.ext')
     t.run('%(PYTHON)s', closure_lib_path + '/closure/bin/build/depswriter.py',
           '--root_with_prefix', 'src ../../../ol',
+          '--root_with_prefix', 'build/ol.ext ../../../ol.ext',
           '--root', 'build/hosted/%(BRANCH)s/closure-library/closure/goog',
           '--root_with_prefix', 'build/hosted/%(BRANCH)s/closure-library/'
           'third_party ../../third_party',
@@ -683,7 +699,7 @@ def check_examples(t):
         sys.exit(1)
 
 
-@target('test', phony=True)
+@target('test', NPM_INSTALL, phony=True)
 def test(t):
     t.run('node', 'tasks/test.js')
 

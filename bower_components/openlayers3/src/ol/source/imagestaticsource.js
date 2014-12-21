@@ -10,8 +10,7 @@ goog.require('ol.source.Image');
 
 /**
  * @classdesc
- * An image source for 'static', that is, non-georeferenced, images.
- * See examples/static-image for example.
+ * A layer source for displaying a single, static image.
  *
  * @constructor
  * @extends {ol.source.Image}
@@ -34,6 +33,9 @@ ol.source.ImageStatic = function(options) {
   var crossOrigin = goog.isDef(options.crossOrigin) ?
       options.crossOrigin : null;
 
+  var imageLoadFunction = goog.isDef(options.imageLoadFunction) ?
+      options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
+
   goog.base(this, {
     attributions: attributions,
     logo: options.logo,
@@ -46,7 +48,7 @@ ol.source.ImageStatic = function(options) {
    * @type {ol.Image}
    */
   this.image_ = new ol.Image(imageExtent, resolution, 1, attributions,
-      options.url, crossOrigin);
+      options.url, crossOrigin, imageLoadFunction);
 
 };
 goog.inherits(ol.source.ImageStatic, ol.source.Image);

@@ -265,7 +265,7 @@ ol.Map = function(options) {
     goog.events.EventType.TOUCHSTART,
     goog.events.EventType.MSPOINTERDOWN,
     ol.MapBrowserEvent.EventType.POINTERDOWN,
-    goog.events.EventType.MOUSEWHEEL
+    goog.userAgent.GECKO ? 'DOMMouseScroll' : 'mousewheel'
   ], goog.events.Event.stopPropagation);
   goog.dom.appendChild(this.viewport_, this.overlayContainerStopEvent_);
 
@@ -1209,7 +1209,7 @@ ol.Map.prototype.renderFrame_ = function(time) {
       index: this.frameIndex_++,
       layerStates: layerStates,
       layerStatesArray: layerStatesArray,
-      logos: this.logos_,
+      logos: goog.object.clone(this.logos_),
       pixelRatio: this.pixelRatio_,
       pixelToCoordinateMatrix: this.pixelToCoordinateMatrix_,
       postRenderFunctions: [],

@@ -19,7 +19,6 @@ goog.require('ol.control.Control');
 goog.require('ol.coordinate');
 goog.require('ol.css');
 goog.require('ol.extent');
-goog.require('ol.pointer.PointerEventHandler');
 
 
 
@@ -57,9 +56,6 @@ ol.control.OverviewMap = function(opt_options) {
 
   var tipLabel = goog.isDef(options.tipLabel) ?
       options.tipLabel : 'Overview map';
-  var tip = goog.dom.createDom(goog.dom.TagName.SPAN, {
-    'role' : 'tooltip'
-  }, tipLabel);
 
   /**
    * @private
@@ -83,15 +79,10 @@ ol.control.OverviewMap = function(opt_options) {
    */
   this.labelSpan_ = label;
   var button = goog.dom.createDom(goog.dom.TagName.BUTTON, {
-    'class': 'ol-has-tooltip',
-    'type': 'button'
+    'type': 'button',
+    'title': tipLabel
   }, this.labelSpan_);
-  goog.dom.appendChild(button, tip);
 
-  var buttonHandler = new ol.pointer.PointerEventHandler(button);
-  this.registerDisposable(buttonHandler);
-  goog.events.listen(buttonHandler, ol.pointer.EventType.POINTERUP,
-      this.handlePointerUp_, false, this);
   goog.events.listen(button, goog.events.EventType.CLICK,
       this.handleClick_, false, this);
 
@@ -138,12 +129,12 @@ ol.control.OverviewMap = function(opt_options) {
   });
   this.ovmap_.addOverlay(this.boxOverlay_);
 
-  var element = goog.dom.createDom(goog.dom.TagName.DIV, {
-    'class': className + ' ' + ol.css.CLASS_UNSELECTABLE + ' ' +
-        ol.css.CLASS_CONTROL +
-        (this.collapsed_ && this.collapsible_ ? ' ol-collapsed' : '') +
-        (this.collapsible_ ? '' : ' ol-uncollapsible')
-  }, ovmapDiv, button);
+  var cssClasses = className + ' ' + ol.css.CLASS_UNSELECTABLE + ' ' +
+      ol.css.CLASS_CONTROL +
+      (this.collapsed_ && this.collapsible_ ? ' ol-collapsed' : '') +
+      (this.collapsible_ ? '' : ' ol-uncollapsible');
+  var element = goog.dom.createDom(goog.dom.TagName.DIV,
+      cssClasses, ovmapDiv, button);
 
   goog.base(this, {
     element: element,
@@ -423,19 +414,7 @@ ol.control.OverviewMap.prototype.calculateCoordinateRotate_ = function(
  * @private
  */
 ol.control.OverviewMap.prototype.handleClick_ = function(event) {
-  if (event.screenX !== 0 && event.screenY !== 0) {
-    return;
-  }
-  this.handleToggle_();
-};
-
-
-/**
- * @param {ol.pointer.PointerEvent} pointerEvent The event to handle
- * @private
- */
-ol.control.OverviewMap.prototype.handlePointerUp_ = function(pointerEvent) {
-  pointerEvent.browserEvent.preventDefault();
+  event.preventDefault();
   this.handleToggle_();
 };
 

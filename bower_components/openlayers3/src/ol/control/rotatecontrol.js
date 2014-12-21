@@ -11,7 +11,6 @@ goog.require('ol.animation');
 goog.require('ol.control.Control');
 goog.require('ol.css');
 goog.require('ol.easing');
-goog.require('ol.pointer.PointerEventHandler');
 
 
 
@@ -38,24 +37,17 @@ ol.control.Rotate = function(opt_options) {
    * @private
    */
   this.label_ = goog.dom.createDom(goog.dom.TagName.SPAN,
-      { 'class': 'ol-compass' },
-      goog.isDef(options.label) ? options.label : '\u21E7');
+      'ol-compass', goog.isDef(options.label) ? options.label : '\u21E7');
 
   var tipLabel = goog.isDef(options.tipLabel) ?
       options.tipLabel : 'Reset rotation';
 
-  var tip = goog.dom.createDom(goog.dom.TagName.SPAN, {
-    'role' : 'tooltip'
-  }, tipLabel);
   var button = goog.dom.createDom(goog.dom.TagName.BUTTON, {
-    'class': className + '-reset ol-has-tooltip',
-    'type' : 'button'
-  }, tip, this.label_);
+    'class': className + '-reset',
+    'type' : 'button',
+    'title': tipLabel
+  }, this.label_);
 
-  var handler = new ol.pointer.PointerEventHandler(button);
-  this.registerDisposable(handler);
-  goog.events.listen(handler, ol.pointer.EventType.POINTERUP,
-      ol.control.Rotate.prototype.handlePointerUp_, false, this);
   goog.events.listen(button, goog.events.EventType.CLICK,
       ol.control.Rotate.prototype.handleClick_, false, this);
 
@@ -106,19 +98,7 @@ goog.inherits(ol.control.Rotate, ol.control.Control);
  * @private
  */
 ol.control.Rotate.prototype.handleClick_ = function(event) {
-  if (event.screenX !== 0 && event.screenY !== 0) {
-    return;
-  }
-  this.resetNorth_();
-};
-
-
-/**
- * @param {ol.pointer.PointerEvent} pointerEvent The event to handle
- * @private
- */
-ol.control.Rotate.prototype.handlePointerUp_ = function(pointerEvent) {
-  pointerEvent.browserEvent.preventDefault();
+  event.preventDefault();
   this.resetNorth_();
 };
 

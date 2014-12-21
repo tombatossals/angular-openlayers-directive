@@ -1,5 +1,7 @@
 // OpenLayers 3. See http://openlayers.org/
 // License: https://raw.githubusercontent.com/openlayers/ol3/master/LICENSE.md
+// Version: v3.1.0-pre.2-193-ged4bae0
+
 var CLOSURE_NO_DEPS = true;
 // Copyright 2006 The Closure Library Authors. All Rights Reserved.
 //
@@ -12758,12 +12760,6 @@ goog.require('ol.Observable');
  */
 ol.ObjectEventType = {
   /**
-   * Triggered before a property is changed.
-   * @event ol.ObjectEvent#beforepropertychange
-   * @api
-   */
-  BEFOREPROPERTYCHANGE: 'beforepropertychange',
-  /**
    * Triggered when a property is changed.
    * @event ol.ObjectEvent#propertychange
    * @api
@@ -12779,11 +12775,12 @@ ol.ObjectEventType = {
  *
  * @param {string} type The event type.
  * @param {string} key The property name.
+ * @param {*} oldValue The old value for `key`.
  * @extends {goog.events.Event}
  * @implements {oli.ObjectEvent}
  * @constructor
  */
-ol.ObjectEvent = function(type, key) {
+ol.ObjectEvent = function(type, key, oldValue) {
   goog.base(this, type);
 
   /**
@@ -12792,6 +12789,14 @@ ol.ObjectEvent = function(type, key) {
    * @api
    */
   this.key = key;
+
+  /**
+   * The old value. To get the new value use `e.target.get(e.key)` where
+   * `e` is the event object.
+   * @type {*}
+   * @api
+   */
+  this.oldValue = oldValue;
 
 };
 goog.inherits(ol.ObjectEvent, goog.events.Event);
@@ -12847,9 +12852,10 @@ ol.ObjectAccessor = function(source, target, sourceKey, targetKey) {
  * @api
  */
 ol.ObjectAccessor.prototype.transform = function(from, to) {
+  var oldValue = ol.Object.getKeyValue_(this.source, this.sourceKey);
   this.from = from;
   this.to = to;
-  this.source.notify(this.sourceKey);
+  this.source.notify(this.sourceKey, oldValue);
 };
 
 
@@ -12878,11 +12884,11 @@ ol.ObjectAccessor.prototype.transform = function(from, to) {
  * function, `evt.target` would be the view, so `evt.target.getCenter()` would
  * return the new center.
  *
- * You can add your own observable properties with `set('myProp', 'new value')`,
- * and retrieve that with `get('myProp')`. A change listener can then be
- * registered with `on('change:myProp', ...)`. And a change can be triggered
- * with `dispatchEvent('change:myProp')`. You can get a list of all properties
- * with `getProperties()`.
+ * You can add your own observable properties with
+ * `object.set('prop', 'value')`, and retrieve that with `object.get('prop')`.
+ * You can listen for changes on that property value with
+ * `object.on('change:prop', listener)`. You can get a list of all
+ * properties with {@link ol.Object#getProperties object.getProperties()}.
  *
  * Note that the observable properties are separate from standard JS properties.
  * You can, for example, give your map object a title with
@@ -12922,13 +12928,6 @@ ol.Object = function(opt_values) {
    * @type {Object.<string, ol.ObjectAccessor>}
    */
   this.accessors_ = {};
-
-  /**
-   * Lookup of beforechange listener keys.
-   * @type {Object.<string, goog.events.Key>}
-   * @private
-   */
-  this.beforeChangeListeners_ = {};
 
   /**
    * @private
@@ -13007,6 +13006,42 @@ ol.Object.getSetterName = function(key) {
 
 
 /**
+ * Get the value for an object and a key. Use the getter (`getX`) if it exists,
+ * otherwise use the generic `get` function.
+ * @param {ol.Object} obj Object.
+ * @param {string} key Key;
+ * @return {*} Value;
+ * @private
+ */
+ol.Object.getKeyValue_ = function(obj, key) {
+  var getterName = ol.Object.getGetterName(key);
+  var getter = /** @type {function(): *|undefined} */
+      (goog.object.get(obj, getterName));
+  return goog.isDef(getter) ? getter.call(obj) : obj.get(key);
+};
+
+
+/**
+ * Set the value for an object and a key. Use the setter (`setX`) if it exists,
+ * otherwise use the generic `set` function.
+ * @param {ol.Object} obj Object.
+ * @param {string} key Key.
+ * @param {*} value Value.
+ * @private
+ */
+ol.Object.setKeyValue_ = function(obj, key, value) {
+  var setterName = ol.Object.getSetterName(key);
+  var setter = /** @type {function(*)|undefined} */
+      (goog.object.get(obj, setterName));
+  if (goog.isDef(setter)) {
+    setter.call(obj, value);
+  } else {
+    obj.set(key, value);
+  }
+};
+
+
+/**
  * The bindTo method allows you to set up a two-way binding between a
  * `source` and `target` object. The method returns an object with a
  * `transform` method that you can use to provide `from` and `to`
@@ -13044,46 +13079,17 @@ ol.Object.prototype.bindTo = function(key, target, opt_targetKey) {
   var eventType = ol.Object.getChangeEventType(targetKey);
   this.listeners_[key] = goog.events.listen(target, eventType,
       /**
+       * @param {ol.ObjectEvent} e Event.
        * @this {ol.Object}
        */
-      function() {
-        this.notify(key);
+      function(e) {
+        this.notify(key, e.oldValue);
       }, undefined, this);
-
-  // listen for beforechange events and relay if key matches
-  this.beforeChangeListeners_[key] = goog.events.listen(target,
-      ol.ObjectEventType.BEFOREPROPERTYCHANGE,
-      this.createBeforeChangeListener_(key, targetKey),
-      undefined, this);
 
   var accessor = new ol.ObjectAccessor(this, target, key, targetKey);
   this.accessors_[key] = accessor;
-  this.notify(key);
+  this.notify(key, this.values_[key]);
   return accessor;
-};
-
-
-/**
- * Create a listener for beforechange events on a target object.  This listener
- * will relay events on this object if the event key matches the provided target
- * key.
- * @param {string} key The key on this object whose value will be changing.
- * @param {string} targetKey The key on the target object.
- * @return {function(this: ol.Object, ol.ObjectEvent)} Listener.
- * @private
- */
-ol.Object.prototype.createBeforeChangeListener_ = function(key, targetKey) {
-  /**
-   * Conditionally relay beforechange events if event key matches target key.
-   * @param {ol.ObjectEvent} event The beforechange event from the target.
-   * @this {ol.Object}
-   */
-  return function(event) {
-    if (event.key === targetKey) {
-      this.dispatchEvent(
-          new ol.ObjectEvent(ol.ObjectEventType.BEFOREPROPERTYCHANGE, key));
-    }
-  };
 };
 
 
@@ -13098,16 +13104,7 @@ ol.Object.prototype.get = function(key) {
   var accessors = this.accessors_;
   if (accessors.hasOwnProperty(key)) {
     var accessor = accessors[key];
-    var target = accessor.target;
-    var targetKey = accessor.targetKey;
-    var getterName = ol.Object.getGetterName(targetKey);
-    var getter = /** @type {function(): *|undefined} */
-        (goog.object.get(target, getterName));
-    if (goog.isDef(getter)) {
-      value = getter.call(target);
-    } else {
-      value = target.get(targetKey);
-    }
+    value = ol.Object.getKeyValue_(accessor.target, accessor.targetKey);
     value = accessor.to(value);
   } else if (this.values_.hasOwnProperty(key)) {
     value = this.values_[key];
@@ -13168,12 +13165,14 @@ ol.Object.prototype.getProperties = function() {
 
 /**
  * @param {string} key Key name.
+ * @param {*} oldValue Old value.
  */
-ol.Object.prototype.notify = function(key) {
-  var eventType = ol.Object.getChangeEventType(key);
-  this.dispatchEvent(eventType);
-  this.dispatchEvent(
-      new ol.ObjectEvent(ol.ObjectEventType.PROPERTYCHANGE, key));
+ol.Object.prototype.notify = function(key, oldValue) {
+  var eventType;
+  eventType = ol.Object.getChangeEventType(key);
+  this.dispatchEvent(new ol.ObjectEvent(eventType, key, oldValue));
+  eventType = ol.ObjectEventType.PROPERTYCHANGE;
+  this.dispatchEvent(new ol.ObjectEvent(eventType, key, oldValue));
 };
 
 
@@ -13184,25 +13183,15 @@ ol.Object.prototype.notify = function(key) {
  * @api
  */
 ol.Object.prototype.set = function(key, value) {
-  this.dispatchEvent(
-      new ol.ObjectEvent(ol.ObjectEventType.BEFOREPROPERTYCHANGE, key));
   var accessors = this.accessors_;
   if (accessors.hasOwnProperty(key)) {
     var accessor = accessors[key];
-    var target = accessor.target;
-    var targetKey = accessor.targetKey;
     value = accessor.from(value);
-    var setterName = ol.Object.getSetterName(targetKey);
-    var setter = /** @type {function(*)|undefined} */
-        (goog.object.get(target, setterName));
-    if (goog.isDef(setter)) {
-      setter.call(target, value);
-    } else {
-      target.set(targetKey, value);
-    }
+    ol.Object.setKeyValue_(accessor.target, accessor.targetKey, value);
   } else {
+    var oldValue = this.values_[key];
     this.values_[key] = value;
-    this.notify(key);
+    this.notify(key, oldValue);
   }
 };
 
@@ -13235,13 +13224,6 @@ ol.Object.prototype.unbind = function(key) {
     var value = this.get(key);
     delete this.accessors_[key];
     this.values_[key] = value;
-  }
-
-  // unregister any beforechange listener
-  var listenerKey = this.beforeChangeListeners_[key];
-  if (listenerKey) {
-    goog.events.unlistenByKey(listenerKey);
-    delete this.beforeChangeListeners_[key];
   }
 };
 
@@ -18613,7 +18595,7 @@ ol.proj.cloneTransform = function(input, opt_output, opt_dimension) {
  */
 ol.proj.transform = function(coordinate, source, destination) {
   var transformFn = ol.proj.getTransform(source, destination);
-  return transformFn(coordinate);
+  return transformFn(coordinate, undefined, coordinate.length);
 };
 
 
@@ -18727,14 +18709,19 @@ ol.ViewHint = {
  * the "next" resolution. And releasing the fingers after pinch-zooming
  * snaps to the closest resolution (with an animation).
  *
- * So the *resolution constraint* snaps to specific resolutions. It is
+ * The *resolution constraint* snaps to specific resolutions. It is
  * determined by the following options: `resolutions`, `maxResolution`,
  * `maxZoom`, and `zoomFactor`. If `resolutions` is set, the other three
  * options are ignored. See documentation for each option for more
  * information.
  *
- * The *rotation constraint* is currently not configurable. It snaps the
- * rotation value to zero when approaching the horizontal.
+ * The *rotation constraint* snaps to specific angles. It is determined
+ * by the following options: `enableRotation` and `constrainRotation`.
+ * By default the rotation value is snapped to zero when approaching the
+ * horizontal.
+ *
+ * The *center constraint* is determined by the `extent` option. By
+ * default the center is not constrained at all.
  *
  * @constructor
  * @extends {ol.Object}
@@ -20061,7 +20048,7 @@ goog.require('ol.TileRange');
  *           html: 'All maps &copy; ' +
  *               '<a href="http://www.opencyclemap.org/">OpenCycleMap</a>'
  *         }),
- *         ol.source.OSM.DATA_ATTRIBUTION
+ *         ol.source.OSM.ATTRIBUTION
  *       ],
  *     ..
  *
@@ -29777,1880 +29764,6 @@ ol.css.CLASS_UNSUPPORTED = 'ol-unsupported';
  */
 ol.css.CLASS_CONTROL = 'ol-control';
 
-goog.provide('ol.pointer.EventSource');
-
-goog.require('goog.events.BrowserEvent');
-goog.require('goog.object');
-
-
-
-/**
- * @param {ol.pointer.PointerEventHandler} dispatcher
- * @param {Object.<string, function(goog.events.BrowserEvent)>} mapping
- * @constructor
- */
-ol.pointer.EventSource = function(dispatcher, mapping) {
-  /**
-   * @type {ol.pointer.PointerEventHandler}
-   */
-  this.dispatcher = dispatcher;
-
-  /**
-   * @private
-   * @const
-   * @type {Object.<string, function(goog.events.BrowserEvent)>}
-   */
-  this.mapping_ = mapping;
-};
-
-
-/**
- * List of events supported by this source.
- * @return {Array.<string>} Event names
- */
-ol.pointer.EventSource.prototype.getEvents = function() {
-  return goog.object.getKeys(this.mapping_);
-};
-
-
-/**
- * Returns a mapping between the supported event types and
- * the handlers that should handle an event.
- * @return {Object.<string, function(goog.events.BrowserEvent)>}
- *         Event/Handler mapping
- */
-ol.pointer.EventSource.prototype.getMapping = function() {
-  return this.mapping_;
-};
-
-
-/**
- * Returns the handler that should handle a given event type.
- * @param {string} eventType
- * @return {function(goog.events.BrowserEvent)} Handler
- */
-ol.pointer.EventSource.prototype.getHandlerForEvent = function(eventType) {
-  return this.mapping_[eventType];
-};
-
-// Based on https://github.com/Polymer/PointerEvents
-
-// Copyright (c) 2013 The Polymer Authors. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-// * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-// * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-goog.provide('ol.pointer.MouseSource');
-
-goog.require('goog.object');
-goog.require('ol.pointer.EventSource');
-
-
-
-/**
- * @param {ol.pointer.PointerEventHandler} dispatcher
- * @constructor
- * @extends {ol.pointer.EventSource}
- */
-ol.pointer.MouseSource = function(dispatcher) {
-  var mapping = {
-    'mousedown': this.mousedown,
-    'mousemove': this.mousemove,
-    'mouseup': this.mouseup,
-    'mouseover': this.mouseover,
-    'mouseout': this.mouseout
-  };
-  goog.base(this, dispatcher, mapping);
-
-  /**
-   * @const
-   * @type {Object.<string, goog.events.BrowserEvent|Object>}
-   */
-  this.pointerMap = dispatcher.pointerMap;
-
-  /**
-   * @const
-   * @type {Array.<ol.Pixel>}
-   */
-  this.lastTouches = [];
-};
-goog.inherits(ol.pointer.MouseSource, ol.pointer.EventSource);
-
-
-/**
- * @const
- * @type {number}
- */
-ol.pointer.MouseSource.POINTER_ID = 1;
-
-
-/**
- * @const
- * @type {string}
- */
-ol.pointer.MouseSource.POINTER_TYPE = 'mouse';
-
-
-/**
- * Radius around touchend that swallows mouse events.
- *
- * @const
- * @type {number}
- */
-ol.pointer.MouseSource.DEDUP_DIST = 25;
-
-
-/**
- * Detect if a mouse event was simulated from a touch by
- * checking if previously there was a touch event at the
- * same position.
- *
- * FIXME - Known problem with the native Android browser on
- * Samsung GT-I9100 (Android 4.1.2):
- * In case the page is scrolled, this function does not work
- * correctly when a canvas is used (WebGL or canvas renderer).
- * Mouse listeners on canvas elements (for this browser), create
- * two mouse events: One 'good' and one 'bad' one (on other browsers or
- * when a div is used, there is only one event). For the 'bad' one,
- * clientX/clientY and also pageX/pageY are wrong when the page
- * is scrolled. Because of that, this function can not detect if
- * the events were simulated from a touch event. As result, a
- * pointer event at a wrong position is dispatched, which confuses
- * the map interactions.
- * It is unclear, how one can get the correct position for the event
- * or detect that the positions are invalid.
- *
- * @private
- * @param {goog.events.BrowserEvent} inEvent
- * @return {boolean} True, if the event was generated by a touch.
- */
-ol.pointer.MouseSource.prototype.isEventSimulatedFromTouch_ =
-    function(inEvent) {
-  var lts = this.lastTouches;
-  var x = inEvent.clientX, y = inEvent.clientY;
-  for (var i = 0, l = lts.length, t; i < l && (t = lts[i]); i++) {
-    // simulated mouse events will be swallowed near a primary touchend
-    var dx = Math.abs(x - t[0]), dy = Math.abs(y - t[1]);
-    if (dx <= ol.pointer.MouseSource.DEDUP_DIST &&
-        dy <= ol.pointer.MouseSource.DEDUP_DIST) {
-      return true;
-    }
-  }
-  return false;
-};
-
-
-/**
- * Creates a copy of the original event that will be used
- * for the fake pointer event.
- *
- * @param {goog.events.BrowserEvent} inEvent
- * @param {ol.pointer.PointerEventHandler} dispatcher
- * @return {Object}
- */
-ol.pointer.MouseSource.prepareEvent = function(inEvent, dispatcher) {
-  var e = dispatcher.cloneEvent(inEvent, inEvent.getBrowserEvent());
-
-  // forward mouse preventDefault
-  var pd = e.preventDefault;
-  e.preventDefault = function() {
-    inEvent.preventDefault();
-    pd();
-  };
-
-  e.pointerId = ol.pointer.MouseSource.POINTER_ID;
-  e.isPrimary = true;
-  e.pointerType = ol.pointer.MouseSource.POINTER_TYPE;
-
-  return e;
-};
-
-
-/**
- * Handler for `mousedown`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MouseSource.prototype.mousedown = function(inEvent) {
-  if (!this.isEventSimulatedFromTouch_(inEvent)) {
-    var p = goog.object.containsKey(this.pointerMap,
-        ol.pointer.MouseSource.POINTER_ID.toString());
-    // TODO(dfreedman) workaround for some elements not sending mouseup
-    // http://crbug/149091
-    if (p) {
-      this.cancel(inEvent);
-    }
-    var e = ol.pointer.MouseSource.prepareEvent(inEvent, this.dispatcher);
-    goog.object.set(this.pointerMap,
-        ol.pointer.MouseSource.POINTER_ID.toString(), inEvent);
-    this.dispatcher.down(e, inEvent);
-  }
-};
-
-
-/**
- * Handler for `mousemove`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MouseSource.prototype.mousemove = function(inEvent) {
-  if (!this.isEventSimulatedFromTouch_(inEvent)) {
-    var e = ol.pointer.MouseSource.prepareEvent(inEvent, this.dispatcher);
-    this.dispatcher.move(e, inEvent);
-  }
-};
-
-
-/**
- * Handler for `mouseup`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MouseSource.prototype.mouseup = function(inEvent) {
-  if (!this.isEventSimulatedFromTouch_(inEvent)) {
-    var p = goog.object.get(this.pointerMap,
-        ol.pointer.MouseSource.POINTER_ID.toString());
-
-    if (p && p.button === inEvent.button) {
-      var e = ol.pointer.MouseSource.prepareEvent(inEvent, this.dispatcher);
-      this.dispatcher.up(e, inEvent);
-      this.cleanupMouse();
-    }
-  }
-};
-
-
-/**
- * Handler for `mouseover`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MouseSource.prototype.mouseover = function(inEvent) {
-  if (!this.isEventSimulatedFromTouch_(inEvent)) {
-    var e = ol.pointer.MouseSource.prepareEvent(inEvent, this.dispatcher);
-    this.dispatcher.enterOver(e, inEvent);
-  }
-};
-
-
-/**
- * Handler for `mouseout`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MouseSource.prototype.mouseout = function(inEvent) {
-  if (!this.isEventSimulatedFromTouch_(inEvent)) {
-    var e = ol.pointer.MouseSource.prepareEvent(inEvent, this.dispatcher);
-    this.dispatcher.leaveOut(e, inEvent);
-  }
-};
-
-
-/**
- * Dispatches a `pointercancel` event.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MouseSource.prototype.cancel = function(inEvent) {
-  var e = ol.pointer.MouseSource.prepareEvent(inEvent, this.dispatcher);
-  this.dispatcher.cancel(e, inEvent);
-  this.cleanupMouse();
-};
-
-
-/**
- * Remove the mouse from the list of active pointers.
- */
-ol.pointer.MouseSource.prototype.cleanupMouse = function() {
-  goog.object.remove(this.pointerMap,
-      ol.pointer.MouseSource.POINTER_ID.toString());
-};
-
-// Based on https://github.com/Polymer/PointerEvents
-
-// Copyright (c) 2013 The Polymer Authors. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-// * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-// * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-goog.provide('ol.pointer.MsSource');
-
-goog.require('goog.object');
-goog.require('ol.pointer.EventSource');
-
-
-
-/**
- * @param {ol.pointer.PointerEventHandler} dispatcher
- * @constructor
- * @extends {ol.pointer.EventSource}
- */
-ol.pointer.MsSource = function(dispatcher) {
-  var mapping = {
-    'MSPointerDown': this.msPointerDown,
-    'MSPointerMove': this.msPointerMove,
-    'MSPointerUp': this.msPointerUp,
-    'MSPointerOut': this.msPointerOut,
-    'MSPointerOver': this.msPointerOver,
-    'MSPointerCancel': this.msPointerCancel,
-    'MSGotPointerCapture': this.msGotPointerCapture,
-    'MSLostPointerCapture': this.msLostPointerCapture
-  };
-  goog.base(this, dispatcher, mapping);
-
-  /**
-   * @const
-   * @type {Object.<string, goog.events.BrowserEvent|Object>}
-   */
-  this.pointerMap = dispatcher.pointerMap;
-
-  /**
-   * @const
-   * @type {Array.<string>}
-   */
-  this.POINTER_TYPES = [
-    '',
-    'unavailable',
-    'touch',
-    'pen',
-    'mouse'
-  ];
-};
-goog.inherits(ol.pointer.MsSource, ol.pointer.EventSource);
-
-
-/**
- * Creates a copy of the original event that will be used
- * for the fake pointer event.
- *
- * @private
- * @param {goog.events.BrowserEvent} inEvent
- * @return {Object}
- */
-ol.pointer.MsSource.prototype.prepareEvent_ = function(inEvent) {
-  var e = inEvent;
-  if (goog.isNumber(inEvent.getBrowserEvent().pointerType)) {
-    e = this.dispatcher.cloneEvent(inEvent, inEvent.getBrowserEvent());
-    e.pointerType = this.POINTER_TYPES[inEvent.getBrowserEvent().pointerType];
-  }
-
-  return e;
-};
-
-
-/**
- * Remove this pointer from the list of active pointers.
- * @param {number} pointerId
- */
-ol.pointer.MsSource.prototype.cleanup = function(pointerId) {
-  goog.object.remove(this.pointerMap, pointerId);
-};
-
-
-/**
- * Handler for `msPointerDown`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MsSource.prototype.msPointerDown = function(inEvent) {
-  goog.object.set(this.pointerMap,
-      inEvent.getBrowserEvent().pointerId, inEvent);
-  var e = this.prepareEvent_(inEvent);
-  this.dispatcher.down(e, inEvent);
-};
-
-
-/**
- * Handler for `msPointerMove`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MsSource.prototype.msPointerMove = function(inEvent) {
-  var e = this.prepareEvent_(inEvent);
-  this.dispatcher.move(e, inEvent);
-};
-
-
-/**
- * Handler for `msPointerUp`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MsSource.prototype.msPointerUp = function(inEvent) {
-  var e = this.prepareEvent_(inEvent);
-  this.dispatcher.up(e, inEvent);
-  this.cleanup(inEvent.getBrowserEvent().pointerId);
-};
-
-
-/**
- * Handler for `msPointerOut`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MsSource.prototype.msPointerOut = function(inEvent) {
-  var e = this.prepareEvent_(inEvent);
-  this.dispatcher.leaveOut(e, inEvent);
-};
-
-
-/**
- * Handler for `msPointerOver`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MsSource.prototype.msPointerOver = function(inEvent) {
-  var e = this.prepareEvent_(inEvent);
-  this.dispatcher.enterOver(e, inEvent);
-};
-
-
-/**
- * Handler for `msPointerCancel`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MsSource.prototype.msPointerCancel = function(inEvent) {
-  var e = this.prepareEvent_(inEvent);
-  this.dispatcher.cancel(e, inEvent);
-  this.cleanup(inEvent.getBrowserEvent().pointerId);
-};
-
-
-/**
- * Handler for `msLostPointerCapture`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MsSource.prototype.msLostPointerCapture = function(inEvent) {
-  var e = this.dispatcher.makeEvent('lostpointercapture',
-      inEvent.getBrowserEvent(), inEvent);
-  this.dispatcher.dispatchEvent(e);
-};
-
-
-/**
- * Handler for `msGotPointerCapture`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.MsSource.prototype.msGotPointerCapture = function(inEvent) {
-  var e = this.dispatcher.makeEvent('gotpointercapture',
-      inEvent.getBrowserEvent(), inEvent);
-  this.dispatcher.dispatchEvent(e);
-};
-
-// Based on https://github.com/Polymer/PointerEvents
-
-// Copyright (c) 2013 The Polymer Authors. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-// * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-// * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-goog.provide('ol.pointer.NativeSource');
-
-goog.require('goog.object');
-goog.require('ol.pointer.EventSource');
-
-
-
-/**
- * @param {ol.pointer.PointerEventHandler} dispatcher
- * @constructor
- * @extends {ol.pointer.EventSource}
- */
-ol.pointer.NativeSource = function(dispatcher) {
-  var mapping = {
-    'pointerdown': this.pointerDown,
-    'pointermove': this.pointerMove,
-    'pointerup': this.pointerUp,
-    'pointerout': this.pointerOut,
-    'pointerover': this.pointerOver,
-    'pointercancel': this.pointerCancel,
-    'gotpointercapture': this.gotPointerCapture,
-    'lostpointercapture': this.lostPointerCapture
-  };
-  goog.base(this, dispatcher, mapping);
-};
-goog.inherits(ol.pointer.NativeSource, ol.pointer.EventSource);
-
-
-/**
- * Handler for `pointerdown`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.NativeSource.prototype.pointerDown = function(inEvent) {
-  this.dispatcher.fireNativeEvent(inEvent);
-};
-
-
-/**
- * Handler for `pointermove`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.NativeSource.prototype.pointerMove = function(inEvent) {
-  this.dispatcher.fireNativeEvent(inEvent);
-};
-
-
-/**
- * Handler for `pointerup`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.NativeSource.prototype.pointerUp = function(inEvent) {
-  this.dispatcher.fireNativeEvent(inEvent);
-};
-
-
-/**
- * Handler for `pointerout`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.NativeSource.prototype.pointerOut = function(inEvent) {
-  this.dispatcher.fireNativeEvent(inEvent);
-};
-
-
-/**
- * Handler for `pointerover`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.NativeSource.prototype.pointerOver = function(inEvent) {
-  this.dispatcher.fireNativeEvent(inEvent);
-};
-
-
-/**
- * Handler for `pointercancel`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.NativeSource.prototype.pointerCancel = function(inEvent) {
-  this.dispatcher.fireNativeEvent(inEvent);
-};
-
-
-/**
- * Handler for `lostpointercapture`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.NativeSource.prototype.lostPointerCapture = function(inEvent) {
-  this.dispatcher.fireNativeEvent(inEvent);
-};
-
-
-/**
- * Handler for `gotpointercapture`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.NativeSource.prototype.gotPointerCapture = function(inEvent) {
-  this.dispatcher.fireNativeEvent(inEvent);
-};
-
-// Based on https://github.com/Polymer/PointerEvents
-
-// Copyright (c) 2013 The Polymer Authors. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-// * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-// * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-goog.provide('ol.pointer.PointerEvent');
-
-
-goog.require('goog.events');
-goog.require('goog.events.Event');
-goog.require('goog.object');
-
-
-
-/**
- * A class for pointer events.
- *
- * This class is used as an abstraction for mouse events,
- * touch events and even native pointer events.
- *
- * @constructor
- * @extends {goog.events.Event}
- * @param {string} type The type of the event to create.
- * @param {goog.events.BrowserEvent} browserEvent
- * @param {Object.<string, ?>=} opt_eventDict An optional dictionary of
- *    initial event properties.
- */
-ol.pointer.PointerEvent = function(type, browserEvent, opt_eventDict) {
-  goog.base(this, type);
-
-  /**
-   * @const
-   * @type {goog.events.BrowserEvent}
-   */
-  this.browserEvent = browserEvent;
-
-  var eventDict = goog.isDef(opt_eventDict) ? opt_eventDict : {};
-
-  /**
-   * @type {number}
-   */
-  this.buttons = this.getButtons_(eventDict);
-
-  /**
-   * @type {number}
-   */
-  this.pressure = this.getPressure_(eventDict, this.buttons);
-
-  // MouseEvent related properties
-
-  /**
-   * @type {boolean}
-   */
-  this.bubbles = goog.object.get(eventDict, 'bubbles', false);
-
-  /**
-   * @type {boolean}
-   */
-  this.cancelable = goog.object.get(eventDict, 'cancelable', false);
-
-  /**
-   * @type {Object}
-   */
-  this.view = goog.object.get(eventDict, 'view', null);
-
-  /**
-   * @type {number}
-   */
-  this.detail = goog.object.get(eventDict, 'detail', null);
-
-  /**
-   * @type {number}
-   */
-  this.screenX = goog.object.get(eventDict, 'screenX', 0);
-
-  /**
-   * @type {number}
-   */
-  this.screenY = goog.object.get(eventDict, 'screenY', 0);
-
-  /**
-   * @type {number}
-   */
-  this.clientX = goog.object.get(eventDict, 'clientX', 0);
-
-  /**
-   * @type {number}
-   */
-  this.clientY = goog.object.get(eventDict, 'clientY', 0);
-
-  /**
-   * @type {boolean}
-   */
-  this.ctrlKey = goog.object.get(eventDict, 'ctrlKey', false);
-
-  /**
-   * @type {boolean}
-   */
-  this.altKey = goog.object.get(eventDict, 'altKey', false);
-
-  /**
-   * @type {boolean}
-   */
-  this.shiftKey = goog.object.get(eventDict, 'shiftKey', false);
-
-  /**
-   * @type {boolean}
-   */
-  this.metaKey = goog.object.get(eventDict, 'metaKey', false);
-
-  /**
-   * @type {number}
-   */
-  this.button = goog.object.get(eventDict, 'button', 0);
-
-  /**
-   * @type {Node}
-   */
-  this.relatedTarget = goog.object.get(eventDict, 'relatedTarget', null);
-
-  // PointerEvent related properties
-
-  /**
-   * @const
-   * @type {number}
-   */
-  this.pointerId = goog.object.get(eventDict, 'pointerId', 0);
-
-  /**
-   * @type {number}
-   */
-  this.width = goog.object.get(eventDict, 'width', 0);
-
-  /**
-   * @type {number}
-   */
-  this.height = goog.object.get(eventDict, 'height', 0);
-
-  /**
-   * @type {number}
-   */
-  this.tiltX = goog.object.get(eventDict, 'tiltX', 0);
-
-  /**
-   * @type {number}
-   */
-  this.tiltY = goog.object.get(eventDict, 'tiltY', 0);
-
-  /**
-   * @type {string}
-   */
-  this.pointerType = goog.object.get(eventDict, 'pointerType', '');
-
-  /**
-   * @type {number}
-   */
-  this.hwTimestamp = goog.object.get(eventDict, 'hwTimestamp', 0);
-
-  /**
-   * @type {boolean}
-   */
-  this.isPrimary = goog.object.get(eventDict, 'isPrimary', false);
-
-  // keep the semantics of preventDefault
-  if (browserEvent.preventDefault) {
-    this.preventDefault = function() {
-      browserEvent.preventDefault();
-    };
-  }
-};
-goog.inherits(ol.pointer.PointerEvent, goog.events.Event);
-
-
-/**
- * @private
- * @param {Object.<string, ?>} eventDict
- * @return {number}
- */
-ol.pointer.PointerEvent.prototype.getButtons_ = function(eventDict) {
-  // According to the w3c spec,
-  // http://www.w3.org/TR/DOM-Level-3-Events/#events-MouseEvent-button
-  // MouseEvent.button == 0 can mean either no mouse button depressed, or the
-  // left mouse button depressed.
-  //
-  // As of now, the only way to distinguish between the two states of
-  // MouseEvent.button is by using the deprecated MouseEvent.which property, as
-  // this maps mouse buttons to positive integers > 0, and uses 0 to mean that
-  // no mouse button is held.
-  //
-  // MouseEvent.which is derived from MouseEvent.button at MouseEvent creation,
-  // but initMouseEvent does not expose an argument with which to set
-  // MouseEvent.which. Calling initMouseEvent with a buttonArg of 0 will set
-  // MouseEvent.button == 0 and MouseEvent.which == 1, breaking the expectations
-  // of app developers.
-  //
-  // The only way to propagate the correct state of MouseEvent.which and
-  // MouseEvent.button to a new MouseEvent.button == 0 and MouseEvent.which == 0
-  // is to call initMouseEvent with a buttonArg value of -1.
-  //
-  // This is fixed with DOM Level 4's use of buttons
-  var buttons;
-  if (eventDict.buttons || ol.pointer.PointerEvent.HAS_BUTTONS) {
-    buttons = eventDict.buttons;
-  } else {
-    switch (eventDict.which) {
-      case 1: buttons = 1; break;
-      case 2: buttons = 4; break;
-      case 3: buttons = 2; break;
-      default: buttons = 0;
-    }
-  }
-  return buttons;
-};
-
-
-/**
- * @private
- * @param {Object.<string, ?>} eventDict
- * @param {number} buttons
- * @return {number}
- */
-ol.pointer.PointerEvent.prototype.getPressure_ = function(eventDict, buttons) {
-  // Spec requires that pointers without pressure specified use 0.5 for down
-  // state and 0 for up state.
-  var pressure = 0;
-  if (eventDict.pressure) {
-    pressure = eventDict.pressure;
-  } else {
-    pressure = buttons ? 0.5 : 0;
-  }
-  return pressure;
-};
-
-
-/**
- * Is the `buttons` property supported?
- * @type {boolean}
- */
-ol.pointer.PointerEvent.HAS_BUTTONS = false;
-
-
-/**
- * Checks if the `buttons` property is supported.
- */
-(function() {
-  try {
-    var ev = new MouseEvent('click', {buttons: 1});
-    ol.pointer.PointerEvent.HAS_BUTTONS = ev.buttons === 1;
-  } catch (e) {
-  }
-})();
-
-// Based on https://github.com/Polymer/PointerEvents
-
-// Copyright (c) 2013 The Polymer Authors. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-// * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-// * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-goog.provide('ol.pointer.TouchSource');
-
-goog.require('goog.array');
-goog.require('goog.object');
-goog.require('ol.pointer.EventSource');
-goog.require('ol.pointer.MouseSource');
-
-
-
-/**
- * @constructor
- * @param {ol.pointer.PointerEventHandler} dispatcher
- * @param {ol.pointer.MouseSource} mouseSource
- * @extends {ol.pointer.EventSource}
- */
-ol.pointer.TouchSource = function(dispatcher, mouseSource) {
-  var mapping = {
-    'touchstart': this.touchstart,
-    'touchmove': this.touchmove,
-    'touchend': this.touchend,
-    'touchcancel': this.touchcancel
-  };
-  goog.base(this, dispatcher, mapping);
-
-  /**
-   * @const
-   * @type {Object.<string, goog.events.BrowserEvent|Object>}
-   */
-  this.pointerMap = dispatcher.pointerMap;
-
-  /**
-   * @const
-   * @type {ol.pointer.MouseSource}
-   */
-  this.mouseSource = mouseSource;
-
-  /**
-   * @private
-   * @type {number|undefined}
-   */
-  this.firstTouchId_ = undefined;
-
-  /**
-   * @private
-   * @type {number}
-   */
-  this.clickCount_ = 0;
-
-  /**
-   * @private
-   * @type {number|undefined}
-   */
-  this.resetId_ = undefined;
-};
-goog.inherits(ol.pointer.TouchSource, ol.pointer.EventSource);
-
-
-/**
- * Mouse event timeout: This should be long enough to
- * ignore compat mouse events made by touch.
- * @const
- * @type {number}
- */
-ol.pointer.TouchSource.DEDUP_TIMEOUT = 2500;
-
-
-/**
- * @const
- * @type {number}
- */
-ol.pointer.TouchSource.CLICK_COUNT_TIMEOUT = 200;
-
-
-/**
- * @const
- * @type {string}
- */
-ol.pointer.TouchSource.POINTER_TYPE = 'touch';
-
-
-/**
- * @private
- * @param {Touch} inTouch
- * @return {boolean} True, if this is the primary touch.
- */
-ol.pointer.TouchSource.prototype.isPrimaryTouch_ = function(inTouch) {
-  return this.firstTouchId_ === inTouch.identifier;
-};
-
-
-/**
- * Set primary touch if there are no pointers, or the only pointer is the mouse.
- * @param {Touch} inTouch
- * @private
- */
-ol.pointer.TouchSource.prototype.setPrimaryTouch_ = function(inTouch) {
-  var count = goog.object.getCount(this.pointerMap);
-  if (count === 0 || (count === 1 && goog.object.containsKey(this.pointerMap,
-      ol.pointer.MouseSource.POINTER_ID.toString()))) {
-    this.firstTouchId_ = inTouch.identifier;
-    this.cancelResetClickCount_();
-  }
-};
-
-
-/**
- * @private
- * @param {Object} inPointer
- */
-ol.pointer.TouchSource.prototype.removePrimaryPointer_ = function(inPointer) {
-  if (inPointer.isPrimary) {
-    this.firstTouchId_ = undefined;
-    this.resetClickCount_();
-  }
-};
-
-
-/**
- * @private
- */
-ol.pointer.TouchSource.prototype.resetClickCount_ = function() {
-  this.resetId_ = goog.global.setTimeout(
-      goog.bind(this.resetClickCountHandler_, this),
-      ol.pointer.TouchSource.CLICK_COUNT_TIMEOUT);
-};
-
-
-/**
- * @private
- */
-ol.pointer.TouchSource.prototype.resetClickCountHandler_ = function() {
-  this.clickCount_ = 0;
-  this.resetId_ = undefined;
-};
-
-
-/**
- * @private
- */
-ol.pointer.TouchSource.prototype.cancelResetClickCount_ = function() {
-  if (goog.isDef(this.resetId_)) {
-    goog.global.clearTimeout(this.resetId_);
-  }
-};
-
-
-/**
- * @private
- * @param {goog.events.BrowserEvent} browserEvent Browser event
- * @param {Touch} inTouch Touch event
- * @return {Object}
- */
-ol.pointer.TouchSource.prototype.touchToPointer_ =
-    function(browserEvent, inTouch) {
-  var e = this.dispatcher.cloneEvent(browserEvent, inTouch);
-  // Spec specifies that pointerId 1 is reserved for Mouse.
-  // Touch identifiers can start at 0.
-  // Add 2 to the touch identifier for compatibility.
-  e.pointerId = inTouch.identifier + 2;
-  // TODO: check if this is neccessary?
-  //e.target = findTarget(e);
-  e.bubbles = true;
-  e.cancelable = true;
-  e.detail = this.clickCount_;
-  e.button = 0;
-  e.buttons = 1;
-  e.width = inTouch.webkitRadiusX || inTouch.radiusX || 0;
-  e.height = inTouch.webkitRadiusY || inTouch.radiusY || 0;
-  e.pressure = inTouch.webkitForce || inTouch.force || 0.5;
-  e.isPrimary = this.isPrimaryTouch_(inTouch);
-  e.pointerType = ol.pointer.TouchSource.POINTER_TYPE;
-
-  // make sure that the properties that are different for
-  // each `Touch` object are not copied from the BrowserEvent object
-  e.clientX = inTouch.clientX;
-  e.clientY = inTouch.clientY;
-  e.screenX = inTouch.screenX;
-  e.screenY = inTouch.screenY;
-
-  return e;
-};
-
-
-/**
- * @private
- * @param {goog.events.BrowserEvent} inEvent Touch event
- * @param {function(goog.events.BrowserEvent, Object)} inFunction
- */
-ol.pointer.TouchSource.prototype.processTouches_ =
-    function(inEvent, inFunction) {
-  var touches = Array.prototype.slice.call(
-      inEvent.getBrowserEvent().changedTouches);
-  var count = touches.length;
-  function preventDefault() {
-    inEvent.preventDefault();
-  }
-  var i, pointer;
-  for (i = 0; i < count; ++i) {
-    pointer = this.touchToPointer_(inEvent, touches[i]);
-    // forward touch preventDefaults
-    pointer.preventDefault = preventDefault;
-    inFunction.call(this, inEvent, pointer);
-  }
-};
-
-
-/**
- * @private
- * @param {TouchList} touchList
- * @param {number} searchId
- * @return {boolean} True, if the `Touch` with the given id is in the list.
- */
-ol.pointer.TouchSource.prototype.findTouch_ = function(touchList, searchId) {
-  var l = touchList.length;
-  var touch;
-  for (var i = 0; i < l; i++) {
-    touch = touchList[i];
-    if (touch.identifier === searchId) {
-      return true;
-    }
-  }
-  return false;
-};
-
-
-/**
- * In some instances, a touchstart can happen without a touchend. This
- * leaves the pointermap in a broken state.
- * Therefore, on every touchstart, we remove the touches that did not fire a
- * touchend event.
- * To keep state globally consistent, we fire a pointercancel for
- * this "abandoned" touch
- *
- * @private
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.TouchSource.prototype.vacuumTouches_ = function(inEvent) {
-  var touchList = inEvent.getBrowserEvent().touches;
-  // pointerMap.getCount() should be < touchList.length here,
-  // as the touchstart has not been processed yet.
-  var keys = goog.object.getKeys(this.pointerMap);
-  var count = keys.length;
-  if (count >= touchList.length) {
-    var d = [];
-    var i, key, value;
-    for (i = 0; i < count; ++i) {
-      key = keys[i];
-      value = this.pointerMap[key];
-      // Never remove pointerId == 1, which is mouse.
-      // Touch identifiers are 2 smaller than their pointerId, which is the
-      // index in pointermap.
-      if (key != ol.pointer.MouseSource.POINTER_ID &&
-          !this.findTouch_(touchList, key - 2)) {
-        d.push(value.out);
-      }
-    }
-    for (i = 0; i < d.length; ++i) {
-      this.cancelOut_(inEvent, d[i]);
-    }
-  }
-};
-
-
-/**
- * Handler for `touchstart`, triggers `pointerover`,
- * `pointerenter` and `pointerdown` events.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.TouchSource.prototype.touchstart = function(inEvent) {
-  this.vacuumTouches_(inEvent);
-  this.setPrimaryTouch_(inEvent.getBrowserEvent().changedTouches[0]);
-  this.dedupSynthMouse_(inEvent);
-  this.clickCount_++;
-  this.processTouches_(inEvent, this.overDown_);
-};
-
-
-/**
- * @private
- * @param {goog.events.BrowserEvent} browserEvent
- * @param {Object} inPointer
- */
-ol.pointer.TouchSource.prototype.overDown_ = function(browserEvent, inPointer) {
-  goog.object.set(this.pointerMap, inPointer.pointerId, {
-    target: inPointer.target,
-    out: inPointer,
-    outTarget: inPointer.target
-  });
-  this.dispatcher.over(inPointer, browserEvent);
-  this.dispatcher.enter(inPointer, browserEvent);
-  this.dispatcher.down(inPointer, browserEvent);
-};
-
-
-/**
- * Handler for `touchmove`.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.TouchSource.prototype.touchmove = function(inEvent) {
-  inEvent.preventDefault();
-  this.processTouches_(inEvent, this.moveOverOut_);
-};
-
-
-/**
- * @private
- * @param {goog.events.BrowserEvent} browserEvent
- * @param {Object} inPointer
- */
-ol.pointer.TouchSource.prototype.moveOverOut_ =
-    function(browserEvent, inPointer) {
-  var event = inPointer;
-  var pointer = goog.object.get(this.pointerMap, event.pointerId);
-  // a finger drifted off the screen, ignore it
-  if (!pointer) {
-    return;
-  }
-  var outEvent = pointer.out;
-  var outTarget = pointer.outTarget;
-  this.dispatcher.move(event, browserEvent);
-  if (outEvent && outTarget !== event.target) {
-    outEvent.relatedTarget = event.target;
-    event.relatedTarget = outTarget;
-    // recover from retargeting by shadow
-    outEvent.target = outTarget;
-    if (event.target) {
-      this.dispatcher.leaveOut(outEvent, browserEvent);
-      this.dispatcher.enterOver(event, browserEvent);
-    } else {
-      // clean up case when finger leaves the screen
-      event.target = outTarget;
-      event.relatedTarget = null;
-      this.cancelOut_(browserEvent, event);
-    }
-  }
-  pointer.out = event;
-  pointer.outTarget = event.target;
-};
-
-
-/**
- * Handler for `touchend`, triggers `pointerup`,
- * `pointerout` and `pointerleave` events.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.TouchSource.prototype.touchend = function(inEvent) {
-  this.dedupSynthMouse_(inEvent);
-  this.processTouches_(inEvent, this.upOut_);
-};
-
-
-/**
- * @private
- * @param {goog.events.BrowserEvent} browserEvent
- * @param {Object} inPointer
- */
-ol.pointer.TouchSource.prototype.upOut_ = function(browserEvent, inPointer) {
-  this.dispatcher.up(inPointer, browserEvent);
-  this.dispatcher.out(inPointer, browserEvent);
-  this.dispatcher.leave(inPointer, browserEvent);
-  this.cleanUpPointer_(inPointer);
-};
-
-
-/**
- * Handler for `touchcancel`, triggers `pointercancel`,
- * `pointerout` and `pointerleave` events.
- *
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.TouchSource.prototype.touchcancel = function(inEvent) {
-  this.processTouches_(inEvent, this.cancelOut_);
-};
-
-
-/**
- * @private
- * @param {goog.events.BrowserEvent} browserEvent
- * @param {Object} inPointer
- */
-ol.pointer.TouchSource.prototype.cancelOut_ =
-    function(browserEvent, inPointer) {
-  this.dispatcher.cancel(inPointer, browserEvent);
-  this.dispatcher.out(inPointer, browserEvent);
-  this.dispatcher.leave(inPointer, browserEvent);
-  this.cleanUpPointer_(inPointer);
-};
-
-
-/**
- * @private
- * @param {Object} inPointer
- */
-ol.pointer.TouchSource.prototype.cleanUpPointer_ = function(inPointer) {
-  goog.object.remove(this.pointerMap, inPointer.pointerId);
-  this.removePrimaryPointer_(inPointer);
-};
-
-
-/**
- * Prevent synth mouse events from creating pointer events.
- *
- * @private
- * @param {goog.events.BrowserEvent} inEvent
- */
-ol.pointer.TouchSource.prototype.dedupSynthMouse_ = function(inEvent) {
-  var lts = this.mouseSource.lastTouches;
-  var t = inEvent.getBrowserEvent().changedTouches[0];
-  // only the primary finger will synth mouse events
-  if (this.isPrimaryTouch_(t)) {
-    // remember x/y of last touch
-    var lt = /** @type {ol.Pixel} */ ([t.clientX, t.clientY]);
-    lts.push(lt);
-
-    goog.global.setTimeout(function() {
-      // remove touch after timeout
-      goog.array.remove(lts, lt);
-    }, ol.pointer.TouchSource.DEDUP_TIMEOUT);
-  }
-};
-
-// Based on https://github.com/Polymer/PointerEvents
-
-// Copyright (c) 2013 The Polymer Authors. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-// * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-// * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-goog.provide('ol.pointer.PointerEventHandler');
-
-goog.require('goog.array');
-goog.require('goog.events');
-goog.require('goog.events.BrowserEvent');
-goog.require('goog.events.Event');
-goog.require('goog.events.EventTarget');
-
-goog.require('ol.has');
-goog.require('ol.pointer.MouseSource');
-goog.require('ol.pointer.MsSource');
-goog.require('ol.pointer.NativeSource');
-goog.require('ol.pointer.PointerEvent');
-goog.require('ol.pointer.TouchSource');
-
-
-
-/**
- * @constructor
- * @extends {goog.events.EventTarget}
- * @param {Element|HTMLDocument} element Viewport element.
- */
-ol.pointer.PointerEventHandler = function(element) {
-  goog.base(this);
-
-  /**
-   * @const
-   * @private
-   * @type {Element|HTMLDocument}
-   */
-  this.element_ = element;
-
-  /**
-   * @const
-   * @type {Object.<string, goog.events.BrowserEvent|Object>}
-   */
-  this.pointerMap = {};
-
-  /**
-   * @type {Object.<string, function(goog.events.BrowserEvent)>}
-   * @private
-   */
-  this.eventMap_ = {};
-
-  /**
-   * @type {Array.<ol.pointer.EventSource>}
-   * @private
-   */
-  this.eventSourceList_ = [];
-
-  this.registerSources();
-};
-goog.inherits(ol.pointer.PointerEventHandler, goog.events.EventTarget);
-
-
-/**
- * Set up the event sources (mouse, touch and native pointers)
- * that generate pointer events.
- */
-ol.pointer.PointerEventHandler.prototype.registerSources = function() {
-  if (ol.has.POINTER) {
-    this.registerSource('native', new ol.pointer.NativeSource(this));
-  } else if (ol.has.MSPOINTER) {
-    this.registerSource('ms', new ol.pointer.MsSource(this));
-  } else {
-    var mouseSource = new ol.pointer.MouseSource(this);
-    this.registerSource('mouse', mouseSource);
-
-    if (ol.has.TOUCH) {
-      this.registerSource('touch',
-          new ol.pointer.TouchSource(this, mouseSource));
-    }
-  }
-
-  // register events on the viewport element
-  this.register_();
-};
-
-
-/**
- * Add a new event source that will generate pointer events.
- *
- * @param {string} name A name for the event source
- * @param {ol.pointer.EventSource} source
- */
-ol.pointer.PointerEventHandler.prototype.registerSource =
-    function(name, source) {
-  var s = source;
-  var newEvents = s.getEvents();
-
-  if (newEvents) {
-    goog.array.forEach(newEvents, function(e) {
-      var handler = s.getHandlerForEvent(e);
-
-      if (handler) {
-        this.eventMap_[e] = goog.bind(handler, s);
-      }
-    }, this);
-    this.eventSourceList_.push(s);
-  }
-};
-
-
-/**
- * Set up the events for all registered event sources.
- * @private
- */
-ol.pointer.PointerEventHandler.prototype.register_ = function() {
-  var l = this.eventSourceList_.length;
-  var eventSource;
-  for (var i = 0; i < l; i++) {
-    eventSource = this.eventSourceList_[i];
-    this.addEvents_(eventSource.getEvents());
-  }
-};
-
-
-/**
- * Remove all registered events.
- * @private
- */
-ol.pointer.PointerEventHandler.prototype.unregister_ = function() {
-  var l = this.eventSourceList_.length;
-  var eventSource;
-  for (var i = 0; i < l; i++) {
-    eventSource = this.eventSourceList_[i];
-    this.removeEvents_(eventSource.getEvents());
-  }
-};
-
-
-/**
- * Calls the right handler for a new event.
- * @private
- * @param {goog.events.BrowserEvent} inEvent Browser event.
- */
-ol.pointer.PointerEventHandler.prototype.eventHandler_ = function(inEvent) {
-  var type = inEvent.type;
-  var handler = this.eventMap_[type];
-  if (handler) {
-    handler(inEvent);
-  }
-};
-
-
-/**
- * Setup listeners for the given events.
- * @private
- * @param {Array.<string>} events List of events.
- */
-ol.pointer.PointerEventHandler.prototype.addEvents_ = function(events) {
-  goog.array.forEach(events, function(eventName) {
-    goog.events.listen(this.element_, eventName,
-        this.eventHandler_, false, this);
-  }, this);
-};
-
-
-/**
- * Unregister listeners for the given events.
- * @private
- * @param {Array.<string>} events List of events.
- */
-ol.pointer.PointerEventHandler.prototype.removeEvents_ = function(events) {
-  goog.array.forEach(events, function(e) {
-    goog.events.unlisten(this.element_, e,
-        this.eventHandler_, false, this);
-  }, this);
-};
-
-
-/**
- * Returns a snapshot of inEvent, with writable properties.
- *
- * @param {goog.events.BrowserEvent} browserEvent Browser event.
- * @param {Event|Touch} inEvent An event that contains
- *    properties to copy.
- * @return {Object} An object containing shallow copies of
- *    `inEvent`'s properties.
- */
-ol.pointer.PointerEventHandler.prototype.cloneEvent =
-    function(browserEvent, inEvent) {
-  var eventCopy = {}, p;
-  for (var i = 0, ii = ol.pointer.CLONE_PROPS.length; i < ii; i++) {
-    p = ol.pointer.CLONE_PROPS[i][0];
-    eventCopy[p] =
-        browserEvent[p] ||
-        inEvent[p] ||
-        ol.pointer.CLONE_PROPS[i][1];
-  }
-
-  return eventCopy;
-};
-
-
-// EVENTS
-
-
-/**
- * Triggers a 'pointerdown' event.
- * @param {Object} pointerEventData
- * @param {goog.events.BrowserEvent } browserEvent
- */
-ol.pointer.PointerEventHandler.prototype.down =
-    function(pointerEventData, browserEvent) {
-  this.fireEvent(ol.pointer.EventType.POINTERDOWN,
-      pointerEventData, browserEvent);
-};
-
-
-/**
- * Triggers a 'pointermove' event.
- * @param {Object} pointerEventData
- * @param {goog.events.BrowserEvent } browserEvent
- */
-ol.pointer.PointerEventHandler.prototype.move =
-    function(pointerEventData, browserEvent) {
-  this.fireEvent(ol.pointer.EventType.POINTERMOVE,
-      pointerEventData, browserEvent);
-};
-
-
-/**
- * Triggers a 'pointerup' event.
- * @param {Object} pointerEventData
- * @param {goog.events.BrowserEvent } browserEvent
- */
-ol.pointer.PointerEventHandler.prototype.up =
-    function(pointerEventData, browserEvent) {
-  this.fireEvent(ol.pointer.EventType.POINTERUP,
-      pointerEventData, browserEvent);
-};
-
-
-/**
- * Triggers a 'pointerenter' event.
- * @param {Object} pointerEventData
- * @param {goog.events.BrowserEvent } browserEvent
- */
-ol.pointer.PointerEventHandler.prototype.enter =
-    function(pointerEventData, browserEvent) {
-  pointerEventData.bubbles = false;
-  this.fireEvent(ol.pointer.EventType.POINTERENTER,
-      pointerEventData, browserEvent);
-};
-
-
-/**
- * Triggers a 'pointerleave' event.
- * @param {Object} pointerEventData
- * @param {goog.events.BrowserEvent } browserEvent
- */
-ol.pointer.PointerEventHandler.prototype.leave =
-    function(pointerEventData, browserEvent) {
-  pointerEventData.bubbles = false;
-  this.fireEvent(ol.pointer.EventType.POINTERLEAVE,
-      pointerEventData, browserEvent);
-};
-
-
-/**
- * Triggers a 'pointerover' event.
- * @param {Object} pointerEventData
- * @param {goog.events.BrowserEvent } browserEvent
- */
-ol.pointer.PointerEventHandler.prototype.over =
-    function(pointerEventData, browserEvent) {
-  pointerEventData.bubbles = true;
-  this.fireEvent(ol.pointer.EventType.POINTEROVER,
-      pointerEventData, browserEvent);
-};
-
-
-/**
- * Triggers a 'pointerout' event.
- * @param {Object} pointerEventData
- * @param {goog.events.BrowserEvent } browserEvent
- */
-ol.pointer.PointerEventHandler.prototype.out =
-    function(pointerEventData, browserEvent) {
-  pointerEventData.bubbles = true;
-  this.fireEvent(ol.pointer.EventType.POINTEROUT,
-      pointerEventData, browserEvent);
-};
-
-
-/**
- * Triggers a 'pointercancel' event.
- * @param {Object} pointerEventData
- * @param {goog.events.BrowserEvent } browserEvent
- */
-ol.pointer.PointerEventHandler.prototype.cancel =
-    function(pointerEventData, browserEvent) {
-  this.fireEvent(ol.pointer.EventType.POINTERCANCEL,
-      pointerEventData, browserEvent);
-};
-
-
-/**
- * Triggers a combination of 'pointerout' and 'pointerleave' events.
- * @param {Object} pointerEventData
- * @param {goog.events.BrowserEvent } browserEvent
- */
-ol.pointer.PointerEventHandler.prototype.leaveOut =
-    function(pointerEventData, browserEvent) {
-  this.out(pointerEventData, browserEvent);
-  if (!this.contains_(
-      pointerEventData.target,
-      pointerEventData.relatedTarget)) {
-    this.leave(pointerEventData, browserEvent);
-  }
-};
-
-
-/**
- * Triggers a combination of 'pointerover' and 'pointerevents' events.
- * @param {Object} pointerEventData
- * @param {goog.events.BrowserEvent } browserEvent
- */
-ol.pointer.PointerEventHandler.prototype.enterOver =
-    function(pointerEventData, browserEvent) {
-  this.over(pointerEventData, browserEvent);
-  if (!this.contains_(
-      pointerEventData.target,
-      pointerEventData.relatedTarget)) {
-    this.enter(pointerEventData, browserEvent);
-  }
-};
-
-
-/**
- * @private
- * @param {Element} container
- * @param {Element} contained
- * @return {boolean} Returns true if the container element
- *   contains the other element.
- */
-ol.pointer.PointerEventHandler.prototype.contains_ =
-    function(container, contained) {
-  return container.contains(contained);
-};
-
-
-// EVENT CREATION AND TRACKING
-/**
- * Creates a new Event of type `inType`, based on the information in
- * `pointerEventData`.
- *
- * @param {string} inType A string representing the type of event to create.
- * @param {Object} pointerEventData
- * @param {goog.events.BrowserEvent } browserEvent
- * @return {ol.pointer.PointerEvent} A PointerEvent of type `inType`.
- */
-ol.pointer.PointerEventHandler.prototype.makeEvent =
-    function(inType, pointerEventData, browserEvent) {
-  return new ol.pointer.PointerEvent(inType, browserEvent, pointerEventData);
-};
-
-
-/**
- * Make and dispatch an event in one call.
- * @param {string} inType A string representing the type of event.
- * @param {Object} pointerEventData
- * @param {goog.events.BrowserEvent } browserEvent
- */
-ol.pointer.PointerEventHandler.prototype.fireEvent =
-    function(inType, pointerEventData, browserEvent) {
-  var e = this.makeEvent(inType, pointerEventData, browserEvent);
-  this.dispatchEvent(e);
-};
-
-
-/**
- * Creates a pointer event from a native pointer event
- * and dispatches this event.
- * @param {goog.events.BrowserEvent} nativeEvent A platform event with a target.
- */
-ol.pointer.PointerEventHandler.prototype.fireNativeEvent =
-    function(nativeEvent) {
-  var e = this.makeEvent(nativeEvent.type, nativeEvent.getBrowserEvent(),
-      nativeEvent);
-  this.dispatchEvent(e);
-};
-
-
-/**
- * Wrap a native mouse event into a pointer event.
- * This proxy method is required for the legacy IE support.
- * @param {string} eventType The pointer event type.
- * @param {goog.events.BrowserEvent} browserEvent
- * @return {ol.pointer.PointerEvent}
- */
-ol.pointer.PointerEventHandler.prototype.wrapMouseEvent =
-    function(eventType, browserEvent) {
-  var pointerEvent = this.makeEvent(
-      eventType,
-      ol.pointer.MouseSource.prepareEvent(browserEvent, this),
-      browserEvent
-      );
-  return pointerEvent;
-};
-
-
-/**
- * @inheritDoc
- */
-ol.pointer.PointerEventHandler.prototype.disposeInternal = function() {
-  this.unregister_();
-  goog.base(this, 'disposeInternal');
-};
-
-
-/**
- * Constants for event names.
- * @enum {string}
- */
-ol.pointer.EventType = {
-  POINTERMOVE: 'pointermove',
-  POINTERDOWN: 'pointerdown',
-  POINTERUP: 'pointerup',
-  POINTEROVER: 'pointerover',
-  POINTEROUT: 'pointerout',
-  POINTERENTER: 'pointerenter',
-  POINTERLEAVE: 'pointerleave',
-  POINTERCANCEL: 'pointercancel'
-};
-
-
-/**
- * Properties to copy when cloning an event, with default values.
- * @type {Array.<Array>}
- */
-ol.pointer.CLONE_PROPS = [
-  // MouseEvent
-  ['bubbles', false],
-  ['cancelable', false],
-  ['view', null],
-  ['detail', null],
-  ['screenX', 0],
-  ['screenY', 0],
-  ['clientX', 0],
-  ['clientY', 0],
-  ['ctrlKey', false],
-  ['altKey', false],
-  ['shiftKey', false],
-  ['metaKey', false],
-  ['button', 0],
-  ['relatedTarget', null],
-  // DOM Level 3
-  ['buttons', 0],
-  // PointerEvent
-  ['pointerId', 0],
-  ['width', 0],
-  ['height', 0],
-  ['pressure', 0],
-  ['tiltX', 0],
-  ['tiltY', 0],
-  ['pointerType', ''],
-  ['hwTimestamp', 0],
-  ['isPrimary', false],
-  // event instance
-  ['type', ''],
-  ['target', null],
-  ['currentTarget', null],
-  ['which', 0]
-];
-
 // FIXME handle date line wrap
 
 goog.provide('ol.control.Attribution');
@@ -31665,7 +29778,6 @@ goog.require('goog.style');
 goog.require('ol.Attribution');
 goog.require('ol.control.Control');
 goog.require('ol.css');
-goog.require('ol.pointer.PointerEventHandler');
 
 
 
@@ -31722,9 +29834,6 @@ ol.control.Attribution = function(opt_options) {
 
   var tipLabel = goog.isDef(options.tipLabel) ?
       options.tipLabel : 'Attributions';
-  var tip = goog.dom.createDom(goog.dom.TagName.SPAN, {
-    'role' : 'tooltip'
-  }, tipLabel);
 
   /**
    * @private
@@ -31749,15 +29858,10 @@ ol.control.Attribution = function(opt_options) {
    */
   this.labelSpan_ = label;
   var button = goog.dom.createDom(goog.dom.TagName.BUTTON, {
-    'class': 'ol-has-tooltip',
-    'type': 'button'
+    'type': 'button',
+    'title': tipLabel
   }, this.labelSpan_);
-  goog.dom.appendChild(button, tip);
 
-  var buttonHandler = new ol.pointer.PointerEventHandler(button);
-  this.registerDisposable(buttonHandler);
-  goog.events.listen(buttonHandler, ol.pointer.EventType.POINTERUP,
-      this.handlePointerUp_, false, this);
   goog.events.listen(button, goog.events.EventType.CLICK,
       this.handleClick_, false, this);
 
@@ -31768,12 +29872,12 @@ ol.control.Attribution = function(opt_options) {
     this.blur();
   }, false);
 
-  var element = goog.dom.createDom(goog.dom.TagName.DIV, {
-    'class': className + ' ' + ol.css.CLASS_UNSELECTABLE + ' ' +
-        ol.css.CLASS_CONTROL +
-        (this.collapsed_ && this.collapsible_ ? ' ol-collapsed' : '') +
-        (this.collapsible_ ? '' : ' ol-uncollapsible')
-  }, this.ulElement_, button);
+  var cssClasses = className + ' ' + ol.css.CLASS_UNSELECTABLE + ' ' +
+      ol.css.CLASS_CONTROL +
+      (this.collapsed_ && this.collapsible_ ? ' ol-collapsed' : '') +
+      (this.collapsible_ ? '' : ' ol-uncollapsible');
+  var element = goog.dom.createDom(goog.dom.TagName.DIV,
+      cssClasses, this.ulElement_, button);
 
   goog.base(this, {
     element: element,
@@ -31822,6 +29926,9 @@ ol.control.Attribution.prototype.getSourceAttributions = function(frameState) {
   var hiddenAttributions = {};
   for (i = 0, ii = layerStatesArray.length; i < ii; i++) {
     source = layerStatesArray[i].layer.getSource();
+    if (goog.isNull(source)) {
+      continue;
+    }
     sourceKey = goog.getUid(source).toString();
     sourceAttributions = source.getAttributions();
     if (goog.isNull(sourceAttributions)) {
@@ -31984,19 +30091,7 @@ ol.control.Attribution.prototype.insertLogos_ = function(frameState) {
  * @private
  */
 ol.control.Attribution.prototype.handleClick_ = function(event) {
-  if (event.screenX !== 0 && event.screenY !== 0) {
-    return;
-  }
-  this.handleToggle_();
-};
-
-
-/**
- * @param {ol.pointer.PointerEvent} pointerEvent The event to handle
- * @private
- */
-ol.control.Attribution.prototype.handlePointerUp_ = function(pointerEvent) {
-  pointerEvent.browserEvent.preventDefault();
+  event.preventDefault();
   this.handleToggle_();
 };
 
@@ -32070,7 +30165,6 @@ goog.require('ol.animation');
 goog.require('ol.control.Control');
 goog.require('ol.css');
 goog.require('ol.easing');
-goog.require('ol.pointer.PointerEventHandler');
 
 
 
@@ -32097,24 +30191,17 @@ ol.control.Rotate = function(opt_options) {
    * @private
    */
   this.label_ = goog.dom.createDom(goog.dom.TagName.SPAN,
-      { 'class': 'ol-compass' },
-      goog.isDef(options.label) ? options.label : '\u21E7');
+      'ol-compass', goog.isDef(options.label) ? options.label : '\u21E7');
 
   var tipLabel = goog.isDef(options.tipLabel) ?
       options.tipLabel : 'Reset rotation';
 
-  var tip = goog.dom.createDom(goog.dom.TagName.SPAN, {
-    'role' : 'tooltip'
-  }, tipLabel);
   var button = goog.dom.createDom(goog.dom.TagName.BUTTON, {
-    'class': className + '-reset ol-has-tooltip',
-    'type' : 'button'
-  }, tip, this.label_);
+    'class': className + '-reset',
+    'type' : 'button',
+    'title': tipLabel
+  }, this.label_);
 
-  var handler = new ol.pointer.PointerEventHandler(button);
-  this.registerDisposable(handler);
-  goog.events.listen(handler, ol.pointer.EventType.POINTERUP,
-      ol.control.Rotate.prototype.handlePointerUp_, false, this);
   goog.events.listen(button, goog.events.EventType.CLICK,
       ol.control.Rotate.prototype.handleClick_, false, this);
 
@@ -32165,19 +30252,7 @@ goog.inherits(ol.control.Rotate, ol.control.Control);
  * @private
  */
 ol.control.Rotate.prototype.handleClick_ = function(event) {
-  if (event.screenX !== 0 && event.screenY !== 0) {
-    return;
-  }
-  this.resetNorth_();
-};
-
-
-/**
- * @param {ol.pointer.PointerEvent} pointerEvent The event to handle
- * @private
- */
-ol.control.Rotate.prototype.handlePointerUp_ = function(pointerEvent) {
-  pointerEvent.browserEvent.preventDefault();
+  event.preventDefault();
   this.resetNorth_();
 };
 
@@ -32245,7 +30320,6 @@ goog.require('ol.animation');
 goog.require('ol.control.Control');
 goog.require('ol.css');
 goog.require('ol.easing');
-goog.require('ol.pointer.PointerEventHandler');
 
 
 
@@ -32278,19 +30352,12 @@ ol.control.Zoom = function(opt_options) {
   var zoomOutTipLabel = goog.isDef(options.zoomOutTipLabel) ?
       options.zoomOutTipLabel : 'Zoom out';
 
-  var tTipZoomIn = goog.dom.createDom(goog.dom.TagName.SPAN, {
-    'role' : 'tooltip'
-  }, zoomInTipLabel);
   var inElement = goog.dom.createDom(goog.dom.TagName.BUTTON, {
-    'class': className + '-in ol-has-tooltip',
-    'type' : 'button'
-  }, tTipZoomIn, zoomInLabel);
+    'class': className + '-in',
+    'type' : 'button',
+    'title': zoomInTipLabel
+  }, zoomInLabel);
 
-  var inElementHandler = new ol.pointer.PointerEventHandler(inElement);
-  this.registerDisposable(inElementHandler);
-  goog.events.listen(inElementHandler,
-      ol.pointer.EventType.POINTERUP, goog.partial(
-          ol.control.Zoom.prototype.handlePointerUp_, delta), false, this);
   goog.events.listen(inElement,
       goog.events.EventType.CLICK, goog.partial(
           ol.control.Zoom.prototype.handleClick_, delta), false, this);
@@ -32302,19 +30369,12 @@ ol.control.Zoom = function(opt_options) {
     this.blur();
   }, false);
 
-  var tTipsZoomOut = goog.dom.createDom(goog.dom.TagName.SPAN, {
-    'role' : 'tooltip'
-  }, zoomOutTipLabel);
   var outElement = goog.dom.createDom(goog.dom.TagName.BUTTON, {
-    'class': className + '-out  ol-has-tooltip',
-    'type' : 'button'
-  }, tTipsZoomOut, zoomOutLabel);
+    'class': className + '-out',
+    'type' : 'button',
+    'title': zoomOutTipLabel
+  }, zoomOutLabel);
 
-  var outElementHandler = new ol.pointer.PointerEventHandler(outElement);
-  this.registerDisposable(outElementHandler);
-  goog.events.listen(outElementHandler,
-      ol.pointer.EventType.POINTERUP, goog.partial(
-          ol.control.Zoom.prototype.handlePointerUp_, -delta), false, this);
   goog.events.listen(outElement,
       goog.events.EventType.CLICK, goog.partial(
           ol.control.Zoom.prototype.handleClick_, -delta), false, this);
@@ -32352,20 +30412,7 @@ goog.inherits(ol.control.Zoom, ol.control.Control);
  * @private
  */
 ol.control.Zoom.prototype.handleClick_ = function(delta, event) {
-  if (event.screenX !== 0 && event.screenY !== 0) {
-    return;
-  }
-  this.zoomByDelta_(delta);
-};
-
-
-/**
- * @param {number} delta Zoom delta.
- * @param {ol.pointer.PointerEvent} pointerEvent The event to handle
- * @private
- */
-ol.control.Zoom.prototype.handlePointerUp_ = function(delta, pointerEvent) {
-  pointerEvent.browserEvent.preventDefault();
+  event.preventDefault();
   this.zoomByDelta_(delta);
 };
 
@@ -32601,7 +30648,6 @@ goog.require('goog.events');
 goog.require('goog.events.EventType');
 goog.require('ol.control.Control');
 goog.require('ol.css');
-goog.require('ol.pointer.PointerEventHandler');
 
 
 
@@ -32631,20 +30677,12 @@ ol.control.FullScreen = function(opt_options) {
 
   var tipLabel = goog.isDef(options.tipLabel) ?
       options.tipLabel : 'Toggle full-screen';
-  var tip = goog.dom.createDom(goog.dom.TagName.SPAN, {
-    'role' : 'tooltip'
-  }, tipLabel);
-
   var button = goog.dom.createDom(goog.dom.TagName.BUTTON, {
-    'class': this.cssClassName_ + '-' + goog.dom.fullscreen.isFullScreen() +
-        ' ol-has-tooltip',
-    'type': 'button'
+    'class': this.cssClassName_ + '-' + goog.dom.fullscreen.isFullScreen(),
+    'type': 'button',
+    'title': tipLabel
   });
-  goog.dom.appendChild(button, tip);
-  var buttonHandler = new ol.pointer.PointerEventHandler(button);
-  this.registerDisposable(buttonHandler);
-  goog.events.listen(buttonHandler,
-      ol.pointer.EventType.POINTERUP, this.handlePointerUp_, false, this);
+
   goog.events.listen(button, goog.events.EventType.CLICK,
       this.handleClick_, false, this);
 
@@ -32660,7 +30698,7 @@ ol.control.FullScreen = function(opt_options) {
       this.handleFullScreenChange_, false, this);
 
   var cssClasses = this.cssClassName_ + ' ' + ol.css.CLASS_UNSELECTABLE +
-      ' ' + ol.css.CLASS_CONTROL +
+      ' ' + ol.css.CLASS_CONTROL + ' ' +
       (!goog.dom.fullscreen.isSupported() ? ol.css.CLASS_UNSUPPORTED : '');
   var element = goog.dom.createDom(goog.dom.TagName.DIV, cssClasses, button);
 
@@ -32684,19 +30722,7 @@ goog.inherits(ol.control.FullScreen, ol.control.Control);
  * @private
  */
 ol.control.FullScreen.prototype.handleClick_ = function(event) {
-  if (event.screenX !== 0 && event.screenY !== 0) {
-    return;
-  }
-  this.handleFullScreen_();
-};
-
-
-/**
- * @param {ol.pointer.PointerEvent} pointerEvent The event to handle
- * @private
- */
-ol.control.FullScreen.prototype.handlePointerUp_ = function(pointerEvent) {
-  pointerEvent.browserEvent.preventDefault();
+  event.preventDefault();
   this.handleFullScreen_();
 };
 
@@ -32805,9 +30831,7 @@ ol.control.MousePosition = function(opt_options) {
   var className = goog.isDef(options.className) ?
       options.className : 'ol-mouse-position';
 
-  var element = goog.dom.createDom(goog.dom.TagName.DIV, {
-    'class': className
-  });
+  var element = goog.dom.createDom(goog.dom.TagName.DIV, className);
 
   goog.base(this, {
     element: element,
@@ -42780,6 +40804,1880 @@ goog.log.fine = function(logger, msg, opt_exception) {
   }
 };
 
+// Based on https://github.com/Polymer/PointerEvents
+
+// Copyright (c) 2013 The Polymer Authors. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+// * Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+// * Redistributions in binary form must reproduce the above
+// copyright notice, this list of conditions and the following disclaimer
+// in the documentation and/or other materials provided with the
+// distribution.
+// * Neither the name of Google Inc. nor the names of its
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+goog.provide('ol.pointer.PointerEvent');
+
+
+goog.require('goog.events');
+goog.require('goog.events.Event');
+goog.require('goog.object');
+
+
+
+/**
+ * A class for pointer events.
+ *
+ * This class is used as an abstraction for mouse events,
+ * touch events and even native pointer events.
+ *
+ * @constructor
+ * @extends {goog.events.Event}
+ * @param {string} type The type of the event to create.
+ * @param {goog.events.BrowserEvent} browserEvent
+ * @param {Object.<string, ?>=} opt_eventDict An optional dictionary of
+ *    initial event properties.
+ */
+ol.pointer.PointerEvent = function(type, browserEvent, opt_eventDict) {
+  goog.base(this, type);
+
+  /**
+   * @const
+   * @type {goog.events.BrowserEvent}
+   */
+  this.browserEvent = browserEvent;
+
+  var eventDict = goog.isDef(opt_eventDict) ? opt_eventDict : {};
+
+  /**
+   * @type {number}
+   */
+  this.buttons = this.getButtons_(eventDict);
+
+  /**
+   * @type {number}
+   */
+  this.pressure = this.getPressure_(eventDict, this.buttons);
+
+  // MouseEvent related properties
+
+  /**
+   * @type {boolean}
+   */
+  this.bubbles = goog.object.get(eventDict, 'bubbles', false);
+
+  /**
+   * @type {boolean}
+   */
+  this.cancelable = goog.object.get(eventDict, 'cancelable', false);
+
+  /**
+   * @type {Object}
+   */
+  this.view = goog.object.get(eventDict, 'view', null);
+
+  /**
+   * @type {number}
+   */
+  this.detail = goog.object.get(eventDict, 'detail', null);
+
+  /**
+   * @type {number}
+   */
+  this.screenX = goog.object.get(eventDict, 'screenX', 0);
+
+  /**
+   * @type {number}
+   */
+  this.screenY = goog.object.get(eventDict, 'screenY', 0);
+
+  /**
+   * @type {number}
+   */
+  this.clientX = goog.object.get(eventDict, 'clientX', 0);
+
+  /**
+   * @type {number}
+   */
+  this.clientY = goog.object.get(eventDict, 'clientY', 0);
+
+  /**
+   * @type {boolean}
+   */
+  this.ctrlKey = goog.object.get(eventDict, 'ctrlKey', false);
+
+  /**
+   * @type {boolean}
+   */
+  this.altKey = goog.object.get(eventDict, 'altKey', false);
+
+  /**
+   * @type {boolean}
+   */
+  this.shiftKey = goog.object.get(eventDict, 'shiftKey', false);
+
+  /**
+   * @type {boolean}
+   */
+  this.metaKey = goog.object.get(eventDict, 'metaKey', false);
+
+  /**
+   * @type {number}
+   */
+  this.button = goog.object.get(eventDict, 'button', 0);
+
+  /**
+   * @type {Node}
+   */
+  this.relatedTarget = goog.object.get(eventDict, 'relatedTarget', null);
+
+  // PointerEvent related properties
+
+  /**
+   * @const
+   * @type {number}
+   */
+  this.pointerId = goog.object.get(eventDict, 'pointerId', 0);
+
+  /**
+   * @type {number}
+   */
+  this.width = goog.object.get(eventDict, 'width', 0);
+
+  /**
+   * @type {number}
+   */
+  this.height = goog.object.get(eventDict, 'height', 0);
+
+  /**
+   * @type {number}
+   */
+  this.tiltX = goog.object.get(eventDict, 'tiltX', 0);
+
+  /**
+   * @type {number}
+   */
+  this.tiltY = goog.object.get(eventDict, 'tiltY', 0);
+
+  /**
+   * @type {string}
+   */
+  this.pointerType = goog.object.get(eventDict, 'pointerType', '');
+
+  /**
+   * @type {number}
+   */
+  this.hwTimestamp = goog.object.get(eventDict, 'hwTimestamp', 0);
+
+  /**
+   * @type {boolean}
+   */
+  this.isPrimary = goog.object.get(eventDict, 'isPrimary', false);
+
+  // keep the semantics of preventDefault
+  if (browserEvent.preventDefault) {
+    this.preventDefault = function() {
+      browserEvent.preventDefault();
+    };
+  }
+};
+goog.inherits(ol.pointer.PointerEvent, goog.events.Event);
+
+
+/**
+ * @private
+ * @param {Object.<string, ?>} eventDict
+ * @return {number}
+ */
+ol.pointer.PointerEvent.prototype.getButtons_ = function(eventDict) {
+  // According to the w3c spec,
+  // http://www.w3.org/TR/DOM-Level-3-Events/#events-MouseEvent-button
+  // MouseEvent.button == 0 can mean either no mouse button depressed, or the
+  // left mouse button depressed.
+  //
+  // As of now, the only way to distinguish between the two states of
+  // MouseEvent.button is by using the deprecated MouseEvent.which property, as
+  // this maps mouse buttons to positive integers > 0, and uses 0 to mean that
+  // no mouse button is held.
+  //
+  // MouseEvent.which is derived from MouseEvent.button at MouseEvent creation,
+  // but initMouseEvent does not expose an argument with which to set
+  // MouseEvent.which. Calling initMouseEvent with a buttonArg of 0 will set
+  // MouseEvent.button == 0 and MouseEvent.which == 1, breaking the expectations
+  // of app developers.
+  //
+  // The only way to propagate the correct state of MouseEvent.which and
+  // MouseEvent.button to a new MouseEvent.button == 0 and MouseEvent.which == 0
+  // is to call initMouseEvent with a buttonArg value of -1.
+  //
+  // This is fixed with DOM Level 4's use of buttons
+  var buttons;
+  if (eventDict.buttons || ol.pointer.PointerEvent.HAS_BUTTONS) {
+    buttons = eventDict.buttons;
+  } else {
+    switch (eventDict.which) {
+      case 1: buttons = 1; break;
+      case 2: buttons = 4; break;
+      case 3: buttons = 2; break;
+      default: buttons = 0;
+    }
+  }
+  return buttons;
+};
+
+
+/**
+ * @private
+ * @param {Object.<string, ?>} eventDict
+ * @param {number} buttons
+ * @return {number}
+ */
+ol.pointer.PointerEvent.prototype.getPressure_ = function(eventDict, buttons) {
+  // Spec requires that pointers without pressure specified use 0.5 for down
+  // state and 0 for up state.
+  var pressure = 0;
+  if (eventDict.pressure) {
+    pressure = eventDict.pressure;
+  } else {
+    pressure = buttons ? 0.5 : 0;
+  }
+  return pressure;
+};
+
+
+/**
+ * Is the `buttons` property supported?
+ * @type {boolean}
+ */
+ol.pointer.PointerEvent.HAS_BUTTONS = false;
+
+
+/**
+ * Checks if the `buttons` property is supported.
+ */
+(function() {
+  try {
+    var ev = new MouseEvent('click', {buttons: 1});
+    ol.pointer.PointerEvent.HAS_BUTTONS = ev.buttons === 1;
+  } catch (e) {
+  }
+})();
+
+goog.provide('ol.pointer.EventSource');
+
+goog.require('goog.events.BrowserEvent');
+goog.require('goog.object');
+
+
+
+/**
+ * @param {ol.pointer.PointerEventHandler} dispatcher
+ * @param {Object.<string, function(goog.events.BrowserEvent)>} mapping
+ * @constructor
+ */
+ol.pointer.EventSource = function(dispatcher, mapping) {
+  /**
+   * @type {ol.pointer.PointerEventHandler}
+   */
+  this.dispatcher = dispatcher;
+
+  /**
+   * @private
+   * @const
+   * @type {Object.<string, function(goog.events.BrowserEvent)>}
+   */
+  this.mapping_ = mapping;
+};
+
+
+/**
+ * List of events supported by this source.
+ * @return {Array.<string>} Event names
+ */
+ol.pointer.EventSource.prototype.getEvents = function() {
+  return goog.object.getKeys(this.mapping_);
+};
+
+
+/**
+ * Returns a mapping between the supported event types and
+ * the handlers that should handle an event.
+ * @return {Object.<string, function(goog.events.BrowserEvent)>}
+ *         Event/Handler mapping
+ */
+ol.pointer.EventSource.prototype.getMapping = function() {
+  return this.mapping_;
+};
+
+
+/**
+ * Returns the handler that should handle a given event type.
+ * @param {string} eventType
+ * @return {function(goog.events.BrowserEvent)} Handler
+ */
+ol.pointer.EventSource.prototype.getHandlerForEvent = function(eventType) {
+  return this.mapping_[eventType];
+};
+
+// Based on https://github.com/Polymer/PointerEvents
+
+// Copyright (c) 2013 The Polymer Authors. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+// * Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+// * Redistributions in binary form must reproduce the above
+// copyright notice, this list of conditions and the following disclaimer
+// in the documentation and/or other materials provided with the
+// distribution.
+// * Neither the name of Google Inc. nor the names of its
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+goog.provide('ol.pointer.MouseSource');
+
+goog.require('goog.object');
+goog.require('ol.pointer.EventSource');
+
+
+
+/**
+ * @param {ol.pointer.PointerEventHandler} dispatcher
+ * @constructor
+ * @extends {ol.pointer.EventSource}
+ */
+ol.pointer.MouseSource = function(dispatcher) {
+  var mapping = {
+    'mousedown': this.mousedown,
+    'mousemove': this.mousemove,
+    'mouseup': this.mouseup,
+    'mouseover': this.mouseover,
+    'mouseout': this.mouseout
+  };
+  goog.base(this, dispatcher, mapping);
+
+  /**
+   * @const
+   * @type {Object.<string, goog.events.BrowserEvent|Object>}
+   */
+  this.pointerMap = dispatcher.pointerMap;
+
+  /**
+   * @const
+   * @type {Array.<ol.Pixel>}
+   */
+  this.lastTouches = [];
+};
+goog.inherits(ol.pointer.MouseSource, ol.pointer.EventSource);
+
+
+/**
+ * @const
+ * @type {number}
+ */
+ol.pointer.MouseSource.POINTER_ID = 1;
+
+
+/**
+ * @const
+ * @type {string}
+ */
+ol.pointer.MouseSource.POINTER_TYPE = 'mouse';
+
+
+/**
+ * Radius around touchend that swallows mouse events.
+ *
+ * @const
+ * @type {number}
+ */
+ol.pointer.MouseSource.DEDUP_DIST = 25;
+
+
+/**
+ * Detect if a mouse event was simulated from a touch by
+ * checking if previously there was a touch event at the
+ * same position.
+ *
+ * FIXME - Known problem with the native Android browser on
+ * Samsung GT-I9100 (Android 4.1.2):
+ * In case the page is scrolled, this function does not work
+ * correctly when a canvas is used (WebGL or canvas renderer).
+ * Mouse listeners on canvas elements (for this browser), create
+ * two mouse events: One 'good' and one 'bad' one (on other browsers or
+ * when a div is used, there is only one event). For the 'bad' one,
+ * clientX/clientY and also pageX/pageY are wrong when the page
+ * is scrolled. Because of that, this function can not detect if
+ * the events were simulated from a touch event. As result, a
+ * pointer event at a wrong position is dispatched, which confuses
+ * the map interactions.
+ * It is unclear, how one can get the correct position for the event
+ * or detect that the positions are invalid.
+ *
+ * @private
+ * @param {goog.events.BrowserEvent} inEvent
+ * @return {boolean} True, if the event was generated by a touch.
+ */
+ol.pointer.MouseSource.prototype.isEventSimulatedFromTouch_ =
+    function(inEvent) {
+  var lts = this.lastTouches;
+  var x = inEvent.clientX, y = inEvent.clientY;
+  for (var i = 0, l = lts.length, t; i < l && (t = lts[i]); i++) {
+    // simulated mouse events will be swallowed near a primary touchend
+    var dx = Math.abs(x - t[0]), dy = Math.abs(y - t[1]);
+    if (dx <= ol.pointer.MouseSource.DEDUP_DIST &&
+        dy <= ol.pointer.MouseSource.DEDUP_DIST) {
+      return true;
+    }
+  }
+  return false;
+};
+
+
+/**
+ * Creates a copy of the original event that will be used
+ * for the fake pointer event.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ * @param {ol.pointer.PointerEventHandler} dispatcher
+ * @return {Object}
+ */
+ol.pointer.MouseSource.prepareEvent = function(inEvent, dispatcher) {
+  var e = dispatcher.cloneEvent(inEvent, inEvent.getBrowserEvent());
+
+  // forward mouse preventDefault
+  var pd = e.preventDefault;
+  e.preventDefault = function() {
+    inEvent.preventDefault();
+    pd();
+  };
+
+  e.pointerId = ol.pointer.MouseSource.POINTER_ID;
+  e.isPrimary = true;
+  e.pointerType = ol.pointer.MouseSource.POINTER_TYPE;
+
+  return e;
+};
+
+
+/**
+ * Handler for `mousedown`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MouseSource.prototype.mousedown = function(inEvent) {
+  if (!this.isEventSimulatedFromTouch_(inEvent)) {
+    var p = goog.object.containsKey(this.pointerMap,
+        ol.pointer.MouseSource.POINTER_ID.toString());
+    // TODO(dfreedman) workaround for some elements not sending mouseup
+    // http://crbug/149091
+    if (p) {
+      this.cancel(inEvent);
+    }
+    var e = ol.pointer.MouseSource.prepareEvent(inEvent, this.dispatcher);
+    goog.object.set(this.pointerMap,
+        ol.pointer.MouseSource.POINTER_ID.toString(), inEvent);
+    this.dispatcher.down(e, inEvent);
+  }
+};
+
+
+/**
+ * Handler for `mousemove`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MouseSource.prototype.mousemove = function(inEvent) {
+  if (!this.isEventSimulatedFromTouch_(inEvent)) {
+    var e = ol.pointer.MouseSource.prepareEvent(inEvent, this.dispatcher);
+    this.dispatcher.move(e, inEvent);
+  }
+};
+
+
+/**
+ * Handler for `mouseup`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MouseSource.prototype.mouseup = function(inEvent) {
+  if (!this.isEventSimulatedFromTouch_(inEvent)) {
+    var p = goog.object.get(this.pointerMap,
+        ol.pointer.MouseSource.POINTER_ID.toString());
+
+    if (p && p.button === inEvent.button) {
+      var e = ol.pointer.MouseSource.prepareEvent(inEvent, this.dispatcher);
+      this.dispatcher.up(e, inEvent);
+      this.cleanupMouse();
+    }
+  }
+};
+
+
+/**
+ * Handler for `mouseover`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MouseSource.prototype.mouseover = function(inEvent) {
+  if (!this.isEventSimulatedFromTouch_(inEvent)) {
+    var e = ol.pointer.MouseSource.prepareEvent(inEvent, this.dispatcher);
+    this.dispatcher.enterOver(e, inEvent);
+  }
+};
+
+
+/**
+ * Handler for `mouseout`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MouseSource.prototype.mouseout = function(inEvent) {
+  if (!this.isEventSimulatedFromTouch_(inEvent)) {
+    var e = ol.pointer.MouseSource.prepareEvent(inEvent, this.dispatcher);
+    this.dispatcher.leaveOut(e, inEvent);
+  }
+};
+
+
+/**
+ * Dispatches a `pointercancel` event.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MouseSource.prototype.cancel = function(inEvent) {
+  var e = ol.pointer.MouseSource.prepareEvent(inEvent, this.dispatcher);
+  this.dispatcher.cancel(e, inEvent);
+  this.cleanupMouse();
+};
+
+
+/**
+ * Remove the mouse from the list of active pointers.
+ */
+ol.pointer.MouseSource.prototype.cleanupMouse = function() {
+  goog.object.remove(this.pointerMap,
+      ol.pointer.MouseSource.POINTER_ID.toString());
+};
+
+// Based on https://github.com/Polymer/PointerEvents
+
+// Copyright (c) 2013 The Polymer Authors. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+// * Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+// * Redistributions in binary form must reproduce the above
+// copyright notice, this list of conditions and the following disclaimer
+// in the documentation and/or other materials provided with the
+// distribution.
+// * Neither the name of Google Inc. nor the names of its
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+goog.provide('ol.pointer.MsSource');
+
+goog.require('goog.object');
+goog.require('ol.pointer.EventSource');
+
+
+
+/**
+ * @param {ol.pointer.PointerEventHandler} dispatcher
+ * @constructor
+ * @extends {ol.pointer.EventSource}
+ */
+ol.pointer.MsSource = function(dispatcher) {
+  var mapping = {
+    'MSPointerDown': this.msPointerDown,
+    'MSPointerMove': this.msPointerMove,
+    'MSPointerUp': this.msPointerUp,
+    'MSPointerOut': this.msPointerOut,
+    'MSPointerOver': this.msPointerOver,
+    'MSPointerCancel': this.msPointerCancel,
+    'MSGotPointerCapture': this.msGotPointerCapture,
+    'MSLostPointerCapture': this.msLostPointerCapture
+  };
+  goog.base(this, dispatcher, mapping);
+
+  /**
+   * @const
+   * @type {Object.<string, goog.events.BrowserEvent|Object>}
+   */
+  this.pointerMap = dispatcher.pointerMap;
+
+  /**
+   * @const
+   * @type {Array.<string>}
+   */
+  this.POINTER_TYPES = [
+    '',
+    'unavailable',
+    'touch',
+    'pen',
+    'mouse'
+  ];
+};
+goog.inherits(ol.pointer.MsSource, ol.pointer.EventSource);
+
+
+/**
+ * Creates a copy of the original event that will be used
+ * for the fake pointer event.
+ *
+ * @private
+ * @param {goog.events.BrowserEvent} inEvent
+ * @return {Object}
+ */
+ol.pointer.MsSource.prototype.prepareEvent_ = function(inEvent) {
+  var e = inEvent;
+  if (goog.isNumber(inEvent.getBrowserEvent().pointerType)) {
+    e = this.dispatcher.cloneEvent(inEvent, inEvent.getBrowserEvent());
+    e.pointerType = this.POINTER_TYPES[inEvent.getBrowserEvent().pointerType];
+  }
+
+  return e;
+};
+
+
+/**
+ * Remove this pointer from the list of active pointers.
+ * @param {number} pointerId
+ */
+ol.pointer.MsSource.prototype.cleanup = function(pointerId) {
+  goog.object.remove(this.pointerMap, pointerId);
+};
+
+
+/**
+ * Handler for `msPointerDown`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MsSource.prototype.msPointerDown = function(inEvent) {
+  goog.object.set(this.pointerMap,
+      inEvent.getBrowserEvent().pointerId, inEvent);
+  var e = this.prepareEvent_(inEvent);
+  this.dispatcher.down(e, inEvent);
+};
+
+
+/**
+ * Handler for `msPointerMove`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MsSource.prototype.msPointerMove = function(inEvent) {
+  var e = this.prepareEvent_(inEvent);
+  this.dispatcher.move(e, inEvent);
+};
+
+
+/**
+ * Handler for `msPointerUp`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MsSource.prototype.msPointerUp = function(inEvent) {
+  var e = this.prepareEvent_(inEvent);
+  this.dispatcher.up(e, inEvent);
+  this.cleanup(inEvent.getBrowserEvent().pointerId);
+};
+
+
+/**
+ * Handler for `msPointerOut`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MsSource.prototype.msPointerOut = function(inEvent) {
+  var e = this.prepareEvent_(inEvent);
+  this.dispatcher.leaveOut(e, inEvent);
+};
+
+
+/**
+ * Handler for `msPointerOver`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MsSource.prototype.msPointerOver = function(inEvent) {
+  var e = this.prepareEvent_(inEvent);
+  this.dispatcher.enterOver(e, inEvent);
+};
+
+
+/**
+ * Handler for `msPointerCancel`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MsSource.prototype.msPointerCancel = function(inEvent) {
+  var e = this.prepareEvent_(inEvent);
+  this.dispatcher.cancel(e, inEvent);
+  this.cleanup(inEvent.getBrowserEvent().pointerId);
+};
+
+
+/**
+ * Handler for `msLostPointerCapture`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MsSource.prototype.msLostPointerCapture = function(inEvent) {
+  var e = this.dispatcher.makeEvent('lostpointercapture',
+      inEvent.getBrowserEvent(), inEvent);
+  this.dispatcher.dispatchEvent(e);
+};
+
+
+/**
+ * Handler for `msGotPointerCapture`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.MsSource.prototype.msGotPointerCapture = function(inEvent) {
+  var e = this.dispatcher.makeEvent('gotpointercapture',
+      inEvent.getBrowserEvent(), inEvent);
+  this.dispatcher.dispatchEvent(e);
+};
+
+// Based on https://github.com/Polymer/PointerEvents
+
+// Copyright (c) 2013 The Polymer Authors. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+// * Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+// * Redistributions in binary form must reproduce the above
+// copyright notice, this list of conditions and the following disclaimer
+// in the documentation and/or other materials provided with the
+// distribution.
+// * Neither the name of Google Inc. nor the names of its
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+goog.provide('ol.pointer.NativeSource');
+
+goog.require('goog.object');
+goog.require('ol.pointer.EventSource');
+
+
+
+/**
+ * @param {ol.pointer.PointerEventHandler} dispatcher
+ * @constructor
+ * @extends {ol.pointer.EventSource}
+ */
+ol.pointer.NativeSource = function(dispatcher) {
+  var mapping = {
+    'pointerdown': this.pointerDown,
+    'pointermove': this.pointerMove,
+    'pointerup': this.pointerUp,
+    'pointerout': this.pointerOut,
+    'pointerover': this.pointerOver,
+    'pointercancel': this.pointerCancel,
+    'gotpointercapture': this.gotPointerCapture,
+    'lostpointercapture': this.lostPointerCapture
+  };
+  goog.base(this, dispatcher, mapping);
+};
+goog.inherits(ol.pointer.NativeSource, ol.pointer.EventSource);
+
+
+/**
+ * Handler for `pointerdown`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.NativeSource.prototype.pointerDown = function(inEvent) {
+  this.dispatcher.fireNativeEvent(inEvent);
+};
+
+
+/**
+ * Handler for `pointermove`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.NativeSource.prototype.pointerMove = function(inEvent) {
+  this.dispatcher.fireNativeEvent(inEvent);
+};
+
+
+/**
+ * Handler for `pointerup`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.NativeSource.prototype.pointerUp = function(inEvent) {
+  this.dispatcher.fireNativeEvent(inEvent);
+};
+
+
+/**
+ * Handler for `pointerout`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.NativeSource.prototype.pointerOut = function(inEvent) {
+  this.dispatcher.fireNativeEvent(inEvent);
+};
+
+
+/**
+ * Handler for `pointerover`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.NativeSource.prototype.pointerOver = function(inEvent) {
+  this.dispatcher.fireNativeEvent(inEvent);
+};
+
+
+/**
+ * Handler for `pointercancel`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.NativeSource.prototype.pointerCancel = function(inEvent) {
+  this.dispatcher.fireNativeEvent(inEvent);
+};
+
+
+/**
+ * Handler for `lostpointercapture`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.NativeSource.prototype.lostPointerCapture = function(inEvent) {
+  this.dispatcher.fireNativeEvent(inEvent);
+};
+
+
+/**
+ * Handler for `gotpointercapture`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.NativeSource.prototype.gotPointerCapture = function(inEvent) {
+  this.dispatcher.fireNativeEvent(inEvent);
+};
+
+// Based on https://github.com/Polymer/PointerEvents
+
+// Copyright (c) 2013 The Polymer Authors. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+// * Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+// * Redistributions in binary form must reproduce the above
+// copyright notice, this list of conditions and the following disclaimer
+// in the documentation and/or other materials provided with the
+// distribution.
+// * Neither the name of Google Inc. nor the names of its
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+goog.provide('ol.pointer.TouchSource');
+
+goog.require('goog.array');
+goog.require('goog.object');
+goog.require('ol.pointer.EventSource');
+goog.require('ol.pointer.MouseSource');
+
+
+
+/**
+ * @constructor
+ * @param {ol.pointer.PointerEventHandler} dispatcher
+ * @param {ol.pointer.MouseSource} mouseSource
+ * @extends {ol.pointer.EventSource}
+ */
+ol.pointer.TouchSource = function(dispatcher, mouseSource) {
+  var mapping = {
+    'touchstart': this.touchstart,
+    'touchmove': this.touchmove,
+    'touchend': this.touchend,
+    'touchcancel': this.touchcancel
+  };
+  goog.base(this, dispatcher, mapping);
+
+  /**
+   * @const
+   * @type {Object.<string, goog.events.BrowserEvent|Object>}
+   */
+  this.pointerMap = dispatcher.pointerMap;
+
+  /**
+   * @const
+   * @type {ol.pointer.MouseSource}
+   */
+  this.mouseSource = mouseSource;
+
+  /**
+   * @private
+   * @type {number|undefined}
+   */
+  this.firstTouchId_ = undefined;
+
+  /**
+   * @private
+   * @type {number}
+   */
+  this.clickCount_ = 0;
+
+  /**
+   * @private
+   * @type {number|undefined}
+   */
+  this.resetId_ = undefined;
+};
+goog.inherits(ol.pointer.TouchSource, ol.pointer.EventSource);
+
+
+/**
+ * Mouse event timeout: This should be long enough to
+ * ignore compat mouse events made by touch.
+ * @const
+ * @type {number}
+ */
+ol.pointer.TouchSource.DEDUP_TIMEOUT = 2500;
+
+
+/**
+ * @const
+ * @type {number}
+ */
+ol.pointer.TouchSource.CLICK_COUNT_TIMEOUT = 200;
+
+
+/**
+ * @const
+ * @type {string}
+ */
+ol.pointer.TouchSource.POINTER_TYPE = 'touch';
+
+
+/**
+ * @private
+ * @param {Touch} inTouch
+ * @return {boolean} True, if this is the primary touch.
+ */
+ol.pointer.TouchSource.prototype.isPrimaryTouch_ = function(inTouch) {
+  return this.firstTouchId_ === inTouch.identifier;
+};
+
+
+/**
+ * Set primary touch if there are no pointers, or the only pointer is the mouse.
+ * @param {Touch} inTouch
+ * @private
+ */
+ol.pointer.TouchSource.prototype.setPrimaryTouch_ = function(inTouch) {
+  var count = goog.object.getCount(this.pointerMap);
+  if (count === 0 || (count === 1 && goog.object.containsKey(this.pointerMap,
+      ol.pointer.MouseSource.POINTER_ID.toString()))) {
+    this.firstTouchId_ = inTouch.identifier;
+    this.cancelResetClickCount_();
+  }
+};
+
+
+/**
+ * @private
+ * @param {Object} inPointer
+ */
+ol.pointer.TouchSource.prototype.removePrimaryPointer_ = function(inPointer) {
+  if (inPointer.isPrimary) {
+    this.firstTouchId_ = undefined;
+    this.resetClickCount_();
+  }
+};
+
+
+/**
+ * @private
+ */
+ol.pointer.TouchSource.prototype.resetClickCount_ = function() {
+  this.resetId_ = goog.global.setTimeout(
+      goog.bind(this.resetClickCountHandler_, this),
+      ol.pointer.TouchSource.CLICK_COUNT_TIMEOUT);
+};
+
+
+/**
+ * @private
+ */
+ol.pointer.TouchSource.prototype.resetClickCountHandler_ = function() {
+  this.clickCount_ = 0;
+  this.resetId_ = undefined;
+};
+
+
+/**
+ * @private
+ */
+ol.pointer.TouchSource.prototype.cancelResetClickCount_ = function() {
+  if (goog.isDef(this.resetId_)) {
+    goog.global.clearTimeout(this.resetId_);
+  }
+};
+
+
+/**
+ * @private
+ * @param {goog.events.BrowserEvent} browserEvent Browser event
+ * @param {Touch} inTouch Touch event
+ * @return {Object}
+ */
+ol.pointer.TouchSource.prototype.touchToPointer_ =
+    function(browserEvent, inTouch) {
+  var e = this.dispatcher.cloneEvent(browserEvent, inTouch);
+  // Spec specifies that pointerId 1 is reserved for Mouse.
+  // Touch identifiers can start at 0.
+  // Add 2 to the touch identifier for compatibility.
+  e.pointerId = inTouch.identifier + 2;
+  // TODO: check if this is neccessary?
+  //e.target = findTarget(e);
+  e.bubbles = true;
+  e.cancelable = true;
+  e.detail = this.clickCount_;
+  e.button = 0;
+  e.buttons = 1;
+  e.width = inTouch.webkitRadiusX || inTouch.radiusX || 0;
+  e.height = inTouch.webkitRadiusY || inTouch.radiusY || 0;
+  e.pressure = inTouch.webkitForce || inTouch.force || 0.5;
+  e.isPrimary = this.isPrimaryTouch_(inTouch);
+  e.pointerType = ol.pointer.TouchSource.POINTER_TYPE;
+
+  // make sure that the properties that are different for
+  // each `Touch` object are not copied from the BrowserEvent object
+  e.clientX = inTouch.clientX;
+  e.clientY = inTouch.clientY;
+  e.screenX = inTouch.screenX;
+  e.screenY = inTouch.screenY;
+
+  return e;
+};
+
+
+/**
+ * @private
+ * @param {goog.events.BrowserEvent} inEvent Touch event
+ * @param {function(goog.events.BrowserEvent, Object)} inFunction
+ */
+ol.pointer.TouchSource.prototype.processTouches_ =
+    function(inEvent, inFunction) {
+  var touches = Array.prototype.slice.call(
+      inEvent.getBrowserEvent().changedTouches);
+  var count = touches.length;
+  function preventDefault() {
+    inEvent.preventDefault();
+  }
+  var i, pointer;
+  for (i = 0; i < count; ++i) {
+    pointer = this.touchToPointer_(inEvent, touches[i]);
+    // forward touch preventDefaults
+    pointer.preventDefault = preventDefault;
+    inFunction.call(this, inEvent, pointer);
+  }
+};
+
+
+/**
+ * @private
+ * @param {TouchList} touchList
+ * @param {number} searchId
+ * @return {boolean} True, if the `Touch` with the given id is in the list.
+ */
+ol.pointer.TouchSource.prototype.findTouch_ = function(touchList, searchId) {
+  var l = touchList.length;
+  var touch;
+  for (var i = 0; i < l; i++) {
+    touch = touchList[i];
+    if (touch.identifier === searchId) {
+      return true;
+    }
+  }
+  return false;
+};
+
+
+/**
+ * In some instances, a touchstart can happen without a touchend. This
+ * leaves the pointermap in a broken state.
+ * Therefore, on every touchstart, we remove the touches that did not fire a
+ * touchend event.
+ * To keep state globally consistent, we fire a pointercancel for
+ * this "abandoned" touch
+ *
+ * @private
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.TouchSource.prototype.vacuumTouches_ = function(inEvent) {
+  var touchList = inEvent.getBrowserEvent().touches;
+  // pointerMap.getCount() should be < touchList.length here,
+  // as the touchstart has not been processed yet.
+  var keys = goog.object.getKeys(this.pointerMap);
+  var count = keys.length;
+  if (count >= touchList.length) {
+    var d = [];
+    var i, key, value;
+    for (i = 0; i < count; ++i) {
+      key = keys[i];
+      value = this.pointerMap[key];
+      // Never remove pointerId == 1, which is mouse.
+      // Touch identifiers are 2 smaller than their pointerId, which is the
+      // index in pointermap.
+      if (key != ol.pointer.MouseSource.POINTER_ID &&
+          !this.findTouch_(touchList, key - 2)) {
+        d.push(value.out);
+      }
+    }
+    for (i = 0; i < d.length; ++i) {
+      this.cancelOut_(inEvent, d[i]);
+    }
+  }
+};
+
+
+/**
+ * Handler for `touchstart`, triggers `pointerover`,
+ * `pointerenter` and `pointerdown` events.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.TouchSource.prototype.touchstart = function(inEvent) {
+  this.vacuumTouches_(inEvent);
+  this.setPrimaryTouch_(inEvent.getBrowserEvent().changedTouches[0]);
+  this.dedupSynthMouse_(inEvent);
+  this.clickCount_++;
+  this.processTouches_(inEvent, this.overDown_);
+};
+
+
+/**
+ * @private
+ * @param {goog.events.BrowserEvent} browserEvent
+ * @param {Object} inPointer
+ */
+ol.pointer.TouchSource.prototype.overDown_ = function(browserEvent, inPointer) {
+  goog.object.set(this.pointerMap, inPointer.pointerId, {
+    target: inPointer.target,
+    out: inPointer,
+    outTarget: inPointer.target
+  });
+  this.dispatcher.over(inPointer, browserEvent);
+  this.dispatcher.enter(inPointer, browserEvent);
+  this.dispatcher.down(inPointer, browserEvent);
+};
+
+
+/**
+ * Handler for `touchmove`.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.TouchSource.prototype.touchmove = function(inEvent) {
+  inEvent.preventDefault();
+  this.processTouches_(inEvent, this.moveOverOut_);
+};
+
+
+/**
+ * @private
+ * @param {goog.events.BrowserEvent} browserEvent
+ * @param {Object} inPointer
+ */
+ol.pointer.TouchSource.prototype.moveOverOut_ =
+    function(browserEvent, inPointer) {
+  var event = inPointer;
+  var pointer = goog.object.get(this.pointerMap, event.pointerId);
+  // a finger drifted off the screen, ignore it
+  if (!pointer) {
+    return;
+  }
+  var outEvent = pointer.out;
+  var outTarget = pointer.outTarget;
+  this.dispatcher.move(event, browserEvent);
+  if (outEvent && outTarget !== event.target) {
+    outEvent.relatedTarget = event.target;
+    event.relatedTarget = outTarget;
+    // recover from retargeting by shadow
+    outEvent.target = outTarget;
+    if (event.target) {
+      this.dispatcher.leaveOut(outEvent, browserEvent);
+      this.dispatcher.enterOver(event, browserEvent);
+    } else {
+      // clean up case when finger leaves the screen
+      event.target = outTarget;
+      event.relatedTarget = null;
+      this.cancelOut_(browserEvent, event);
+    }
+  }
+  pointer.out = event;
+  pointer.outTarget = event.target;
+};
+
+
+/**
+ * Handler for `touchend`, triggers `pointerup`,
+ * `pointerout` and `pointerleave` events.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.TouchSource.prototype.touchend = function(inEvent) {
+  this.dedupSynthMouse_(inEvent);
+  this.processTouches_(inEvent, this.upOut_);
+};
+
+
+/**
+ * @private
+ * @param {goog.events.BrowserEvent} browserEvent
+ * @param {Object} inPointer
+ */
+ol.pointer.TouchSource.prototype.upOut_ = function(browserEvent, inPointer) {
+  this.dispatcher.up(inPointer, browserEvent);
+  this.dispatcher.out(inPointer, browserEvent);
+  this.dispatcher.leave(inPointer, browserEvent);
+  this.cleanUpPointer_(inPointer);
+};
+
+
+/**
+ * Handler for `touchcancel`, triggers `pointercancel`,
+ * `pointerout` and `pointerleave` events.
+ *
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.TouchSource.prototype.touchcancel = function(inEvent) {
+  this.processTouches_(inEvent, this.cancelOut_);
+};
+
+
+/**
+ * @private
+ * @param {goog.events.BrowserEvent} browserEvent
+ * @param {Object} inPointer
+ */
+ol.pointer.TouchSource.prototype.cancelOut_ =
+    function(browserEvent, inPointer) {
+  this.dispatcher.cancel(inPointer, browserEvent);
+  this.dispatcher.out(inPointer, browserEvent);
+  this.dispatcher.leave(inPointer, browserEvent);
+  this.cleanUpPointer_(inPointer);
+};
+
+
+/**
+ * @private
+ * @param {Object} inPointer
+ */
+ol.pointer.TouchSource.prototype.cleanUpPointer_ = function(inPointer) {
+  goog.object.remove(this.pointerMap, inPointer.pointerId);
+  this.removePrimaryPointer_(inPointer);
+};
+
+
+/**
+ * Prevent synth mouse events from creating pointer events.
+ *
+ * @private
+ * @param {goog.events.BrowserEvent} inEvent
+ */
+ol.pointer.TouchSource.prototype.dedupSynthMouse_ = function(inEvent) {
+  var lts = this.mouseSource.lastTouches;
+  var t = inEvent.getBrowserEvent().changedTouches[0];
+  // only the primary finger will synth mouse events
+  if (this.isPrimaryTouch_(t)) {
+    // remember x/y of last touch
+    var lt = /** @type {ol.Pixel} */ ([t.clientX, t.clientY]);
+    lts.push(lt);
+
+    goog.global.setTimeout(function() {
+      // remove touch after timeout
+      goog.array.remove(lts, lt);
+    }, ol.pointer.TouchSource.DEDUP_TIMEOUT);
+  }
+};
+
+// Based on https://github.com/Polymer/PointerEvents
+
+// Copyright (c) 2013 The Polymer Authors. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+// * Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+// * Redistributions in binary form must reproduce the above
+// copyright notice, this list of conditions and the following disclaimer
+// in the documentation and/or other materials provided with the
+// distribution.
+// * Neither the name of Google Inc. nor the names of its
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+goog.provide('ol.pointer.PointerEventHandler');
+
+goog.require('goog.array');
+goog.require('goog.events');
+goog.require('goog.events.BrowserEvent');
+goog.require('goog.events.Event');
+goog.require('goog.events.EventTarget');
+
+goog.require('ol.has');
+goog.require('ol.pointer.MouseSource');
+goog.require('ol.pointer.MsSource');
+goog.require('ol.pointer.NativeSource');
+goog.require('ol.pointer.PointerEvent');
+goog.require('ol.pointer.TouchSource');
+
+
+
+/**
+ * @constructor
+ * @extends {goog.events.EventTarget}
+ * @param {Element|HTMLDocument} element Viewport element.
+ */
+ol.pointer.PointerEventHandler = function(element) {
+  goog.base(this);
+
+  /**
+   * @const
+   * @private
+   * @type {Element|HTMLDocument}
+   */
+  this.element_ = element;
+
+  /**
+   * @const
+   * @type {Object.<string, goog.events.BrowserEvent|Object>}
+   */
+  this.pointerMap = {};
+
+  /**
+   * @type {Object.<string, function(goog.events.BrowserEvent)>}
+   * @private
+   */
+  this.eventMap_ = {};
+
+  /**
+   * @type {Array.<ol.pointer.EventSource>}
+   * @private
+   */
+  this.eventSourceList_ = [];
+
+  this.registerSources();
+};
+goog.inherits(ol.pointer.PointerEventHandler, goog.events.EventTarget);
+
+
+/**
+ * Set up the event sources (mouse, touch and native pointers)
+ * that generate pointer events.
+ */
+ol.pointer.PointerEventHandler.prototype.registerSources = function() {
+  if (ol.has.POINTER) {
+    this.registerSource('native', new ol.pointer.NativeSource(this));
+  } else if (ol.has.MSPOINTER) {
+    this.registerSource('ms', new ol.pointer.MsSource(this));
+  } else {
+    var mouseSource = new ol.pointer.MouseSource(this);
+    this.registerSource('mouse', mouseSource);
+
+    if (ol.has.TOUCH) {
+      this.registerSource('touch',
+          new ol.pointer.TouchSource(this, mouseSource));
+    }
+  }
+
+  // register events on the viewport element
+  this.register_();
+};
+
+
+/**
+ * Add a new event source that will generate pointer events.
+ *
+ * @param {string} name A name for the event source
+ * @param {ol.pointer.EventSource} source
+ */
+ol.pointer.PointerEventHandler.prototype.registerSource =
+    function(name, source) {
+  var s = source;
+  var newEvents = s.getEvents();
+
+  if (newEvents) {
+    goog.array.forEach(newEvents, function(e) {
+      var handler = s.getHandlerForEvent(e);
+
+      if (handler) {
+        this.eventMap_[e] = goog.bind(handler, s);
+      }
+    }, this);
+    this.eventSourceList_.push(s);
+  }
+};
+
+
+/**
+ * Set up the events for all registered event sources.
+ * @private
+ */
+ol.pointer.PointerEventHandler.prototype.register_ = function() {
+  var l = this.eventSourceList_.length;
+  var eventSource;
+  for (var i = 0; i < l; i++) {
+    eventSource = this.eventSourceList_[i];
+    this.addEvents_(eventSource.getEvents());
+  }
+};
+
+
+/**
+ * Remove all registered events.
+ * @private
+ */
+ol.pointer.PointerEventHandler.prototype.unregister_ = function() {
+  var l = this.eventSourceList_.length;
+  var eventSource;
+  for (var i = 0; i < l; i++) {
+    eventSource = this.eventSourceList_[i];
+    this.removeEvents_(eventSource.getEvents());
+  }
+};
+
+
+/**
+ * Calls the right handler for a new event.
+ * @private
+ * @param {goog.events.BrowserEvent} inEvent Browser event.
+ */
+ol.pointer.PointerEventHandler.prototype.eventHandler_ = function(inEvent) {
+  var type = inEvent.type;
+  var handler = this.eventMap_[type];
+  if (handler) {
+    handler(inEvent);
+  }
+};
+
+
+/**
+ * Setup listeners for the given events.
+ * @private
+ * @param {Array.<string>} events List of events.
+ */
+ol.pointer.PointerEventHandler.prototype.addEvents_ = function(events) {
+  goog.array.forEach(events, function(eventName) {
+    goog.events.listen(this.element_, eventName,
+        this.eventHandler_, false, this);
+  }, this);
+};
+
+
+/**
+ * Unregister listeners for the given events.
+ * @private
+ * @param {Array.<string>} events List of events.
+ */
+ol.pointer.PointerEventHandler.prototype.removeEvents_ = function(events) {
+  goog.array.forEach(events, function(e) {
+    goog.events.unlisten(this.element_, e,
+        this.eventHandler_, false, this);
+  }, this);
+};
+
+
+/**
+ * Returns a snapshot of inEvent, with writable properties.
+ *
+ * @param {goog.events.BrowserEvent} browserEvent Browser event.
+ * @param {Event|Touch} inEvent An event that contains
+ *    properties to copy.
+ * @return {Object} An object containing shallow copies of
+ *    `inEvent`'s properties.
+ */
+ol.pointer.PointerEventHandler.prototype.cloneEvent =
+    function(browserEvent, inEvent) {
+  var eventCopy = {}, p;
+  for (var i = 0, ii = ol.pointer.CLONE_PROPS.length; i < ii; i++) {
+    p = ol.pointer.CLONE_PROPS[i][0];
+    eventCopy[p] =
+        browserEvent[p] ||
+        inEvent[p] ||
+        ol.pointer.CLONE_PROPS[i][1];
+  }
+
+  return eventCopy;
+};
+
+
+// EVENTS
+
+
+/**
+ * Triggers a 'pointerdown' event.
+ * @param {Object} pointerEventData
+ * @param {goog.events.BrowserEvent } browserEvent
+ */
+ol.pointer.PointerEventHandler.prototype.down =
+    function(pointerEventData, browserEvent) {
+  this.fireEvent(ol.pointer.EventType.POINTERDOWN,
+      pointerEventData, browserEvent);
+};
+
+
+/**
+ * Triggers a 'pointermove' event.
+ * @param {Object} pointerEventData
+ * @param {goog.events.BrowserEvent } browserEvent
+ */
+ol.pointer.PointerEventHandler.prototype.move =
+    function(pointerEventData, browserEvent) {
+  this.fireEvent(ol.pointer.EventType.POINTERMOVE,
+      pointerEventData, browserEvent);
+};
+
+
+/**
+ * Triggers a 'pointerup' event.
+ * @param {Object} pointerEventData
+ * @param {goog.events.BrowserEvent } browserEvent
+ */
+ol.pointer.PointerEventHandler.prototype.up =
+    function(pointerEventData, browserEvent) {
+  this.fireEvent(ol.pointer.EventType.POINTERUP,
+      pointerEventData, browserEvent);
+};
+
+
+/**
+ * Triggers a 'pointerenter' event.
+ * @param {Object} pointerEventData
+ * @param {goog.events.BrowserEvent } browserEvent
+ */
+ol.pointer.PointerEventHandler.prototype.enter =
+    function(pointerEventData, browserEvent) {
+  pointerEventData.bubbles = false;
+  this.fireEvent(ol.pointer.EventType.POINTERENTER,
+      pointerEventData, browserEvent);
+};
+
+
+/**
+ * Triggers a 'pointerleave' event.
+ * @param {Object} pointerEventData
+ * @param {goog.events.BrowserEvent } browserEvent
+ */
+ol.pointer.PointerEventHandler.prototype.leave =
+    function(pointerEventData, browserEvent) {
+  pointerEventData.bubbles = false;
+  this.fireEvent(ol.pointer.EventType.POINTERLEAVE,
+      pointerEventData, browserEvent);
+};
+
+
+/**
+ * Triggers a 'pointerover' event.
+ * @param {Object} pointerEventData
+ * @param {goog.events.BrowserEvent } browserEvent
+ */
+ol.pointer.PointerEventHandler.prototype.over =
+    function(pointerEventData, browserEvent) {
+  pointerEventData.bubbles = true;
+  this.fireEvent(ol.pointer.EventType.POINTEROVER,
+      pointerEventData, browserEvent);
+};
+
+
+/**
+ * Triggers a 'pointerout' event.
+ * @param {Object} pointerEventData
+ * @param {goog.events.BrowserEvent } browserEvent
+ */
+ol.pointer.PointerEventHandler.prototype.out =
+    function(pointerEventData, browserEvent) {
+  pointerEventData.bubbles = true;
+  this.fireEvent(ol.pointer.EventType.POINTEROUT,
+      pointerEventData, browserEvent);
+};
+
+
+/**
+ * Triggers a 'pointercancel' event.
+ * @param {Object} pointerEventData
+ * @param {goog.events.BrowserEvent } browserEvent
+ */
+ol.pointer.PointerEventHandler.prototype.cancel =
+    function(pointerEventData, browserEvent) {
+  this.fireEvent(ol.pointer.EventType.POINTERCANCEL,
+      pointerEventData, browserEvent);
+};
+
+
+/**
+ * Triggers a combination of 'pointerout' and 'pointerleave' events.
+ * @param {Object} pointerEventData
+ * @param {goog.events.BrowserEvent } browserEvent
+ */
+ol.pointer.PointerEventHandler.prototype.leaveOut =
+    function(pointerEventData, browserEvent) {
+  this.out(pointerEventData, browserEvent);
+  if (!this.contains_(
+      pointerEventData.target,
+      pointerEventData.relatedTarget)) {
+    this.leave(pointerEventData, browserEvent);
+  }
+};
+
+
+/**
+ * Triggers a combination of 'pointerover' and 'pointerevents' events.
+ * @param {Object} pointerEventData
+ * @param {goog.events.BrowserEvent } browserEvent
+ */
+ol.pointer.PointerEventHandler.prototype.enterOver =
+    function(pointerEventData, browserEvent) {
+  this.over(pointerEventData, browserEvent);
+  if (!this.contains_(
+      pointerEventData.target,
+      pointerEventData.relatedTarget)) {
+    this.enter(pointerEventData, browserEvent);
+  }
+};
+
+
+/**
+ * @private
+ * @param {Element} container
+ * @param {Element} contained
+ * @return {boolean} Returns true if the container element
+ *   contains the other element.
+ */
+ol.pointer.PointerEventHandler.prototype.contains_ =
+    function(container, contained) {
+  return container.contains(contained);
+};
+
+
+// EVENT CREATION AND TRACKING
+/**
+ * Creates a new Event of type `inType`, based on the information in
+ * `pointerEventData`.
+ *
+ * @param {string} inType A string representing the type of event to create.
+ * @param {Object} pointerEventData
+ * @param {goog.events.BrowserEvent } browserEvent
+ * @return {ol.pointer.PointerEvent} A PointerEvent of type `inType`.
+ */
+ol.pointer.PointerEventHandler.prototype.makeEvent =
+    function(inType, pointerEventData, browserEvent) {
+  return new ol.pointer.PointerEvent(inType, browserEvent, pointerEventData);
+};
+
+
+/**
+ * Make and dispatch an event in one call.
+ * @param {string} inType A string representing the type of event.
+ * @param {Object} pointerEventData
+ * @param {goog.events.BrowserEvent } browserEvent
+ */
+ol.pointer.PointerEventHandler.prototype.fireEvent =
+    function(inType, pointerEventData, browserEvent) {
+  var e = this.makeEvent(inType, pointerEventData, browserEvent);
+  this.dispatchEvent(e);
+};
+
+
+/**
+ * Creates a pointer event from a native pointer event
+ * and dispatches this event.
+ * @param {goog.events.BrowserEvent} nativeEvent A platform event with a target.
+ */
+ol.pointer.PointerEventHandler.prototype.fireNativeEvent =
+    function(nativeEvent) {
+  var e = this.makeEvent(nativeEvent.type, nativeEvent.getBrowserEvent(),
+      nativeEvent);
+  this.dispatchEvent(e);
+};
+
+
+/**
+ * Wrap a native mouse event into a pointer event.
+ * This proxy method is required for the legacy IE support.
+ * @param {string} eventType The pointer event type.
+ * @param {goog.events.BrowserEvent} browserEvent
+ * @return {ol.pointer.PointerEvent}
+ */
+ol.pointer.PointerEventHandler.prototype.wrapMouseEvent =
+    function(eventType, browserEvent) {
+  var pointerEvent = this.makeEvent(
+      eventType,
+      ol.pointer.MouseSource.prepareEvent(browserEvent, this),
+      browserEvent
+      );
+  return pointerEvent;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.pointer.PointerEventHandler.prototype.disposeInternal = function() {
+  this.unregister_();
+  goog.base(this, 'disposeInternal');
+};
+
+
+/**
+ * Constants for event names.
+ * @enum {string}
+ */
+ol.pointer.EventType = {
+  POINTERMOVE: 'pointermove',
+  POINTERDOWN: 'pointerdown',
+  POINTERUP: 'pointerup',
+  POINTEROVER: 'pointerover',
+  POINTEROUT: 'pointerout',
+  POINTERENTER: 'pointerenter',
+  POINTERLEAVE: 'pointerleave',
+  POINTERCANCEL: 'pointercancel'
+};
+
+
+/**
+ * Properties to copy when cloning an event, with default values.
+ * @type {Array.<Array>}
+ */
+ol.pointer.CLONE_PROPS = [
+  // MouseEvent
+  ['bubbles', false],
+  ['cancelable', false],
+  ['view', null],
+  ['detail', null],
+  ['screenX', 0],
+  ['screenY', 0],
+  ['clientX', 0],
+  ['clientY', 0],
+  ['ctrlKey', false],
+  ['altKey', false],
+  ['shiftKey', false],
+  ['metaKey', false],
+  ['button', 0],
+  ['relatedTarget', null],
+  // DOM Level 3
+  ['buttons', 0],
+  // PointerEvent
+  ['pointerId', 0],
+  ['width', 0],
+  ['height', 0],
+  ['pressure', 0],
+  ['tiltX', 0],
+  ['tiltY', 0],
+  ['pointerType', ''],
+  ['hwTimestamp', 0],
+  ['isPrimary', false],
+  // event instance
+  ['type', ''],
+  ['target', null],
+  ['currentTarget', null],
+  ['which', 0]
+];
+
 goog.provide('ol.MapBrowserEvent');
 goog.provide('ol.MapBrowserEvent.EventType');
 goog.provide('ol.MapBrowserEventHandler');
@@ -43167,10 +43065,6 @@ ol.MapBrowserEventHandler.prototype.handlePointerDown_ =
           this.handlePointerUp_, false, this)
     ];
   }
-
-  // FIXME check if/when this is necessary
-  // prevent context menu
-  pointerEvent.preventDefault();
 };
 
 
@@ -43306,11 +43200,12 @@ goog.require('ol.proj');
 
 
 /**
- * State of the source, one of 'loading', 'ready' or 'error'.
+ * State of the source, one of 'undefined', 'loading', 'ready' or 'error'.
  * @enum {string}
  * @api
  */
 ol.source.State = {
+  UNDEFINED: 'undefined',
   LOADING: 'loading',
   READY: 'ready',
   ERROR: 'error'
@@ -43485,7 +43380,8 @@ ol.layer.LayerProperty = {
   VISIBLE: 'visible',
   EXTENT: 'extent',
   MAX_RESOLUTION: 'maxResolution',
-  MIN_RESOLUTION: 'minResolution'
+  MIN_RESOLUTION: 'minResolution',
+  SOURCE: 'source'
 };
 
 
@@ -43523,30 +43419,26 @@ ol.layer.Base = function(options) {
 
   goog.base(this);
 
+  /**
+   * @type {Object.<string, *>}
+   */
   var properties = goog.object.clone(options);
-
-  /** @type {number} */
-  properties.brightness = goog.isDef(properties.brightness) ?
-      properties.brightness : 0;
-  /** @type {number} */
-  properties.contrast = goog.isDef(properties.contrast) ?
-      properties.contrast : 1;
-  /** @type {number} */
-  properties.hue = goog.isDef(properties.hue) ? properties.hue : 0;
-  /** @type {number} */
-  properties.opacity = goog.isDef(properties.opacity) ? properties.opacity : 1;
-  /** @type {number} */
-  properties.saturation = goog.isDef(properties.saturation) ?
-      properties.saturation : 1;
-  /** @type {boolean} */
-  properties.visible = goog.isDef(properties.visible) ?
-      properties.visible : true;
-  /** @type {number} */
-  properties.maxResolution = goog.isDef(properties.maxResolution) ?
-      properties.maxResolution : Infinity;
-  /** @type {number} */
-  properties.minResolution = goog.isDef(properties.minResolution) ?
-      properties.minResolution : 0;
+  properties[ol.layer.LayerProperty.BRIGHTNESS] =
+      goog.isDef(options.brightness) ? options.brightness : 0;
+  properties[ol.layer.LayerProperty.CONTRAST] =
+      goog.isDef(options.contrast) ? options.contrast : 1;
+  properties[ol.layer.LayerProperty.HUE] =
+      goog.isDef(options.hue) ? options.hue : 0;
+  properties[ol.layer.LayerProperty.OPACITY] =
+      goog.isDef(options.opacity) ? options.opacity : 1;
+  properties[ol.layer.LayerProperty.SATURATION] =
+      goog.isDef(options.saturation) ? options.saturation : 1;
+  properties[ol.layer.LayerProperty.VISIBLE] =
+      goog.isDef(options.visible) ? options.visible : true;
+  properties[ol.layer.LayerProperty.MAX_RESOLUTION] =
+      goog.isDef(options.maxResolution) ? options.maxResolution : Infinity;
+  properties[ol.layer.LayerProperty.MIN_RESOLUTION] =
+      goog.isDef(options.minResolution) ? options.minResolution : 0;
 
   this.setProperties(properties);
 };
@@ -43900,8 +43792,10 @@ goog.require('goog.asserts');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
 goog.require('goog.object');
+goog.require('ol.Object');
 goog.require('ol.layer.Base');
-goog.require('ol.source.Source');
+goog.require('ol.layer.LayerProperty');
+goog.require('ol.source.State');
 
 
 
@@ -43929,13 +43823,16 @@ ol.layer.Layer = function(options) {
 
   /**
    * @private
-   * @type {ol.source.Source}
+   * @type {goog.events.Key}
    */
-  this.source_ = options.source;
+  this.sourceChangeKey_ = null;
 
-  goog.events.listen(this.source_, goog.events.EventType.CHANGE,
-      this.handleSourceChange_, false, this);
+  goog.events.listen(this,
+      ol.Object.getChangeEventType(ol.layer.LayerProperty.SOURCE),
+      this.handleSourcePropertyChange_, false, this);
 
+  var source = goog.isDef(options.source) ? options.source : null;
+  this.setSource(source);
 };
 goog.inherits(ol.layer.Layer, ol.layer.Base);
 
@@ -43975,19 +43872,28 @@ ol.layer.Layer.prototype.getLayerStatesArray = function(opt_states) {
 
 
 /**
- * @return {ol.source.Source} Source.
+ * Get the layer source.
+ * @return {ol.source.Source} The layer source (or `null` if not yet set).
+ * @observable
  * @api stable
  */
 ol.layer.Layer.prototype.getSource = function() {
-  return this.source_;
+  var source = this.get(ol.layer.LayerProperty.SOURCE);
+  return goog.isDef(source) ?
+      /** @type {ol.source.Source} */ (source) : null;
 };
+goog.exportProperty(
+    ol.layer.Layer.prototype,
+    'getSource',
+    ol.layer.Layer.prototype.getSource);
 
 
 /**
   * @inheritDoc
   */
 ol.layer.Layer.prototype.getSourceState = function() {
-  return this.getSource().getState();
+  var source = this.getSource();
+  return goog.isNull(source) ? ol.source.State.UNDEFINED : source.getState();
 };
 
 
@@ -43997,6 +43903,38 @@ ol.layer.Layer.prototype.getSourceState = function() {
 ol.layer.Layer.prototype.handleSourceChange_ = function() {
   this.changed();
 };
+
+
+/**
+ * @private
+ */
+ol.layer.Layer.prototype.handleSourcePropertyChange_ = function() {
+  if (!goog.isNull(this.sourceChangeKey_)) {
+    goog.events.unlistenByKey(this.sourceChangeKey_);
+    this.sourceChangeKey_ = null;
+  }
+  var source = this.getSource();
+  if (!goog.isNull(source)) {
+    this.sourceChangeKey_ = goog.events.listen(source,
+        goog.events.EventType.CHANGE, this.handleSourceChange_, false, this);
+  }
+  this.changed();
+};
+
+
+/**
+ * Set the layer source.
+ * @param {ol.source.Source} source The layer source.
+ * @observable
+ * @api stable
+ */
+ol.layer.Layer.prototype.setSource = function(source) {
+  this.set(ol.layer.LayerProperty.SOURCE, source);
+};
+goog.exportProperty(
+    ol.layer.Layer.prototype,
+    'setSource',
+    ol.layer.Layer.prototype.setSource);
 
 goog.provide('ol.ImageBase');
 goog.provide('ol.ImageState');
@@ -44095,7 +44033,7 @@ ol.ImageBase.prototype.getExtent = function() {
  * @param {Object=} opt_context Object.
  * @return {HTMLCanvasElement|Image|HTMLVideoElement} Image.
  */
-ol.ImageBase.prototype.getImageElement = goog.abstractMethod;
+ol.ImageBase.prototype.getImage = goog.abstractMethod;
 
 
 /**
@@ -47055,6 +46993,7 @@ ol.interaction.InteractionProperty = {
  *
  * @constructor
  * @extends {ol.Object}
+ * @implements {oli.interaction.Interaction}
  * @api
  */
 ol.interaction.Interaction = function() {
@@ -47098,10 +47037,16 @@ ol.interaction.Interaction.prototype.getMap = function() {
 
 
 /**
+ * Method called by the map to notify the interaction that a browser
+ * event was dispatched on the map. If the interaction wants to handle
+ * that event it can return `false` to prevent the propagation of the
+ * event to other interactions in the map's interactions chain.
  * @param {ol.MapBrowserEvent} mapBrowserEvent Map browser event.
  * @return {boolean} Whether the map browser event should continue
- *     through the chain of interactions. false means stop, true
+ *     through the chain of interactions. `false` means stop, `true`
  *     means continue.
+ * @function
+ * @api
  */
 ol.interaction.Interaction.prototype.handleMapBrowserEvent =
     goog.abstractMethod;
@@ -48438,6 +48383,7 @@ ol.geom.SimpleGeometry.prototype.setLayout =
 
 /**
  * @inheritDoc
+ * @api stable
  */
 ol.geom.SimpleGeometry.prototype.applyTransform = function(transformFn) {
   if (!goog.isNull(this.flatCoordinates)) {
@@ -50666,6 +50612,26 @@ ol.geom.Polygon.circular = function(sphere, center, radius, opt_n) {
         flatCoordinates, sphere.offset(center, radius, 2 * Math.PI * i / n));
   }
   flatCoordinates.push(flatCoordinates[0], flatCoordinates[1]);
+  var polygon = new ol.geom.Polygon(null);
+  polygon.setFlatCoordinates(
+      ol.geom.GeometryLayout.XY, flatCoordinates, [flatCoordinates.length]);
+  return polygon;
+};
+
+
+/**
+ * Create a polygon from an extent. The layout used is `XY`.
+ * @param {ol.Extent} extent The extent.
+ * @return {ol.geom.Polygon} The polygon.
+ * @api
+ */
+ol.geom.Polygon.fromExtent = function(extent) {
+  var minX = extent[0];
+  var minY = extent[1];
+  var maxX = extent[2];
+  var maxY = extent[3];
+  var flatCoordinates =
+      [minX, minY, minX, maxY, maxX, maxY, maxX, minY, minX, minY];
   var polygon = new ol.geom.Polygon(null);
   polygon.setFlatCoordinates(
       ol.geom.GeometryLayout.XY, flatCoordinates, [flatCoordinates.length]);
@@ -53091,9 +53057,13 @@ ol.layer.Group.prototype.getLayerStatesArray = function(opt_states) {
         layerState.maxResolution, ownLayerState.maxResolution);
     layerState.minResolution = Math.max(
         layerState.minResolution, ownLayerState.minResolution);
-    if (goog.isDef(ownLayerState.extent) && goog.isDef(layerState.extent)) {
-      layerState.extent = ol.extent.getIntersection(
-          layerState.extent, ownLayerState.extent);
+    if (goog.isDef(ownLayerState.extent)) {
+      if (goog.isDef(layerState.extent)) {
+        layerState.extent = ol.extent.getIntersection(
+            layerState.extent, ownLayerState.extent);
+      } else {
+        layerState.extent = ownLayerState.extent;
+      }
     }
   }
 
@@ -53376,10 +53346,11 @@ goog.require('ol.layer.Layer');
  * @constructor
  * @extends {ol.layer.Layer}
  * @fires ol.render.Event
- * @param {olx.layer.ImageOptions} options Layer options.
+ * @param {olx.layer.ImageOptions=} opt_options Layer options.
  * @api stable
  */
-ol.layer.Image = function(options) {
+ol.layer.Image = function(opt_options) {
+  var options = goog.isDef(opt_options) ? opt_options : {};
   goog.base(this,  /** @type {olx.layer.LayerOptions} */ (options));
 };
 goog.inherits(ol.layer.Image, ol.layer.Layer);
@@ -53418,10 +53389,11 @@ ol.layer.TileProperty = {
  * @constructor
  * @extends {ol.layer.Layer}
  * @fires ol.render.Event
- * @param {olx.layer.TileOptions} options Tile layer options.
+ * @param {olx.layer.TileOptions=} opt_options Tile layer options.
  * @api stable
  */
-ol.layer.Tile = function(options) {
+ol.layer.Tile = function(opt_options) {
+  var options = goog.isDef(opt_options) ? opt_options : {};
   goog.base(this,  /** @type {olx.layer.LayerOptions} */ (options));
 };
 goog.inherits(ol.layer.Tile, ol.layer.Layer);
@@ -57055,7 +57027,7 @@ ol.renderer.canvas.ImageLayer.prototype.forEachFeatureAtPixel =
  */
 ol.renderer.canvas.ImageLayer.prototype.getImage = function() {
   return goog.isNull(this.image_) ?
-      null : this.image_.getImageElement();
+      null : this.image_.getImage();
 };
 
 
@@ -58093,6 +58065,7 @@ ol.geom.GeometryCollection.prototype.setGeometriesArray = function(geometries) {
 
 /**
  * @inheritDoc
+ * @api stable
  */
 ol.geom.GeometryCollection.prototype.applyTransform = function(transformFn) {
   var geometries = this.geometries_;
@@ -60269,21 +60242,23 @@ ol.renderer.canvas.Map.prototype.dispatchComposeEvent_ =
     var viewState = frameState.viewState;
     var resolution = viewState.resolution;
     var rotation = viewState.rotation;
+
     ol.vec.Mat4.makeTransform2D(this.transform_,
-        this.canvas_.width / 2,
-        this.canvas_.height / 2,
-        pixelRatio / viewState.resolution,
-        -pixelRatio / viewState.resolution,
-        -viewState.rotation,
+        this.canvas_.width / 2, this.canvas_.height / 2,
+        pixelRatio / resolution, -pixelRatio / resolution,
+        -rotation,
         -viewState.center[0], -viewState.center[1]);
+
+    var tolerance = ol.renderer.vector.getTolerance(resolution, pixelRatio);
+    var replayGroup = new ol.render.canvas.ReplayGroup(tolerance, extent,
+        resolution);
+
     var vectorContext = new ol.render.canvas.Immediate(context, pixelRatio,
         extent, this.transform_, rotation);
-    var replayGroup = new ol.render.canvas.ReplayGroup(
-        ol.renderer.vector.getTolerance(resolution, pixelRatio), extent,
-        resolution);
     var composeEvent = new ol.render.Event(type, map, vectorContext,
         replayGroup, frameState, context, null);
     map.dispatchEvent(composeEvent);
+
     replayGroup.finish();
     if (!replayGroup.isEmpty()) {
       replayGroup.replay(context, extent, pixelRatio, this.transform_,
@@ -60399,6 +60374,19 @@ goog.inherits(ol.renderer.dom.Layer, ol.renderer.Layer);
 
 
 /**
+ * Clear rendered elements.
+ */
+ol.renderer.dom.Layer.prototype.clearFrame = goog.nullFunction;
+
+
+/**
+ * @param {olx.FrameState} frameState Frame state.
+ * @param {ol.layer.LayerState} layerState Layer state.
+ */
+ol.renderer.dom.Layer.prototype.composeFrame = goog.nullFunction;
+
+
+/**
  * @return {!Element} Target.
  */
 ol.renderer.dom.Layer.prototype.getTarget = function() {
@@ -60479,6 +60467,15 @@ ol.renderer.dom.ImageLayer.prototype.forEachFeatureAtPixel =
 /**
  * @inheritDoc
  */
+ol.renderer.dom.ImageLayer.prototype.clearFrame = function() {
+  goog.dom.removeChildren(this.target);
+  this.image_ = null;
+};
+
+
+/**
+ * @inheritDoc
+ */
 ol.renderer.dom.ImageLayer.prototype.prepareFrame =
     function(frameState, layerState) {
 
@@ -60527,7 +60524,7 @@ ol.renderer.dom.ImageLayer.prototype.prepareFrame =
         (imageExtent[0] - viewCenter[0]) / imageResolution,
         (viewCenter[1] - imageExtent[3]) / imageResolution);
     if (image != this.image_) {
-      var imageElement = image.getImageElement(this);
+      var imageElement = image.getImage(this);
       // Bootstrap sets the style max-width: 100% for all images, which breaks
       // prevents the image from being displayed in FireFox.  Workaround by
       // overriding the max-width style.
@@ -60631,6 +60628,15 @@ ol.renderer.dom.TileLayer = function(mapRenderer, tileLayer) {
 
 };
 goog.inherits(ol.renderer.dom.TileLayer, ol.renderer.dom.Layer);
+
+
+/**
+ * @inheritDoc
+ */
+ol.renderer.dom.TileLayer.prototype.clearFrame = function() {
+  goog.dom.removeChildren(this.target);
+  this.renderedRevision_ = 0;
+};
 
 
 /**
@@ -61029,23 +61035,362 @@ ol.renderer.dom.TileLayerZ_.prototype.setTransform = function(transform) {
   }
 };
 
+goog.provide('ol.renderer.dom.VectorLayer');
+
+goog.require('goog.array');
+goog.require('goog.asserts');
+goog.require('goog.events');
+goog.require('goog.vec.Mat4');
+goog.require('ol.ViewHint');
+goog.require('ol.dom');
+goog.require('ol.extent');
+goog.require('ol.layer.Vector');
+goog.require('ol.render.Event');
+goog.require('ol.render.EventType');
+goog.require('ol.render.canvas.Immediate');
+goog.require('ol.render.canvas.ReplayGroup');
+goog.require('ol.renderer.dom.Layer');
+goog.require('ol.renderer.vector');
+goog.require('ol.vec.Mat4');
+
+
+
+/**
+ * @constructor
+ * @extends {ol.renderer.dom.Layer}
+ * @param {ol.renderer.Map} mapRenderer Map renderer.
+ * @param {ol.layer.Vector} vectorLayer Vector layer.
+ */
+ol.renderer.dom.VectorLayer = function(mapRenderer, vectorLayer) {
+
+  /**
+   * @private
+   * @type {CanvasRenderingContext2D}
+   */
+  this.context_ = ol.dom.createCanvasContext2D();
+
+  var target = this.context_.canvas;
+  // Bootstrap sets the style max-width: 100% for all images, which breaks
+  // prevents the image from being displayed in FireFox.  Workaround by
+  // overriding the max-width style.
+  target.style.maxWidth = 'none';
+  target.style.position = 'absolute';
+
+  goog.base(this, mapRenderer, vectorLayer, target);
+
+  /**
+   * @private
+   * @type {boolean}
+   */
+  this.dirty_ = false;
+
+  /**
+   * @private
+   * @type {number}
+   */
+  this.renderedRevision_ = -1;
+
+  /**
+   * @private
+   * @type {number}
+   */
+  this.renderedResolution_ = NaN;
+
+  /**
+   * @private
+   * @type {ol.Extent}
+   */
+  this.renderedExtent_ = ol.extent.createEmpty();
+
+  /**
+   * @private
+   * @type {function(ol.Feature, ol.Feature): number|null}
+   */
+  this.renderedRenderOrder_ = null;
+
+  /**
+   * @private
+   * @type {ol.render.canvas.ReplayGroup}
+   */
+  this.replayGroup_ = null;
+
+  /**
+   * @private
+   * @type {goog.vec.Mat4.Number}
+   */
+  this.transform_ = goog.vec.Mat4.createNumber();
+
+};
+goog.inherits(ol.renderer.dom.VectorLayer, ol.renderer.dom.Layer);
+
+
+/**
+ * @inheritDoc
+ */
+ol.renderer.dom.VectorLayer.prototype.composeFrame =
+    function(frameState, layerState) {
+
+  var vectorLayer = /** @type {ol.layer.Vector} */ (this.getLayer());
+  goog.asserts.assertInstanceof(vectorLayer, ol.layer.Vector);
+
+  var viewState = frameState.viewState;
+  var viewRotation = viewState.rotation;
+  var pixelRatio = frameState.pixelRatio;
+
+  var transform = ol.vec.Mat4.makeTransform2D(this.transform_,
+      pixelRatio * frameState.size[0] / 2,
+      pixelRatio * frameState.size[1] / 2,
+      pixelRatio / viewState.resolution,
+      -pixelRatio / viewState.resolution,
+      -viewState.rotation,
+      -viewState.center[0], -viewState.center[1]);
+
+  var context = this.context_;
+
+  // Clear the canvas and set the correct size
+  context.canvas.width = frameState.size[0];
+  context.canvas.height = frameState.size[1];
+
+  this.dispatchEvent_(ol.render.EventType.PRECOMPOSE, frameState, transform);
+
+  var replayGroup = this.replayGroup_;
+
+  if (!goog.isNull(replayGroup) && !replayGroup.isEmpty()) {
+
+    context.globalAlpha = layerState.opacity;
+    replayGroup.replay(
+        context, frameState.extent, pixelRatio, transform,
+        viewRotation, frameState.skippedFeatureUids);
+
+    this.dispatchEvent_(ol.render.EventType.RENDER, frameState, transform);
+  }
+
+  this.dispatchEvent_(ol.render.EventType.POSTCOMPOSE, frameState, transform);
+};
+
+
+/**
+ * @param {ol.render.EventType} type Event type.
+ * @param {olx.FrameState} frameState Frame state.
+ * @param {goog.vec.Mat4.Number} transform Transform.
+ * @private
+ */
+ol.renderer.dom.VectorLayer.prototype.dispatchEvent_ =
+    function(type, frameState, transform) {
+  var context = this.context_;
+  var layer = this.getLayer();
+  if (layer.hasListener(type)) {
+    var render = new ol.render.canvas.Immediate(
+        context, frameState.pixelRatio, frameState.extent, transform,
+        frameState.viewState.rotation);
+    var event = new ol.render.Event(type, layer, render, null,
+        frameState, context, null);
+    layer.dispatchEvent(event);
+    render.flush();
+  }
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.renderer.dom.VectorLayer.prototype.forEachFeatureAtPixel =
+    function(coordinate, frameState, callback, thisArg) {
+  if (goog.isNull(this.replayGroup_)) {
+    return undefined;
+  } else {
+    var extent = frameState.extent;
+    var resolution = frameState.viewState.resolution;
+    var rotation = frameState.viewState.rotation;
+    var layer = this.getLayer();
+    /** @type {Object.<string, boolean>} */
+    var features = {};
+    return this.replayGroup_.forEachGeometryAtPixel(extent, resolution,
+        rotation, coordinate, frameState.skippedFeatureUids,
+        /**
+         * @param {ol.geom.Geometry} geometry Geometry.
+         * @param {Object} data Data.
+         * @return {?} Callback result.
+         */
+        function(geometry, data) {
+          var feature = /** @type {ol.Feature} */ (data);
+          goog.asserts.assert(goog.isDef(feature));
+          var key = goog.getUid(feature).toString();
+          if (!(key in features)) {
+            features[key] = true;
+            return callback.call(thisArg, feature, layer);
+          }
+        });
+  }
+};
+
+
+/**
+ * Handle changes in image style state.
+ * @param {goog.events.Event} event Image style change event.
+ * @private
+ */
+ol.renderer.dom.VectorLayer.prototype.handleImageChange_ =
+    function(event) {
+  this.renderIfReadyAndVisible();
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.renderer.dom.VectorLayer.prototype.prepareFrame =
+    function(frameState, layerState) {
+
+  var vectorLayer = /** @type {ol.layer.Vector} */ (this.getLayer());
+  goog.asserts.assertInstanceof(vectorLayer, ol.layer.Vector);
+  var vectorSource = vectorLayer.getSource();
+
+  this.updateAttributions(
+      frameState.attributions, vectorSource.getAttributions());
+  this.updateLogos(frameState, vectorSource);
+
+  if (!this.dirty_ && (frameState.viewHints[ol.ViewHint.ANIMATING] ||
+      frameState.viewHints[ol.ViewHint.INTERACTING])) {
+    return true;
+  }
+
+  var frameStateExtent = frameState.extent;
+  var viewState = frameState.viewState;
+  var projection = viewState.projection;
+  var resolution = viewState.resolution;
+  var pixelRatio = frameState.pixelRatio;
+  var vectorLayerRevision = vectorLayer.getRevision();
+  var vectorLayerRenderOrder = vectorLayer.getRenderOrder();
+  if (!goog.isDef(vectorLayerRenderOrder)) {
+    vectorLayerRenderOrder = ol.renderer.vector.defaultOrder;
+  }
+
+  if (!this.dirty_ &&
+      this.renderedResolution_ == resolution &&
+      this.renderedRevision_ == vectorLayerRevision &&
+      this.renderedRenderOrder_ == vectorLayerRenderOrder &&
+      ol.extent.containsExtent(this.renderedExtent_, frameStateExtent)) {
+    return true;
+  }
+
+  var extent = this.renderedExtent_;
+  var xBuffer = ol.extent.getWidth(frameStateExtent) / 4;
+  var yBuffer = ol.extent.getHeight(frameStateExtent) / 4;
+  extent[0] = frameStateExtent[0] - xBuffer;
+  extent[1] = frameStateExtent[1] - yBuffer;
+  extent[2] = frameStateExtent[2] + xBuffer;
+  extent[3] = frameStateExtent[3] + yBuffer;
+
+  // FIXME dispose of old replayGroup in post render
+  goog.dispose(this.replayGroup_);
+  this.replayGroup_ = null;
+
+  this.dirty_ = false;
+
+  var replayGroup =
+      new ol.render.canvas.ReplayGroup(
+          ol.renderer.vector.getTolerance(resolution, pixelRatio), extent,
+          resolution);
+  vectorSource.loadFeatures(extent, resolution, projection);
+  var renderFeature =
+      /**
+       * @param {ol.Feature} feature Feature.
+       * @this {ol.renderer.dom.VectorLayer}
+       */
+      function(feature) {
+    var styles;
+    if (goog.isDef(feature.getStyleFunction())) {
+      styles = feature.getStyleFunction().call(feature, resolution);
+    } else if (goog.isDef(vectorLayer.getStyleFunction())) {
+      styles = vectorLayer.getStyleFunction()(feature, resolution);
+    }
+    if (goog.isDefAndNotNull(styles)) {
+      var dirty = this.renderFeature(
+          feature, resolution, pixelRatio, styles, replayGroup);
+      this.dirty_ = this.dirty_ || dirty;
+    }
+  };
+  if (!goog.isNull(vectorLayerRenderOrder)) {
+    /** @type {Array.<ol.Feature>} */
+    var features = [];
+    vectorSource.forEachFeatureInExtentAtResolution(extent, resolution,
+        /**
+         * @param {ol.Feature} feature Feature.
+         */
+        function(feature) {
+          features.push(feature);
+        }, this);
+    goog.array.sort(features, vectorLayerRenderOrder);
+    goog.array.forEach(features, renderFeature, this);
+  } else {
+    vectorSource.forEachFeatureInExtentAtResolution(
+        extent, resolution, renderFeature, this);
+  }
+  replayGroup.finish();
+
+  this.renderedResolution_ = resolution;
+  this.renderedRevision_ = vectorLayerRevision;
+  this.renderedRenderOrder_ = vectorLayerRenderOrder;
+  this.replayGroup_ = replayGroup;
+
+  return true;
+};
+
+
+/**
+ * @param {ol.Feature} feature Feature.
+ * @param {number} resolution Resolution.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {Array.<ol.style.Style>} styles Array of styles
+ * @param {ol.render.canvas.ReplayGroup} replayGroup Replay group.
+ * @return {boolean} `true` if an image is loading.
+ */
+ol.renderer.dom.VectorLayer.prototype.renderFeature =
+    function(feature, resolution, pixelRatio, styles, replayGroup) {
+  if (!goog.isDefAndNotNull(styles)) {
+    return false;
+  }
+  var i, ii, loading = false;
+  for (i = 0, ii = styles.length; i < ii; ++i) {
+    loading = ol.renderer.vector.renderFeature(
+        replayGroup, feature, styles[i],
+        ol.renderer.vector.getSquaredTolerance(resolution, pixelRatio),
+        feature, this.handleImageChange_, this) || loading;
+  }
+  return loading;
+};
+
 goog.provide('ol.renderer.dom.Map');
 
 goog.require('goog.asserts');
 goog.require('goog.dom');
 goog.require('goog.dom.TagName');
+goog.require('goog.events');
+goog.require('goog.events.Event');
+goog.require('goog.events.EventType');
 goog.require('goog.functions');
 goog.require('goog.style');
+goog.require('goog.vec.Mat4');
 goog.require('ol');
 goog.require('ol.RendererType');
 goog.require('ol.css');
+goog.require('ol.dom');
 goog.require('ol.layer.Image');
 goog.require('ol.layer.Tile');
+goog.require('ol.layer.Vector');
+goog.require('ol.render.Event');
+goog.require('ol.render.EventType');
+goog.require('ol.render.canvas.Immediate');
+goog.require('ol.render.canvas.ReplayGroup');
 goog.require('ol.renderer.Map');
 goog.require('ol.renderer.dom.ImageLayer');
 goog.require('ol.renderer.dom.Layer');
 goog.require('ol.renderer.dom.TileLayer');
+goog.require('ol.renderer.dom.VectorLayer');
+goog.require('ol.renderer.vector');
 goog.require('ol.source.State');
+goog.require('ol.vec.Mat4');
 
 
 
@@ -61058,6 +61403,27 @@ goog.require('ol.source.State');
 ol.renderer.dom.Map = function(container, map) {
 
   goog.base(this, container, map);
+
+  /**
+   * @private
+   * @type {CanvasRenderingContext2D}
+   */
+  this.context_ = null;
+  if (!(ol.LEGACY_IE_SUPPORT && ol.IS_LEGACY_IE)) {
+    this.context_ = ol.dom.createCanvasContext2D();
+    var canvas = this.context_.canvas;
+    canvas.style.position = 'absolute';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.className = ol.css.CLASS_UNSELECTABLE;
+    goog.dom.insertChildAt(container, canvas, 0);
+  }
+
+  /**
+   * @private
+   * @type {!goog.vec.Mat4.Number}
+   */
+  this.transform_ = goog.vec.Mat4.createNumber();
 
   /**
    * @type {!Element}
@@ -61078,6 +61444,10 @@ ol.renderer.dom.Map = function(container, map) {
     this.layersPane_.onselectstart = goog.functions.FALSE;
   }
 
+  // prevent the img context menu on mobile devices
+  goog.events.listen(this.layersPane_, goog.events.EventType.TOUCHSTART,
+      goog.events.Event.preventDefault);
+
   goog.dom.insertChildAt(container, this.layersPane_, 0);
 
   /**
@@ -61093,17 +61463,72 @@ goog.inherits(ol.renderer.dom.Map, ol.renderer.Map);
 /**
  * @inheritDoc
  */
+ol.renderer.dom.Map.prototype.disposeInternal = function() {
+  goog.dom.removeNode(this.layersPane_);
+  goog.base(this, 'disposeInternal');
+};
+
+
+/**
+ * @inheritDoc
+ */
 ol.renderer.dom.Map.prototype.createLayerRenderer = function(layer) {
   var layerRenderer;
   if (ol.ENABLE_IMAGE && layer instanceof ol.layer.Image) {
     layerRenderer = new ol.renderer.dom.ImageLayer(this, layer);
   } else if (ol.ENABLE_TILE && layer instanceof ol.layer.Tile) {
     layerRenderer = new ol.renderer.dom.TileLayer(this, layer);
+  } else if (!(ol.LEGACY_IE_SUPPORT && ol.IS_LEGACY_IE) &&
+      ol.ENABLE_VECTOR && layer instanceof ol.layer.Vector) {
+    layerRenderer = new ol.renderer.dom.VectorLayer(this, layer);
   } else {
     goog.asserts.fail();
     return null;
   }
   return layerRenderer;
+};
+
+
+/**
+ * @param {ol.render.EventType} type Event type.
+ * @param {olx.FrameState} frameState Frame state.
+ * @private
+ */
+ol.renderer.dom.Map.prototype.dispatchComposeEvent_ =
+    function(type, frameState) {
+  var map = this.getMap();
+  if (!(ol.LEGACY_IE_SUPPORT && ol.IS_LEGACY_IE) && map.hasListener(type)) {
+    var extent = frameState.extent;
+    var pixelRatio = frameState.pixelRatio;
+    var viewState = frameState.viewState;
+    var resolution = viewState.resolution;
+    var rotation = viewState.rotation;
+    var context = this.context_;
+    var canvas = context.canvas;
+
+    ol.vec.Mat4.makeTransform2D(this.transform_,
+        canvas.width / 2,
+        canvas.height / 2,
+        pixelRatio / viewState.resolution,
+        -pixelRatio / viewState.resolution,
+        -viewState.rotation,
+        -viewState.center[0], -viewState.center[1]);
+    var vectorContext = new ol.render.canvas.Immediate(context, pixelRatio,
+        extent, this.transform_, rotation);
+    var replayGroup = new ol.render.canvas.ReplayGroup(
+        ol.renderer.vector.getTolerance(resolution, pixelRatio), extent,
+        resolution);
+    var composeEvent = new ol.render.Event(type, map, vectorContext,
+        replayGroup, frameState, context, null);
+    map.dispatchEvent(composeEvent);
+    replayGroup.finish();
+    if (!replayGroup.isEmpty()) {
+      replayGroup.replay(context, extent, pixelRatio, this.transform_,
+          rotation, {});
+    }
+    vectorContext.flush();
+    this.replayGroup = replayGroup;
+  }
 };
 
 
@@ -61158,6 +61583,17 @@ ol.renderer.dom.Map.prototype.renderFrame = function(frameState) {
         });
   }
 
+  var map = this.getMap();
+  if (!(ol.LEGACY_IE_SUPPORT && ol.IS_LEGACY_IE) &&
+      (map.hasListener(ol.render.EventType.PRECOMPOSE) ||
+      map.hasListener(ol.render.EventType.POSTCOMPOSE))) {
+    var canvas = this.context_.canvas;
+    canvas.width = frameState.size[0];
+    canvas.height = frameState.size[1];
+  }
+
+  this.dispatchComposeEvent_(ol.render.EventType.PRECOMPOSE, frameState);
+
   var layerStatesArray = frameState.layerStatesArray;
   var i, ii, layer, layerRenderer, layerState;
   for (i = 0, ii = layerStatesArray.length; i < ii; ++i) {
@@ -61168,7 +61604,11 @@ ol.renderer.dom.Map.prototype.renderFrame = function(frameState) {
     goog.asserts.assertInstanceof(layerRenderer, ol.renderer.dom.Layer);
     addChild.call(this, layerRenderer.getTarget(), i);
     if (layerState.sourceState == ol.source.State.READY) {
-      layerRenderer.prepareFrame(frameState, layerState);
+      if (layerRenderer.prepareFrame(frameState, layerState)) {
+        layerRenderer.composeFrame(frameState, layerState);
+      }
+    } else {
+      layerRenderer.clearFrame();
     }
   }
 
@@ -61191,6 +61631,7 @@ ol.renderer.dom.Map.prototype.renderFrame = function(frameState) {
   this.scheduleRemoveUnusedLayerRenderers(frameState);
   this.scheduleExpireIconCache(frameState);
 
+  this.dispatchComposeEvent_(ol.render.EventType.POSTCOMPOSE, frameState);
 };
 
 // Copyright 2011 The Closure Library Authors. All Rights Reserved.
@@ -64777,7 +65218,7 @@ ol.renderer.webgl.ImageLayer.prototype.createTexture_ = function(image) {
   // http://www.khronos.org/webgl/wiki/WebGL_and_OpenGL_Differences#Non-Power_of_Two_Texture_Support
   // http://learningwebgl.com/blog/?p=2101
 
-  var imageElement = image.getImageElement();
+  var imageElement = image.getImage();
   var gl = this.getWebGLMapRenderer().getGL();
 
   var texture = gl.createTexture();
@@ -66684,7 +67125,7 @@ ol.Map = function(options) {
     goog.events.EventType.TOUCHSTART,
     goog.events.EventType.MSPOINTERDOWN,
     ol.MapBrowserEvent.EventType.POINTERDOWN,
-    goog.events.EventType.MOUSEWHEEL
+    goog.userAgent.GECKO ? 'DOMMouseScroll' : 'mousewheel'
   ], goog.events.Event.stopPropagation);
   goog.dom.appendChild(this.viewport_, this.overlayContainerStopEvent_);
 
@@ -67628,7 +68069,7 @@ ol.Map.prototype.renderFrame_ = function(time) {
       index: this.frameIndex_++,
       layerStates: layerStates,
       layerStatesArray: layerStatesArray,
-      logos: this.logos_,
+      logos: goog.object.clone(this.logos_),
       pixelRatio: this.pixelRatio_,
       pixelToCoordinateMatrix: this.pixelToCoordinateMatrix_,
       postRenderFunctions: [],
@@ -68446,7 +68887,6 @@ goog.require('ol.control.Control');
 goog.require('ol.coordinate');
 goog.require('ol.css');
 goog.require('ol.extent');
-goog.require('ol.pointer.PointerEventHandler');
 
 
 
@@ -68484,9 +68924,6 @@ ol.control.OverviewMap = function(opt_options) {
 
   var tipLabel = goog.isDef(options.tipLabel) ?
       options.tipLabel : 'Overview map';
-  var tip = goog.dom.createDom(goog.dom.TagName.SPAN, {
-    'role' : 'tooltip'
-  }, tipLabel);
 
   /**
    * @private
@@ -68510,15 +68947,10 @@ ol.control.OverviewMap = function(opt_options) {
    */
   this.labelSpan_ = label;
   var button = goog.dom.createDom(goog.dom.TagName.BUTTON, {
-    'class': 'ol-has-tooltip',
-    'type': 'button'
+    'type': 'button',
+    'title': tipLabel
   }, this.labelSpan_);
-  goog.dom.appendChild(button, tip);
 
-  var buttonHandler = new ol.pointer.PointerEventHandler(button);
-  this.registerDisposable(buttonHandler);
-  goog.events.listen(buttonHandler, ol.pointer.EventType.POINTERUP,
-      this.handlePointerUp_, false, this);
   goog.events.listen(button, goog.events.EventType.CLICK,
       this.handleClick_, false, this);
 
@@ -68565,12 +68997,12 @@ ol.control.OverviewMap = function(opt_options) {
   });
   this.ovmap_.addOverlay(this.boxOverlay_);
 
-  var element = goog.dom.createDom(goog.dom.TagName.DIV, {
-    'class': className + ' ' + ol.css.CLASS_UNSELECTABLE + ' ' +
-        ol.css.CLASS_CONTROL +
-        (this.collapsed_ && this.collapsible_ ? ' ol-collapsed' : '') +
-        (this.collapsible_ ? '' : ' ol-uncollapsible')
-  }, ovmapDiv, button);
+  var cssClasses = className + ' ' + ol.css.CLASS_UNSELECTABLE + ' ' +
+      ol.css.CLASS_CONTROL +
+      (this.collapsed_ && this.collapsible_ ? ' ol-collapsed' : '') +
+      (this.collapsible_ ? '' : ' ol-uncollapsible');
+  var element = goog.dom.createDom(goog.dom.TagName.DIV,
+      cssClasses, ovmapDiv, button);
 
   goog.base(this, {
     element: element,
@@ -68850,19 +69282,7 @@ ol.control.OverviewMap.prototype.calculateCoordinateRotate_ = function(
  * @private
  */
 ol.control.OverviewMap.prototype.handleClick_ = function(event) {
-  if (event.screenX !== 0 && event.screenY !== 0) {
-    return;
-  }
-  this.handleToggle_();
-};
-
-
-/**
- * @param {ol.pointer.PointerEvent} pointerEvent The event to handle
- * @private
- */
-ol.control.OverviewMap.prototype.handlePointerUp_ = function(pointerEvent) {
-  pointerEvent.browserEvent.preventDefault();
+  event.preventDefault();
   this.handleToggle_();
 };
 
@@ -69004,17 +69424,15 @@ ol.control.ScaleLine = function(opt_options) {
    * @private
    * @type {Element}
    */
-  this.innerElement_ = goog.dom.createDom(goog.dom.TagName.DIV, {
-    'class': className + '-inner'
-  });
+  this.innerElement_ = goog.dom.createDom(goog.dom.TagName.DIV,
+      className + '-inner');
 
   /**
    * @private
    * @type {Element}
    */
-  this.element_ = goog.dom.createDom(goog.dom.TagName.DIV, {
-    'class': className + ' ' + ol.css.CLASS_UNSELECTABLE
-  }, this.innerElement_);
+  this.element_ = goog.dom.createDom(goog.dom.TagName.DIV,
+      className + ' ' + ol.css.CLASS_UNSELECTABLE, this.innerElement_);
 
   /**
    * @private
@@ -72643,7 +73061,6 @@ goog.require('goog.events');
 goog.require('goog.events.EventType');
 goog.require('ol.control.Control');
 goog.require('ol.css');
-goog.require('ol.pointer.PointerEventHandler');
 
 
 
@@ -72671,19 +73088,11 @@ ol.control.ZoomToExtent = function(opt_options) {
 
   var tipLabel = goog.isDef(options.tipLabel) ?
       options.tipLabel : 'Fit to extent';
-  var tip = goog.dom.createDom(goog.dom.TagName.SPAN, {
-    'role' : 'tooltip'
-  }, tipLabel);
   var button = goog.dom.createDom(goog.dom.TagName.BUTTON, {
-    'class': 'ol-has-tooltip',
-    'type': 'button'
+    'type': 'button',
+    'title': tipLabel
   });
-  goog.dom.appendChild(button, tip);
 
-  var buttonHandler = new ol.pointer.PointerEventHandler(button);
-  this.registerDisposable(buttonHandler);
-  goog.events.listen(buttonHandler, ol.pointer.EventType.POINTERUP,
-      this.handlePointerUp_, false, this);
   goog.events.listen(button, goog.events.EventType.CLICK,
       this.handleClick_, false, this);
 
@@ -72711,19 +73120,7 @@ goog.inherits(ol.control.ZoomToExtent, ol.control.Control);
  * @private
  */
 ol.control.ZoomToExtent.prototype.handleClick_ = function(event) {
-  if (event.screenX !== 0 && event.screenY !== 0) {
-    return;
-  }
-  this.handleZoomToExtent_();
-};
-
-
-/**
- * @param {ol.pointer.PointerEvent} pointerEvent The event to handle
- * @private
- */
-ol.control.ZoomToExtent.prototype.handlePointerUp_ = function(pointerEvent) {
-  pointerEvent.browserEvent.preventDefault();
+  event.preventDefault();
   this.handleZoomToExtent_();
 };
 
@@ -73846,6 +74243,8 @@ ol.FeatureOverlay.prototype.handleMapPostCompose_ = function(event) {
   var frameState = event.frameState;
   var pixelRatio = frameState.pixelRatio;
   var resolution = frameState.viewState.resolution;
+  var squaredTolerance = ol.renderer.vector.getSquaredTolerance(resolution,
+      pixelRatio);
   var i, ii, styles, featureStyleFunction;
   this.features_.forEach(function(feature) {
     featureStyleFunction = feature.getStyleFunction();
@@ -73859,8 +74258,7 @@ ol.FeatureOverlay.prototype.handleMapPostCompose_ = function(event) {
     ii = styles.length;
     for (i = 0; i < ii; ++i) {
       ol.renderer.vector.renderFeature(replayGroup, feature, styles[i],
-          ol.renderer.vector.getSquaredTolerance(resolution, pixelRatio),
-          feature, this.handleImageChange_, this);
+          squaredTolerance, feature, this.handleImageChange_, this);
     }
   }, this);
 };
@@ -75679,9 +76077,12 @@ ol.xml.createElementNS =
 
 
 /**
+ * Recursively grab all text content of child nodes into a single string.
  * @param {Node} node Node.
- * @param {boolean} normalizeWhitespace Normalize whitespace.
+ * @param {boolean} normalizeWhitespace Normalize whitespace: remove all line
+ * breaks.
  * @return {string} All text content.
+ * @api
  */
 ol.xml.getAllTextContent = function(node, normalizeWhitespace) {
   return ol.xml.getAllTextContent_(node, normalizeWhitespace, []).join('');
@@ -75690,7 +76091,8 @@ ol.xml.getAllTextContent = function(node, normalizeWhitespace) {
 
 /**
  * @param {Node} node Node.
- * @param {boolean} normalizeWhitespace Normalize whitespace.
+ * @param {boolean} normalizeWhitespace Normalize whitespace: remove all line
+ * breaks.
  * @param {Array.<String|string>} accumulator Accumulator.
  * @private
  * @return {Array.<String|string>} Accumulator.
@@ -75934,10 +76336,12 @@ ol.xml.setAttributeNS =
 
 
 /**
+ * Parse an XML string to a XML Document
  * @param {string} xml XML.
  * @return {Document} Document.
+ * @api
  */
-ol.xml.load = function(xml) {
+ol.xml.parse = function(xml) {
   return new DOMParser().parseFromString(xml, 'application/xml');
 };
 
@@ -75981,7 +76385,8 @@ ol.xml.makeArrayPusher = function(valueReader, opt_this) {
        * @param {Array.<*>} objectStack Object stack.
        */
       function(node, objectStack) {
-        var value = valueReader.call(opt_this, node, objectStack);
+        var value = valueReader.call(goog.isDef(opt_this) ? opt_this : this,
+            node, objectStack);
         if (goog.isDef(value)) {
           var array = objectStack[objectStack.length - 1];
           goog.asserts.assert(goog.isArray(array));
@@ -76004,7 +76409,8 @@ ol.xml.makeReplacer = function(valueReader, opt_this) {
        * @param {Array.<*>} objectStack Object stack.
        */
       function(node, objectStack) {
-        var value = valueReader.call(opt_this, node, objectStack);
+        var value = valueReader.call(goog.isDef(opt_this) ? opt_this : this,
+            node, objectStack);
         if (goog.isDef(value)) {
           objectStack[objectStack.length - 1] = value;
         }
@@ -76028,7 +76434,8 @@ ol.xml.makeObjectPropertyPusher =
        * @param {Array.<*>} objectStack Object stack.
        */
       function(node, objectStack) {
-        var value = valueReader.call(opt_this, node, objectStack);
+        var value = valueReader.call(goog.isDef(opt_this) ? opt_this : this,
+            node, objectStack);
         if (goog.isDef(value)) {
           var object = /** @type {Object} */
               (objectStack[objectStack.length - 1]);
@@ -76058,7 +76465,8 @@ ol.xml.makeObjectPropertySetter =
        * @param {Array.<*>} objectStack Object stack.
        */
       function(node, objectStack) {
-        var value = valueReader.call(opt_this, node, objectStack);
+        var value = valueReader.call(goog.isDef(opt_this) ? opt_this : this,
+            node, objectStack);
         if (goog.isDef(value)) {
           var object = /** @type {Object} */
               (objectStack[objectStack.length - 1]);
@@ -76096,7 +76504,8 @@ ol.xml.makeParsersNS = function(namespaceURIs, parsers, opt_parsersNS) {
  */
 ol.xml.makeChildAppender = function(nodeWriter, opt_this) {
   return function(node, value, objectStack) {
-    nodeWriter.call(opt_this, node, value, objectStack);
+    nodeWriter.call(goog.isDef(opt_this) ? opt_this : this,
+        node, value, objectStack);
     var parent = objectStack[objectStack.length - 1];
     goog.asserts.assert(goog.isObject(parent));
     var parentNode = parent.node;
@@ -76238,7 +76647,7 @@ ol.xml.makeStructureNS = function(namespaceURIs, structure, opt_structureNS) {
  * @param {Array.<*>} objectStack Object stack.
  * @param {*=} opt_this The object to use as `this`.
  */
-ol.xml.parse = function(parsersNS, node, objectStack, opt_this) {
+ol.xml.parseNode = function(parsersNS, node, objectStack, opt_this) {
   var n;
   for (n = node.firstElementChild; !goog.isNull(n); n = n.nextElementSibling) {
     var parsers = parsersNS[n.namespaceURI];
@@ -76265,7 +76674,7 @@ ol.xml.parse = function(parsersNS, node, objectStack, opt_this) {
 ol.xml.pushParseAndPop = function(
     object, parsersNS, node, objectStack, opt_this) {
   objectStack.push(object);
-  ol.xml.parse(parsersNS, node, objectStack, opt_this);
+  ol.xml.parseNode(parsersNS, node, objectStack, opt_this);
   return objectStack.pop();
 };
 
@@ -76386,7 +76795,7 @@ ol.format.XMLFeature.prototype.readFeature = function(source, opt_options) {
   } else if (ol.xml.isNode(source)) {
     return this.readFeatureFromNode(/** @type {Node} */ (source), opt_options);
   } else if (goog.isString(source)) {
-    var doc = ol.xml.load(source);
+    var doc = ol.xml.parse(source);
     return this.readFeatureFromDocument(doc, opt_options);
   } else {
     goog.asserts.fail();
@@ -76429,7 +76838,7 @@ ol.format.XMLFeature.prototype.readFeatures = function(source, opt_options) {
   } else if (ol.xml.isNode(source)) {
     return this.readFeaturesFromNode(/** @type {Node} */ (source), opt_options);
   } else if (goog.isString(source)) {
-    var doc = ol.xml.load(source);
+    var doc = ol.xml.parse(source);
     return this.readFeaturesFromDocument(doc, opt_options);
   } else {
     goog.asserts.fail();
@@ -76477,7 +76886,7 @@ ol.format.XMLFeature.prototype.readGeometry = function(source, opt_options) {
   } else if (ol.xml.isNode(source)) {
     return this.readGeometryFromNode(/** @type {Node} */ (source), opt_options);
   } else if (goog.isString(source)) {
-    var doc = ol.xml.load(source);
+    var doc = ol.xml.parse(source);
     return this.readGeometryFromDocument(doc, opt_options);
   } else {
     goog.asserts.fail();
@@ -76513,7 +76922,7 @@ ol.format.XMLFeature.prototype.readProjection = function(source) {
   } else if (ol.xml.isNode(source)) {
     return this.readProjectionFromNode(/** @type {Node} */ (source));
   } else if (goog.isString(source)) {
-    var doc = ol.xml.load(source);
+    var doc = ol.xml.parse(source);
     return this.readProjectionFromDocument(doc);
   } else {
     goog.asserts.fail();
@@ -76587,6 +76996,570 @@ ol.format.XMLFeature.prototype.writeGeometry = function(geometry, opt_options) {
  * @return {Node} Node.
  */
 ol.format.XMLFeature.prototype.writeGeometryNode = goog.abstractMethod;
+
+// FIXME Envelopes should not be treated as geometries! readEnvelope_ is part
+// of GEOMETRY_PARSERS_ and methods using GEOMETRY_PARSERS_ do not expect
+// envelopes/extents, only geometries!
+goog.provide('ol.format.GMLBase');
+
+goog.require('goog.asserts');
+goog.require('goog.dom');
+goog.require('goog.dom.NodeType');
+goog.require('goog.object');
+goog.require('goog.string');
+goog.require('ol.Feature');
+goog.require('ol.array');
+goog.require('ol.format.Feature');
+goog.require('ol.format.XMLFeature');
+goog.require('ol.geom.Geometry');
+goog.require('ol.geom.LineString');
+goog.require('ol.geom.LinearRing');
+goog.require('ol.geom.MultiLineString');
+goog.require('ol.geom.MultiPoint');
+goog.require('ol.geom.MultiPolygon');
+goog.require('ol.geom.Point');
+goog.require('ol.geom.Polygon');
+goog.require('ol.proj');
+goog.require('ol.xml');
+
+
+
+/**
+ * @classdesc
+ * Abstract base class; normally only used for creating subclasses and not
+ * instantiated in apps.
+ * Feature base format for reading and writing data in the GML format.
+ * This class cannot be instantiate, it contains only base content that
+ * is shared with versioned format classes ol.format.GML2 and
+ * ol.format.GML3.
+ *
+ * @constructor
+ * @param {olx.format.GMLOptions=} opt_options
+ *     Optional configuration object.
+ * @extends {ol.format.XMLFeature}
+ * @api
+ */
+ol.format.GMLBase = function(opt_options) {
+  var options = /** @type {olx.format.GMLOptions} */
+      (goog.isDef(opt_options) ? opt_options : {});
+
+  /**
+   * @protected
+   * @type {string}
+   */
+  this.featureType = options.featureType;
+
+  /**
+   * @protected
+   * @type {string}
+   */
+  this.featureNS = options.featureNS;
+
+  /**
+   * @protected
+   * @type {string}
+   */
+  this.srsName = options.srsName;
+
+  /**
+   * @protected
+   * @type {string}
+   */
+  this.schemaLocation = '';
+
+  goog.base(this);
+};
+goog.inherits(ol.format.GMLBase, ol.format.XMLFeature);
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @return {Array.<ol.Feature>} Features.
+ * @private
+ */
+ol.format.GMLBase.prototype.readFeatures_ = function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  var localName = ol.xml.getLocalName(node);
+  var features;
+  if (localName == 'FeatureCollection') {
+    features = ol.xml.pushParseAndPop(null,
+        this.FEATURE_COLLECTION_PARSERS, node,
+        objectStack, this);
+  } else if (localName == 'featureMembers' || localName == 'featureMember') {
+    var context = objectStack[0];
+    goog.asserts.assert(goog.isObject(context));
+    var featureType = goog.object.get(context, 'featureType');
+    if (!goog.isDef(featureType) && !goog.isNull(node.firstElementChild)) {
+      var member = node.firstElementChild;
+      featureType = member.nodeName.split(':').pop();
+      goog.object.set(context, 'featureType', featureType);
+      goog.object.set(context, 'featureNS', member.namespaceURI);
+    }
+    var parsers = {};
+    var parsersNS = {};
+    parsers[featureType] = (localName == 'featureMembers') ?
+        ol.xml.makeArrayPusher(this.readFeatureElement, this) :
+        ol.xml.makeReplacer(this.readFeatureElement, this);
+    parsersNS[goog.object.get(context, 'featureNS')] = parsers;
+    features = ol.xml.pushParseAndPop([], parsersNS, node, objectStack);
+  }
+  if (!goog.isDef(features)) {
+    features = [];
+  }
+  return features;
+};
+
+
+/**
+ * @type {Object.<string, Object.<string, Object>>}
+ */
+ol.format.GMLBase.prototype.FEATURE_COLLECTION_PARSERS = Object({
+  'http://www.opengis.net/gml': {
+    'featureMember': ol.xml.makeArrayPusher(
+        ol.format.GMLBase.prototype.readFeatures_),
+    'featureMembers': ol.xml.makeReplacer(
+        ol.format.GMLBase.prototype.readFeatures_)
+  }
+});
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @return {ol.geom.Geometry|undefined} Geometry.
+ */
+ol.format.GMLBase.prototype.readGeometryElement = function(node, objectStack) {
+  var context = objectStack[0];
+  goog.asserts.assert(goog.isObject(context));
+  goog.object.set(context, 'srsName',
+      node.firstElementChild.getAttribute('srsName'));
+  var geometry = ol.xml.pushParseAndPop(/** @type {ol.geom.Geometry} */(null),
+      this.GEOMETRY_PARSERS_, node, objectStack, this);
+  if (goog.isDefAndNotNull(geometry)) {
+    return /** @type {ol.geom.Geometry} */ (
+        ol.format.Feature.transformWithOptions(geometry, false, context));
+  } else {
+    return undefined;
+  }
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @return {ol.Feature} Feature.
+ */
+ol.format.GMLBase.prototype.readFeatureElement = function(node, objectStack) {
+  var n;
+  var fid = node.getAttribute('fid') ||
+      ol.xml.getAttributeNS(node, 'http://www.opengis.net/gml', 'id');
+  var values = {}, geometryName;
+  for (n = node.firstElementChild; !goog.isNull(n);
+      n = n.nextElementSibling) {
+    var localName = ol.xml.getLocalName(n);
+    // Assume attribute elements have one child node and that the child
+    // is a text node.  Otherwise assume it is a geometry node.
+    if (n.childNodes.length === 0 ||
+        (n.childNodes.length === 1 &&
+        n.firstChild.nodeType === 3)) {
+      var value = ol.xml.getAllTextContent(n, false);
+      if (goog.string.isEmpty(value)) {
+        value = undefined;
+      }
+      values[localName] = value;
+    } else {
+      // boundedBy is an extent and must not be considered as a geometry
+      if (localName !== 'boundedBy') {
+        geometryName = localName;
+      }
+      values[localName] = this.readGeometryElement(n, objectStack);
+    }
+  }
+  var feature = new ol.Feature(values);
+  if (goog.isDef(geometryName)) {
+    feature.setGeometryName(geometryName);
+  }
+  if (fid) {
+    feature.setId(fid);
+  }
+  return feature;
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @return {ol.geom.Point|undefined} Point.
+ */
+ol.format.GMLBase.prototype.readPoint = function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'Point');
+  var flatCoordinates =
+      this.readFlatCoordinatesFromNode_(node, objectStack);
+  if (goog.isDefAndNotNull(flatCoordinates)) {
+    var point = new ol.geom.Point(null);
+    goog.asserts.assert(flatCoordinates.length == 3);
+    point.setFlatCoordinates(ol.geom.GeometryLayout.XYZ, flatCoordinates);
+    return point;
+  }
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @return {ol.geom.MultiPoint|undefined} MultiPoint.
+ */
+ol.format.GMLBase.prototype.readMultiPoint = function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'MultiPoint');
+  var coordinates = ol.xml.pushParseAndPop(
+      /** @type {Array.<Array.<number>>} */ ([]),
+      this.MULTIPOINT_PARSERS_, node, objectStack, this);
+  if (goog.isDef(coordinates)) {
+    return new ol.geom.MultiPoint(coordinates);
+  } else {
+    return undefined;
+  }
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @return {ol.geom.MultiLineString|undefined} MultiLineString.
+ */
+ol.format.GMLBase.prototype.readMultiLineString = function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'MultiLineString');
+  var lineStrings = ol.xml.pushParseAndPop(
+      /** @type {Array.<ol.geom.LineString>} */ ([]),
+      this.MULTILINESTRING_PARSERS_, node, objectStack, this);
+  if (goog.isDef(lineStrings)) {
+    var multiLineString = new ol.geom.MultiLineString(null);
+    multiLineString.setLineStrings(lineStrings);
+    return multiLineString;
+  } else {
+    return undefined;
+  }
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @return {ol.geom.MultiPolygon|undefined} MultiPolygon.
+ */
+ol.format.GMLBase.prototype.readMultiPolygon = function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'MultiPolygon');
+  var polygons = ol.xml.pushParseAndPop(
+      /** @type {Array.<ol.geom.Polygon>} */ ([]),
+      this.MULTIPOLYGON_PARSERS_, node, objectStack, this);
+  if (goog.isDef(polygons)) {
+    var multiPolygon = new ol.geom.MultiPolygon(null);
+    multiPolygon.setPolygons(polygons);
+    return multiPolygon;
+  } else {
+    return undefined;
+  }
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @private
+ */
+ol.format.GMLBase.prototype.pointMemberParser_ = function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'pointMember' ||
+      node.localName == 'pointMembers');
+  ol.xml.parseNode(this.POINTMEMBER_PARSERS_,
+      node, objectStack, this);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @private
+ */
+ol.format.GMLBase.prototype.lineStringMemberParser_ =
+    function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'lineStringMember' ||
+      node.localName == 'lineStringMembers');
+  ol.xml.parseNode(this.LINESTRINGMEMBER_PARSERS_,
+      node, objectStack, this);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @private
+ */
+ol.format.GMLBase.prototype.polygonMemberParser_ =
+    function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'polygonMember' ||
+      node.localName == 'polygonMembers');
+  ol.xml.parseNode(this.POLYGONMEMBER_PARSERS_, node,
+      objectStack, this);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @return {ol.geom.LineString|undefined} LineString.
+ */
+ol.format.GMLBase.prototype.readLineString = function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'LineString');
+  var flatCoordinates =
+      this.readFlatCoordinatesFromNode_(node, objectStack);
+  if (goog.isDefAndNotNull(flatCoordinates)) {
+    var lineString = new ol.geom.LineString(null);
+    lineString.setFlatCoordinates(ol.geom.GeometryLayout.XYZ, flatCoordinates);
+    return lineString;
+  } else {
+    return undefined;
+  }
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @private
+ * @return {Array.<number>|undefined} LinearRing flat coordinates.
+ */
+ol.format.GMLBase.prototype.readFlatLinearRing_ = function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'LinearRing');
+  var ring = ol.xml.pushParseAndPop(/** @type {Array.<number>} */(null),
+      this.GEOMETRY_FLAT_COORDINATES_PARSERS_, node,
+      objectStack, this);
+  if (goog.isDefAndNotNull(ring)) {
+    return ring;
+  } else {
+    return undefined;
+  }
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @return {ol.geom.LinearRing|undefined} LinearRing.
+ */
+ol.format.GMLBase.prototype.readLinearRing = function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'LinearRing');
+  var flatCoordinates =
+      this.readFlatCoordinatesFromNode_(node, objectStack);
+  if (goog.isDef(flatCoordinates)) {
+    var ring = new ol.geom.LinearRing(null);
+    ring.setFlatCoordinates(ol.geom.GeometryLayout.XYZ, flatCoordinates);
+    return ring;
+  } else {
+    return undefined;
+  }
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @return {ol.geom.Polygon|undefined} Polygon.
+ */
+ol.format.GMLBase.prototype.readPolygon = function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'Polygon');
+  var flatLinearRings = ol.xml.pushParseAndPop(
+      /** @type {Array.<Array.<number>>} */ ([null]),
+      this.FLAT_LINEAR_RINGS_PARSERS_, node, objectStack, this);
+  if (goog.isDef(flatLinearRings) &&
+      !goog.isNull(flatLinearRings[0])) {
+    var polygon = new ol.geom.Polygon(null);
+    var flatCoordinates = flatLinearRings[0];
+    var ends = [flatCoordinates.length];
+    var i, ii;
+    for (i = 1, ii = flatLinearRings.length; i < ii; ++i) {
+      ol.array.safeExtend(flatCoordinates, flatLinearRings[i]);
+      ends.push(flatCoordinates.length);
+    }
+    polygon.setFlatCoordinates(
+        ol.geom.GeometryLayout.XYZ, flatCoordinates, ends);
+    return polygon;
+  } else {
+    return undefined;
+  }
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @private
+ * @return {Array.<number>} Flat coordinates.
+ */
+ol.format.GMLBase.prototype.readFlatCoordinatesFromNode_ =
+    function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  return /** @type {Array.<number>} */ (ol.xml.pushParseAndPop(
+      null,
+      this.GEOMETRY_FLAT_COORDINATES_PARSERS_, node,
+      objectStack, this));
+};
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @private
+ */
+ol.format.GMLBase.prototype.MULTIPOINT_PARSERS_ = Object({
+  'http://www.opengis.net/gml' : {
+    'pointMember': ol.xml.makeArrayPusher(
+        ol.format.GMLBase.prototype.pointMemberParser_),
+    'pointMembers': ol.xml.makeArrayPusher(
+        ol.format.GMLBase.prototype.pointMemberParser_)
+  }
+});
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @private
+ */
+ol.format.GMLBase.prototype.MULTILINESTRING_PARSERS_ = Object({
+  'http://www.opengis.net/gml' : {
+    'lineStringMember': ol.xml.makeArrayPusher(
+        ol.format.GMLBase.prototype.lineStringMemberParser_),
+    'lineStringMembers': ol.xml.makeArrayPusher(
+        ol.format.GMLBase.prototype.lineStringMemberParser_)
+  }
+});
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @private
+ */
+ol.format.GMLBase.prototype.MULTIPOLYGON_PARSERS_ = Object({
+  'http://www.opengis.net/gml' : {
+    'polygonMember': ol.xml.makeArrayPusher(
+        ol.format.GMLBase.prototype.polygonMemberParser_),
+    'polygonMembers': ol.xml.makeArrayPusher(
+        ol.format.GMLBase.prototype.polygonMemberParser_)
+  }
+});
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @private
+ */
+ol.format.GMLBase.prototype.POINTMEMBER_PARSERS_ = Object({
+  'http://www.opengis.net/gml' : {
+    'Point': ol.xml.makeArrayPusher(
+        ol.format.GMLBase.prototype.readFlatCoordinatesFromNode_)
+  }
+});
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @private
+ */
+ol.format.GMLBase.prototype.LINESTRINGMEMBER_PARSERS_ = Object({
+  'http://www.opengis.net/gml' : {
+    'LineString': ol.xml.makeArrayPusher(
+        ol.format.GMLBase.prototype.readLineString)
+  }
+});
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @private
+ */
+ol.format.GMLBase.prototype.POLYGONMEMBER_PARSERS_ = Object({
+  'http://www.opengis.net/gml' : {
+    'Polygon': ol.xml.makeArrayPusher(
+        ol.format.GMLBase.prototype.readPolygon)
+  }
+});
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @protected
+ */
+ol.format.GMLBase.prototype.RING_PARSERS = Object({
+  'http://www.opengis.net/gml' : {
+    'LinearRing': ol.xml.makeReplacer(
+        ol.format.GMLBase.prototype.readFlatLinearRing_)
+  }
+});
+
+
+/**
+ * @inheritDoc
+ */
+ol.format.GMLBase.prototype.readGeometryFromNode =
+    function(node, opt_options) {
+  var geometry = this.readGeometryElement(node,
+      [this.getReadOptions(node, goog.isDef(opt_options) ? opt_options : {})]);
+  return goog.isDef(geometry) ? geometry : null;
+};
+
+
+/**
+ * Read all features from a GML FeatureCollection.
+ *
+ * @function
+ * @param {ArrayBuffer|Document|Node|Object|string} source Source.
+ * @param {olx.format.ReadOptions=} opt_options Options.
+ * @return {Array.<ol.Feature>} Features.
+ * @api stable
+ */
+ol.format.GMLBase.prototype.readFeatures;
+
+
+/**
+ * @inheritDoc
+ */
+ol.format.GMLBase.prototype.readFeaturesFromNode =
+    function(node, opt_options) {
+  var options = {
+    'featureType': this.featureType,
+    'featureNS': this.featureNS
+  };
+  if (goog.isDef(opt_options)) {
+    goog.object.extend(options, this.getReadOptions(node, opt_options));
+  }
+  return this.readFeatures_(node, [options]);
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.format.GMLBase.prototype.readProjectionFromNode = function(node) {
+  return ol.proj.get(goog.isDef(this.srsName_) ? this.srsName_ :
+      node.firstElementChild.getAttribute('srsName'));
+};
 
 goog.provide('ol.format.XSD');
 
@@ -76772,27 +77745,23 @@ ol.format.XSD.writeStringTextNode = function(node, string) {
   node.appendChild(ol.xml.DOCUMENT.createTextNode(string));
 };
 
-// FIXME Envelopes should not be treated as geometries! readEnvelope_ is part
-// of GEOMETRY_PARSERS_ and methods using GEOMETRY_PARSERS_ do not expect
-// envelopes/extents, only geometries!
 goog.provide('ol.format.GML');
+goog.provide('ol.format.GML3');
 
 goog.require('goog.asserts');
 goog.require('goog.dom');
 goog.require('goog.dom.NodeType');
 goog.require('goog.object');
-goog.require('goog.string');
 goog.require('ol.Feature');
 goog.require('ol.array');
 goog.require('ol.extent');
 goog.require('ol.format.Feature');
-goog.require('ol.format.XMLFeature');
+goog.require('ol.format.GMLBase');
 goog.require('ol.format.XSD');
 goog.require('ol.geom.Geometry');
 goog.require('ol.geom.LineString');
 goog.require('ol.geom.LinearRing');
 goog.require('ol.geom.MultiLineString');
-goog.require('ol.geom.MultiPoint');
 goog.require('ol.geom.MultiPolygon');
 goog.require('ol.geom.Point');
 goog.require('ol.geom.Polygon');
@@ -76803,36 +77772,21 @@ goog.require('ol.xml');
 
 /**
  * @classdesc
- * Feature format for reading and writing data in the GML format.
+ * Feature format for reading and writing data in the GML format
+ * version 3.1.1.
  * Currently only supports GML 3.1.1 Simple Features profile.
  *
  * @constructor
  * @param {olx.format.GMLOptions=} opt_options
  *     Optional configuration object.
- * @extends {ol.format.XMLFeature}
- * @api stable
+ * @extends {ol.format.GMLBase}
+ * @api
  */
-ol.format.GML = function(opt_options) {
+ol.format.GML3 = function(opt_options) {
   var options = /** @type {olx.format.GMLOptions} */
       (goog.isDef(opt_options) ? opt_options : {});
 
-  /**
-   * @private
-   * @type {string}
-   */
-  this.featureType_ = options.featureType;
-
-  /**
-   * @private
-   * @type {string}
-   */
-  this.featureNS_ = options.featureNS;
-
-  /**
-   * @private
-   * @type {string}
-   */
-  this.srsName_ = options.srsName;
+  goog.base(this, options);
 
   /**
    * @private
@@ -76863,15 +77817,13 @@ ol.format.GML = function(opt_options) {
       options.multiSurface : true;
 
   /**
-   * @private
-   * @type {string}
+   * @inheritDoc
    */
-  this.schemaLocation_ = goog.isDef(options.schemaLocation) ?
-      options.schemaLocation : ol.format.GML.schemaLocation_;
+  this.schemaLocation = goog.isDef(options.schemaLocation) ?
+      options.schemaLocation : ol.format.GML3.schemaLocation_;
 
-  goog.base(this);
 };
-goog.inherits(ol.format.GML, ol.format.XMLFeature);
+goog.inherits(ol.format.GML3, ol.format.GMLBase);
 
 
 /**
@@ -76879,7 +77831,7 @@ goog.inherits(ol.format.GML, ol.format.XMLFeature);
  * @type {string}
  * @private
  */
-ol.format.GML.schemaLocation_ = 'http://www.opengis.net/gml ' +
+ol.format.GML3.schemaLocation_ = 'http://www.opengis.net/gml ' +
     'http://schemas.opengis.net/gml/3.1.1/profiles/gmlsfProfile/' +
     '1.0.0/gmlsf.xsd';
 
@@ -76887,186 +77839,15 @@ ol.format.GML.schemaLocation_ = 'http://www.opengis.net/gml ' +
 /**
  * @param {Node} node Node.
  * @param {Array.<*>} objectStack Object stack.
- * @return {Array.<ol.Feature>} Features.
- * @private
- */
-ol.format.GML.readFeatures_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  var localName = ol.xml.getLocalName(node);
-  var features;
-  if (localName == 'FeatureCollection') {
-    features = ol.xml.pushParseAndPop(null,
-        ol.format.GML.FEATURE_COLLECTION_PARSERS, node, objectStack);
-  } else if (localName == 'featureMembers' || localName == 'featureMember') {
-    var context = objectStack[0];
-    goog.asserts.assert(goog.isObject(context));
-    var featureType = goog.object.get(context, 'featureType');
-    if (!goog.isDef(featureType) && !goog.isNull(node.firstElementChild)) {
-      var member = node.firstElementChild;
-      featureType = member.nodeName.split(':').pop();
-      goog.object.set(context, 'featureType', featureType);
-      goog.object.set(context, 'featureNS', member.namespaceURI);
-    }
-    var parsers = {};
-    var parsersNS = {};
-    parsers[featureType] = (localName == 'featureMembers') ?
-        ol.xml.makeArrayPusher(ol.format.GML.readFeature_) :
-        ol.xml.makeReplacer(ol.format.GML.readFeature_);
-    parsersNS[goog.object.get(context, 'featureNS')] = parsers;
-    features = ol.xml.pushParseAndPop([], parsersNS, node, objectStack);
-  }
-  if (!goog.isDef(features)) {
-    features = [];
-  }
-  return features;
-};
-
-
-/**
- * @type {Object.<string, Object.<string, Object>>}
- */
-ol.format.GML.FEATURE_COLLECTION_PARSERS = {
-  'http://www.opengis.net/gml': {
-    'featureMember': ol.xml.makeArrayPusher(ol.format.GML.readFeatures_),
-    'featureMembers': ol.xml.makeReplacer(ol.format.GML.readFeatures_)
-  }
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @return {ol.geom.Geometry|undefined} Geometry.
- */
-ol.format.GML.readGeometry = function(node, objectStack) {
-  var context = objectStack[0];
-  goog.asserts.assert(goog.isObject(context));
-  goog.object.set(context, 'srsName',
-      node.firstElementChild.getAttribute('srsName'));
-  var geometry = ol.xml.pushParseAndPop(/** @type {ol.geom.Geometry} */(null),
-      ol.format.GML.GEOMETRY_PARSERS_, node, objectStack);
-  if (goog.isDefAndNotNull(geometry)) {
-    return /** @type {ol.geom.Geometry} */ (
-        ol.format.Feature.transformWithOptions(geometry, false, context));
-  } else {
-    return undefined;
-  }
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @return {ol.Feature} Feature.
- * @private
- */
-ol.format.GML.readFeature_ = function(node, objectStack) {
-  var n;
-  var fid = node.getAttribute('fid') ||
-      ol.xml.getAttributeNS(node, 'http://www.opengis.net/gml', 'id');
-  var values = {}, geometryName;
-  for (n = node.firstElementChild; !goog.isNull(n);
-      n = n.nextElementSibling) {
-    // Assume attribute elements have one child node and that the child
-    // is a text node.  Otherwise assume it is a geometry node.
-    if (n.childNodes.length === 0 ||
-        (n.childNodes.length === 1 &&
-        n.firstChild.nodeType === 3)) {
-      var value = ol.xml.getAllTextContent(n, false);
-      if (goog.string.isEmpty(value)) {
-        value = undefined;
-      }
-      values[ol.xml.getLocalName(n)] = value;
-    } else {
-      geometryName = ol.xml.getLocalName(n);
-      values[geometryName] = ol.format.GML.readGeometry(n, objectStack);
-    }
-  }
-  var feature = new ol.Feature(values);
-  if (goog.isDef(geometryName)) {
-    feature.setGeometryName(geometryName);
-  }
-  if (fid) {
-    feature.setId(fid);
-  }
-  return feature;
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @private
- * @return {ol.geom.Point|undefined} Point.
- */
-ol.format.GML.readPoint_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  goog.asserts.assert(node.localName == 'Point');
-  var flatCoordinates =
-      ol.format.GML.readFlatCoordinatesFromNode_(node, objectStack);
-  if (goog.isDefAndNotNull(flatCoordinates)) {
-    var point = new ol.geom.Point(null);
-    goog.asserts.assert(flatCoordinates.length == 3);
-    point.setFlatCoordinates(ol.geom.GeometryLayout.XYZ, flatCoordinates);
-    return point;
-  }
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @private
- * @return {ol.geom.MultiPoint|undefined} MultiPoint.
- */
-ol.format.GML.readMultiPoint_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  goog.asserts.assert(node.localName == 'MultiPoint');
-  var coordinates = ol.xml.pushParseAndPop(
-      /** @type {Array.<Array.<number>>} */ ([]),
-      ol.format.GML.MULTIPOINT_PARSERS_, node, objectStack);
-  if (goog.isDef(coordinates)) {
-    return new ol.geom.MultiPoint(coordinates);
-  } else {
-    return undefined;
-  }
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
  * @private
  * @return {ol.geom.MultiLineString|undefined} MultiLineString.
  */
-ol.format.GML.readMultiLineString_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  goog.asserts.assert(node.localName == 'MultiLineString');
-  var lineStrings = ol.xml.pushParseAndPop(
-      /** @type {Array.<ol.geom.LineString>} */ ([]),
-      ol.format.GML.MULTILINESTRING_PARSERS_, node, objectStack);
-  if (goog.isDef(lineStrings)) {
-    var multiLineString = new ol.geom.MultiLineString(null);
-    multiLineString.setLineStrings(lineStrings);
-    return multiLineString;
-  } else {
-    return undefined;
-  }
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @private
- * @return {ol.geom.MultiLineString|undefined} MultiLineString.
- */
-ol.format.GML.readMultiCurve_ = function(node, objectStack) {
+ol.format.GML3.prototype.readMultiCurve_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'MultiCurve');
   var lineStrings = ol.xml.pushParseAndPop(
       /** @type {Array.<ol.geom.LineString>} */ ([]),
-      ol.format.GML.MULTICURVE_PARSERS_, node, objectStack);
+      this.MULTICURVE_PARSERS_, node, objectStack, this);
   if (goog.isDef(lineStrings)) {
     var multiLineString = new ol.geom.MultiLineString(null);
     multiLineString.setLineStrings(lineStrings);
@@ -77083,34 +77864,12 @@ ol.format.GML.readMultiCurve_ = function(node, objectStack) {
  * @private
  * @return {ol.geom.MultiPolygon|undefined} MultiPolygon.
  */
-ol.format.GML.readMultiSurface_ = function(node, objectStack) {
+ol.format.GML3.prototype.readMultiSurface_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'MultiSurface');
   var polygons = ol.xml.pushParseAndPop(
       /** @type {Array.<ol.geom.Polygon>} */ ([]),
-      ol.format.GML.MULTISURFACE_PARSERS_, node, objectStack);
-  if (goog.isDef(polygons)) {
-    var multiPolygon = new ol.geom.MultiPolygon(null);
-    multiPolygon.setPolygons(polygons);
-    return multiPolygon;
-  } else {
-    return undefined;
-  }
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @private
- * @return {ol.geom.MultiPolygon|undefined} MultiPolygon.
- */
-ol.format.GML.readMultiPolygon_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  goog.asserts.assert(node.localName == 'MultiPolygon');
-  var polygons = ol.xml.pushParseAndPop(
-      /** @type {Array.<ol.geom.Polygon>} */ ([]),
-      ol.format.GML.MULTIPOLYGON_PARSERS_, node, objectStack);
+      this.MULTISURFACE_PARSERS_, node, objectStack, this);
   if (goog.isDef(polygons)) {
     var multiPolygon = new ol.geom.MultiPolygon(null);
     multiPolygon.setPolygons(polygons);
@@ -77126,37 +77885,11 @@ ol.format.GML.readMultiPolygon_ = function(node, objectStack) {
  * @param {Array.<*>} objectStack Object stack.
  * @private
  */
-ol.format.GML.pointMemberParser_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  goog.asserts.assert(node.localName == 'pointMember' ||
-      node.localName == 'pointMembers');
-  ol.xml.parse(ol.format.GML.POINTMEMBER_PARSERS_, node, objectStack);
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @private
- */
-ol.format.GML.lineStringMemberParser_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  goog.asserts.assert(node.localName == 'lineStringMember' ||
-      node.localName == 'lineStringMembers');
-  ol.xml.parse(ol.format.GML.LINESTRINGMEMBER_PARSERS_, node, objectStack);
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @private
- */
-ol.format.GML.curveMemberParser_ = function(node, objectStack) {
+ol.format.GML3.prototype.curveMemberParser_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'curveMember' ||
       node.localName == 'curveMembers');
-  ol.xml.parse(ol.format.GML.CURVEMEMBER_PARSERS_, node, objectStack);
+  ol.xml.parseNode(this.CURVEMEMBER_PARSERS_, node, objectStack, this);
 };
 
 
@@ -77165,45 +77898,12 @@ ol.format.GML.curveMemberParser_ = function(node, objectStack) {
  * @param {Array.<*>} objectStack Object stack.
  * @private
  */
-ol.format.GML.surfaceMemberParser_ = function(node, objectStack) {
+ol.format.GML3.prototype.surfaceMemberParser_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'surfaceMember' ||
       node.localName == 'surfaceMembers');
-  ol.xml.parse(ol.format.GML.SURFACEMEMBER_PARSERS_, node, objectStack);
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @private
- */
-ol.format.GML.polygonMemberParser_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  goog.asserts.assert(node.localName == 'polygonMember' ||
-      node.localName == 'polygonMembers');
-  ol.xml.parse(ol.format.GML.POLYGONMEMBER_PARSERS_, node, objectStack);
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @private
- * @return {ol.geom.LineString|undefined} LineString.
- */
-ol.format.GML.readLineString_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  goog.asserts.assert(node.localName == 'LineString');
-  var flatCoordinates =
-      ol.format.GML.readFlatCoordinatesFromNode_(node, objectStack);
-  if (goog.isDefAndNotNull(flatCoordinates)) {
-    var lineString = new ol.geom.LineString(null);
-    lineString.setFlatCoordinates(ol.geom.GeometryLayout.XYZ, flatCoordinates);
-    return lineString;
-  } else {
-    return undefined;
-  }
+  ol.xml.parseNode(this.SURFACEMEMBER_PARSERS_,
+      node, objectStack, this);
 };
 
 
@@ -77213,12 +77913,12 @@ ol.format.GML.readLineString_ = function(node, objectStack) {
  * @private
  * @return {Array.<(Array.<number>)>|undefined} flat coordinates.
  */
-ol.format.GML.readPatch_ = function(node, objectStack) {
+ol.format.GML3.prototype.readPatch_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'patches');
   return ol.xml.pushParseAndPop(
       /** @type {Array.<Array.<number>>} */ ([null]),
-      ol.format.GML.PATCHES_PARSERS_, node, objectStack);
+      this.PATCHES_PARSERS_, node, objectStack, this);
 };
 
 
@@ -77228,12 +77928,12 @@ ol.format.GML.readPatch_ = function(node, objectStack) {
  * @private
  * @return {Array.<number>|undefined} flat coordinates.
  */
-ol.format.GML.readSegment_ = function(node, objectStack) {
+ol.format.GML3.prototype.readSegment_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'segments');
   return ol.xml.pushParseAndPop(
       /** @type {Array.<number>} */ ([null]),
-      ol.format.GML.SEGMENTS_PARSERS_, node, objectStack);
+      this.SEGMENTS_PARSERS_, node, objectStack, this);
 };
 
 
@@ -77243,12 +77943,12 @@ ol.format.GML.readSegment_ = function(node, objectStack) {
  * @private
  * @return {Array.<(Array.<number>)>|undefined} flat coordinates.
  */
-ol.format.GML.readPolygonPatch_ = function(node, objectStack) {
+ol.format.GML3.prototype.readPolygonPatch_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'PolygonPatch');
   return ol.xml.pushParseAndPop(
       /** @type {Array.<Array.<number>>} */ ([null]),
-      ol.format.GML.FLAT_LINEAR_RINGS_PARSERS_, node, objectStack);
+      this.FLAT_LINEAR_RINGS_PARSERS_, node, objectStack, this);
 };
 
 
@@ -77258,12 +77958,14 @@ ol.format.GML.readPolygonPatch_ = function(node, objectStack) {
  * @private
  * @return {Array.<number>|undefined} flat coordinates.
  */
-ol.format.GML.readLineStringSegment_ = function(node, objectStack) {
+ol.format.GML3.prototype.readLineStringSegment_ =
+    function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'LineStringSegment');
   return ol.xml.pushParseAndPop(
       /** @type {Array.<number>} */ ([null]),
-      ol.format.GML.GEOMETRY_FLAT_COORDINATES_PARSERS_, node, objectStack);
+      this.GEOMETRY_FLAT_COORDINATES_PARSERS_,
+      node, objectStack, this);
 };
 
 
@@ -77272,12 +77974,12 @@ ol.format.GML.readLineStringSegment_ = function(node, objectStack) {
  * @param {Array.<*>} objectStack Object stack.
  * @private
  */
-ol.format.GML.interiorParser_ = function(node, objectStack) {
+ol.format.GML3.prototype.interiorParser_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'interior');
   var flatLinearRing = ol.xml.pushParseAndPop(
       /** @type {Array.<number>|undefined} */ (undefined),
-      ol.format.GML.RING_PARSERS_, node, objectStack);
+      this.RING_PARSERS, node, objectStack, this);
   if (goog.isDef(flatLinearRing)) {
     var flatLinearRings = /** @type {Array.<Array.<number>>} */
         (objectStack[objectStack.length - 1]);
@@ -77293,12 +77995,12 @@ ol.format.GML.interiorParser_ = function(node, objectStack) {
  * @param {Array.<*>} objectStack Object stack.
  * @private
  */
-ol.format.GML.exteriorParser_ = function(node, objectStack) {
+ol.format.GML3.prototype.exteriorParser_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'exterior');
   var flatLinearRing = ol.xml.pushParseAndPop(
       /** @type {Array.<number>|undefined} */ (undefined),
-      ol.format.GML.RING_PARSERS_, node, objectStack);
+      this.RING_PARSERS, node, objectStack, this);
   if (goog.isDef(flatLinearRing)) {
     var flatLinearRings = /** @type {Array.<Array.<number>>} */
         (objectStack[objectStack.length - 1]);
@@ -77313,85 +78015,14 @@ ol.format.GML.exteriorParser_ = function(node, objectStack) {
  * @param {Node} node Node.
  * @param {Array.<*>} objectStack Object stack.
  * @private
- * @return {Array.<number>|undefined} LinearRing flat coordinates.
- */
-ol.format.GML.readFlatLinearRing_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  goog.asserts.assert(node.localName == 'LinearRing');
-  var ring = ol.xml.pushParseAndPop(/** @type {Array.<number>} */(null),
-      ol.format.GML.GEOMETRY_FLAT_COORDINATES_PARSERS_, node, objectStack);
-  if (goog.isDefAndNotNull(ring)) {
-    return ring;
-  } else {
-    return undefined;
-  }
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @private
- * @return {ol.geom.LinearRing|undefined} LinearRing.
- */
-ol.format.GML.readLinearRing_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  goog.asserts.assert(node.localName == 'LinearRing');
-  var flatCoordinates =
-      ol.format.GML.readFlatCoordinatesFromNode_(node, objectStack);
-  if (goog.isDef(flatCoordinates)) {
-    var ring = new ol.geom.LinearRing(null);
-    ring.setFlatCoordinates(ol.geom.GeometryLayout.XYZ, flatCoordinates);
-    return ring;
-  } else {
-    return undefined;
-  }
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @private
  * @return {ol.geom.Polygon|undefined} Polygon.
  */
-ol.format.GML.readPolygon_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  goog.asserts.assert(node.localName == 'Polygon');
-  var flatLinearRings = ol.xml.pushParseAndPop(
-      /** @type {Array.<Array.<number>>} */ ([null]),
-      ol.format.GML.FLAT_LINEAR_RINGS_PARSERS_, node, objectStack);
-  if (goog.isDef(flatLinearRings) &&
-      !goog.isNull(flatLinearRings[0])) {
-    var polygon = new ol.geom.Polygon(null);
-    var flatCoordinates = flatLinearRings[0];
-    var ends = [flatCoordinates.length];
-    var i, ii;
-    for (i = 1, ii = flatLinearRings.length; i < ii; ++i) {
-      ol.array.safeExtend(flatCoordinates, flatLinearRings[i]);
-      ends.push(flatCoordinates.length);
-    }
-    polygon.setFlatCoordinates(
-        ol.geom.GeometryLayout.XYZ, flatCoordinates, ends);
-    return polygon;
-  } else {
-    return undefined;
-  }
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @private
- * @return {ol.geom.Polygon|undefined} Polygon.
- */
-ol.format.GML.readSurface_ = function(node, objectStack) {
+ol.format.GML3.prototype.readSurface_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'Surface');
   var flatLinearRings = ol.xml.pushParseAndPop(
       /** @type {Array.<Array.<number>>} */ ([null]),
-      ol.format.GML.SURFACE_PARSERS_, node, objectStack);
+      this.SURFACE_PARSERS_, node, objectStack, this);
   if (goog.isDef(flatLinearRings) &&
       !goog.isNull(flatLinearRings[0])) {
     var polygon = new ol.geom.Polygon(null);
@@ -77417,12 +78048,12 @@ ol.format.GML.readSurface_ = function(node, objectStack) {
  * @private
  * @return {ol.geom.LineString|undefined} LineString.
  */
-ol.format.GML.readCurve_ = function(node, objectStack) {
+ol.format.GML3.prototype.readCurve_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'Curve');
   var flatCoordinates = ol.xml.pushParseAndPop(
       /** @type {Array.<number>} */ ([null]),
-      ol.format.GML.CURVE_PARSERS_, node, objectStack);
+      this.CURVE_PARSERS_, node, objectStack, this);
   if (goog.isDef(flatCoordinates)) {
     var lineString = new ol.geom.LineString(null);
     lineString.setFlatCoordinates(ol.geom.GeometryLayout.XYZ, flatCoordinates);
@@ -77439,12 +78070,12 @@ ol.format.GML.readCurve_ = function(node, objectStack) {
  * @private
  * @return {ol.Extent|undefined} Envelope.
  */
-ol.format.GML.readEnvelope_ = function(node, objectStack) {
+ol.format.GML3.prototype.readEnvelope_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'Envelope');
   var flatCoordinates = ol.xml.pushParseAndPop(
       /** @type {Array.<number>} */ ([null]),
-      ol.format.GML.ENVELOPE_PARSERS_, node, objectStack);
+      this.ENVELOPE_PARSERS_, node, objectStack, this);
   return ol.extent.createOrUpdate(flatCoordinates[1][0],
       flatCoordinates[1][1], flatCoordinates[2][0],
       flatCoordinates[2][1]);
@@ -77455,23 +78086,9 @@ ol.format.GML.readEnvelope_ = function(node, objectStack) {
  * @param {Node} node Node.
  * @param {Array.<*>} objectStack Object stack.
  * @private
- * @return {Array.<number>} Flat coordinates.
- */
-ol.format.GML.readFlatCoordinatesFromNode_ = function(node, objectStack) {
-  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
-  return /** @type {Array.<number>} */ (ol.xml.pushParseAndPop(
-      null,
-      ol.format.GML.GEOMETRY_FLAT_COORDINATES_PARSERS_, node, objectStack));
-};
-
-
-/**
- * @param {Node} node Node.
- * @param {Array.<*>} objectStack Object stack.
- * @private
  * @return {Array.<number>|undefined} Flat coordinates.
  */
-ol.format.GML.readFlatPos_ = function(node, objectStack) {
+ol.format.GML3.prototype.readFlatPos_ = function(node, objectStack) {
   var s = ol.xml.getAllTextContent(node, false);
   var re = /^\s*([+\-]?\d*\.?\d+(?:[eE][+\-]?\d+)?)\s*/;
   /** @type {Array.<number>} */
@@ -77518,7 +78135,7 @@ ol.format.GML.readFlatPos_ = function(node, objectStack) {
  * @private
  * @return {Array.<number>|undefined} Flat coordinates.
  */
-ol.format.GML.readFlatPosList_ = function(node, objectStack) {
+ol.format.GML3.prototype.readFlatPosList_ = function(node, objectStack) {
   var s = ol.xml.getAllTextContent(node, false).replace(/^\s*|\s*$/g, '');
   var context = objectStack[0];
   goog.asserts.assert(goog.isObject(context));
@@ -77562,23 +78179,55 @@ ol.format.GML.readFlatPosList_ = function(node, objectStack) {
  * @type {Object.<string, Object.<string, ol.xml.Parser>>}
  * @private
  */
-ol.format.GML.GEOMETRY_PARSERS_ = {
+ol.format.GML3.prototype.GEOMETRY_FLAT_COORDINATES_PARSERS_ = Object({
   'http://www.opengis.net/gml' : {
-    'Point': ol.xml.makeReplacer(ol.format.GML.readPoint_),
-    'MultiPoint': ol.xml.makeReplacer(ol.format.GML.readMultiPoint_),
-    'LineString': ol.xml.makeReplacer(ol.format.GML.readLineString_),
+    'pos': ol.xml.makeReplacer(ol.format.GML3.prototype.readFlatPos_),
+    'posList': ol.xml.makeReplacer(ol.format.GML3.prototype.readFlatPosList_)
+  }
+});
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @private
+ */
+ol.format.GML3.prototype.FLAT_LINEAR_RINGS_PARSERS_ = Object({
+  'http://www.opengis.net/gml' : {
+    'interior': ol.format.GML3.prototype.interiorParser_,
+    'exterior': ol.format.GML3.prototype.exteriorParser_
+  }
+});
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @private
+ */
+ol.format.GML3.prototype.GEOMETRY_PARSERS_ = Object({
+  'http://www.opengis.net/gml' : {
+    'Point': ol.xml.makeReplacer(ol.format.GMLBase.prototype.readPoint),
+    'MultiPoint': ol.xml.makeReplacer(
+        ol.format.GMLBase.prototype.readMultiPoint),
+    'LineString': ol.xml.makeReplacer(
+        ol.format.GMLBase.prototype.readLineString),
     'MultiLineString': ol.xml.makeReplacer(
-        ol.format.GML.readMultiLineString_),
-    'LinearRing' : ol.xml.makeReplacer(ol.format.GML.readLinearRing_),
-    'Polygon': ol.xml.makeReplacer(ol.format.GML.readPolygon_),
-    'MultiPolygon': ol.xml.makeReplacer(ol.format.GML.readMultiPolygon_),
-    'Surface': ol.xml.makeReplacer(ol.format.GML.readSurface_),
-    'MultiSurface': ol.xml.makeReplacer(ol.format.GML.readMultiSurface_),
-    'Curve': ol.xml.makeReplacer(ol.format.GML.readCurve_),
-    'MultiCurve': ol.xml.makeReplacer(ol.format.GML.readMultiCurve_),
-    'Envelope': ol.xml.makeReplacer(ol.format.GML.readEnvelope_)
+        ol.format.GMLBase.prototype.readMultiLineString),
+    'LinearRing' : ol.xml.makeReplacer(
+        ol.format.GMLBase.prototype.readLinearRing),
+    'Polygon': ol.xml.makeReplacer(ol.format.GMLBase.prototype.readPolygon),
+    'MultiPolygon': ol.xml.makeReplacer(
+        ol.format.GMLBase.prototype.readMultiPolygon),
+    'Surface': ol.xml.makeReplacer(ol.format.GML3.prototype.readSurface_),
+    'MultiSurface': ol.xml.makeReplacer(
+        ol.format.GML3.prototype.readMultiSurface_),
+    'Curve': ol.xml.makeReplacer(ol.format.GML3.prototype.readCurve_),
+    'MultiCurve': ol.xml.makeReplacer(
+        ol.format.GML3.prototype.readMultiCurve_),
+    'Envelope': ol.xml.makeReplacer(ol.format.GML3.prototype.readEnvelope_)
   }
-};
+});
 
 
 /**
@@ -77586,68 +78235,14 @@ ol.format.GML.GEOMETRY_PARSERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Parser>>}
  * @private
  */
-ol.format.GML.GEOMETRY_FLAT_COORDINATES_PARSERS_ = {
-  'http://www.opengis.net/gml' : {
-    'pos': ol.xml.makeReplacer(ol.format.GML.readFlatPos_),
-    'posList': ol.xml.makeReplacer(ol.format.GML.readFlatPosList_)
-  }
-};
-
-
-/**
- * @const
- * @type {Object.<string, Object.<string, ol.xml.Parser>>}
- * @private
- */
-ol.format.GML.FLAT_LINEAR_RINGS_PARSERS_ = {
-  'http://www.opengis.net/gml' : {
-    'interior': ol.format.GML.interiorParser_,
-    'exterior': ol.format.GML.exteriorParser_
-  }
-};
-
-
-/**
- * @const
- * @type {Object.<string, Object.<string, ol.xml.Parser>>}
- * @private
- */
-ol.format.GML.MULTIPOINT_PARSERS_ = {
-  'http://www.opengis.net/gml' : {
-    'pointMember': ol.xml.makeArrayPusher(ol.format.GML.pointMemberParser_),
-    'pointMembers': ol.xml.makeArrayPusher(ol.format.GML.pointMemberParser_)
-  }
-};
-
-
-/**
- * @const
- * @type {Object.<string, Object.<string, ol.xml.Parser>>}
- * @private
- */
-ol.format.GML.MULTILINESTRING_PARSERS_ = {
-  'http://www.opengis.net/gml' : {
-    'lineStringMember': ol.xml.makeArrayPusher(
-        ol.format.GML.lineStringMemberParser_),
-    'lineStringMembers': ol.xml.makeArrayPusher(
-        ol.format.GML.lineStringMemberParser_)
-  }
-};
-
-
-/**
- * @const
- * @type {Object.<string, Object.<string, ol.xml.Parser>>}
- * @private
- */
-ol.format.GML.MULTICURVE_PARSERS_ = {
+ol.format.GML3.prototype.MULTICURVE_PARSERS_ = Object({
   'http://www.opengis.net/gml' : {
     'curveMember': ol.xml.makeArrayPusher(
-        ol.format.GML.curveMemberParser_),
+        ol.format.GML3.prototype.curveMemberParser_),
     'curveMembers': ol.xml.makeArrayPusher(
-        ol.format.GML.curveMemberParser_)
+        ol.format.GML3.prototype.curveMemberParser_)
   }
-};
+});
 
 
 /**
@@ -77655,14 +78250,14 @@ ol.format.GML.MULTICURVE_PARSERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Parser>>}
  * @private
  */
-ol.format.GML.MULTISURFACE_PARSERS_ = {
+ol.format.GML3.prototype.MULTISURFACE_PARSERS_ = Object({
   'http://www.opengis.net/gml' : {
     'surfaceMember': ol.xml.makeArrayPusher(
-        ol.format.GML.surfaceMemberParser_),
+        ol.format.GML3.prototype.surfaceMemberParser_),
     'surfaceMembers': ol.xml.makeArrayPusher(
-        ol.format.GML.surfaceMemberParser_)
+        ol.format.GML3.prototype.surfaceMemberParser_)
   }
-};
+});
 
 
 /**
@@ -77670,40 +78265,13 @@ ol.format.GML.MULTISURFACE_PARSERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Parser>>}
  * @private
  */
-ol.format.GML.MULTIPOLYGON_PARSERS_ = {
-  'http://www.opengis.net/gml' : {
-    'polygonMember': ol.xml.makeArrayPusher(
-        ol.format.GML.polygonMemberParser_),
-    'polygonMembers': ol.xml.makeArrayPusher(
-        ol.format.GML.polygonMemberParser_)
-  }
-};
-
-
-/**
- * @const
- * @type {Object.<string, Object.<string, ol.xml.Parser>>}
- * @private
- */
-ol.format.GML.POINTMEMBER_PARSERS_ = {
-  'http://www.opengis.net/gml' : {
-    'Point': ol.xml.makeArrayPusher(
-        ol.format.GML.readFlatCoordinatesFromNode_)
-  }
-};
-
-
-/**
- * @const
- * @type {Object.<string, Object.<string, ol.xml.Parser>>}
- * @private
- */
-ol.format.GML.LINESTRINGMEMBER_PARSERS_ = {
+ol.format.GML3.prototype.CURVEMEMBER_PARSERS_ = Object({
   'http://www.opengis.net/gml' : {
     'LineString': ol.xml.makeArrayPusher(
-        ol.format.GML.readLineString_)
+        ol.format.GMLBase.prototype.readLineString),
+    'Curve': ol.xml.makeArrayPusher(ol.format.GML3.prototype.readCurve_)
   }
-};
+});
 
 
 /**
@@ -77711,12 +78279,12 @@ ol.format.GML.LINESTRINGMEMBER_PARSERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Parser>>}
  * @private
  */
-ol.format.GML.CURVEMEMBER_PARSERS_ = {
+ol.format.GML3.prototype.SURFACEMEMBER_PARSERS_ = Object({
   'http://www.opengis.net/gml' : {
-    'LineString': ol.xml.makeArrayPusher(ol.format.GML.readLineString_),
-    'Curve': ol.xml.makeArrayPusher(ol.format.GML.readCurve_)
+    'Polygon': ol.xml.makeArrayPusher(ol.format.GMLBase.prototype.readPolygon),
+    'Surface': ol.xml.makeArrayPusher(ol.format.GML3.prototype.readSurface_)
   }
-};
+});
 
 
 /**
@@ -77724,12 +78292,11 @@ ol.format.GML.CURVEMEMBER_PARSERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Parser>>}
  * @private
  */
-ol.format.GML.SURFACEMEMBER_PARSERS_ = {
+ol.format.GML3.prototype.SURFACE_PARSERS_ = Object({
   'http://www.opengis.net/gml' : {
-    'Polygon': ol.xml.makeArrayPusher(ol.format.GML.readPolygon_),
-    'Surface': ol.xml.makeArrayPusher(ol.format.GML.readSurface_)
+    'patches': ol.xml.makeReplacer(ol.format.GML3.prototype.readPatch_)
   }
-};
+});
 
 
 /**
@@ -77737,12 +78304,11 @@ ol.format.GML.SURFACEMEMBER_PARSERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Parser>>}
  * @private
  */
-ol.format.GML.POLYGONMEMBER_PARSERS_ = {
+ol.format.GML3.prototype.CURVE_PARSERS_ = Object({
   'http://www.opengis.net/gml' : {
-    'Polygon': ol.xml.makeArrayPusher(
-        ol.format.GML.readPolygon_)
+    'segments': ol.xml.makeReplacer(ol.format.GML3.prototype.readSegment_)
   }
-};
+});
 
 
 /**
@@ -77750,11 +78316,14 @@ ol.format.GML.POLYGONMEMBER_PARSERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Parser>>}
  * @private
  */
-ol.format.GML.SURFACE_PARSERS_ = {
+ol.format.GML3.prototype.ENVELOPE_PARSERS_ = Object({
   'http://www.opengis.net/gml' : {
-    'patches': ol.xml.makeReplacer(ol.format.GML.readPatch_)
+    'lowerCorner': ol.xml.makeArrayPusher(
+        ol.format.GML3.prototype.readFlatPosList_),
+    'upperCorner': ol.xml.makeArrayPusher(
+        ol.format.GML3.prototype.readFlatPosList_)
   }
-};
+});
 
 
 /**
@@ -77762,11 +78331,12 @@ ol.format.GML.SURFACE_PARSERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Parser>>}
  * @private
  */
-ol.format.GML.CURVE_PARSERS_ = {
+ol.format.GML3.prototype.PATCHES_PARSERS_ = Object({
   'http://www.opengis.net/gml' : {
-    'segments': ol.xml.makeReplacer(ol.format.GML.readSegment_)
+    'PolygonPatch': ol.xml.makeReplacer(
+        ol.format.GML3.prototype.readPolygonPatch_)
   }
-};
+});
 
 
 /**
@@ -77774,95 +78344,12 @@ ol.format.GML.CURVE_PARSERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Parser>>}
  * @private
  */
-ol.format.GML.ENVELOPE_PARSERS_ = {
-  'http://www.opengis.net/gml' : {
-    'lowerCorner': ol.xml.makeArrayPusher(ol.format.GML.readFlatPosList_),
-    'upperCorner': ol.xml.makeArrayPusher(ol.format.GML.readFlatPosList_)
-  }
-};
-
-
-/**
- * @const
- * @type {Object.<string, Object.<string, ol.xml.Parser>>}
- * @private
- */
-ol.format.GML.PATCHES_PARSERS_ = {
-  'http://www.opengis.net/gml' : {
-    'PolygonPatch': ol.xml.makeReplacer(ol.format.GML.readPolygonPatch_)
-  }
-};
-
-
-/**
- * @const
- * @type {Object.<string, Object.<string, ol.xml.Parser>>}
- * @private
- */
-ol.format.GML.SEGMENTS_PARSERS_ = {
+ol.format.GML3.prototype.SEGMENTS_PARSERS_ = Object({
   'http://www.opengis.net/gml' : {
     'LineStringSegment': ol.xml.makeReplacer(
-        ol.format.GML.readLineStringSegment_)
+        ol.format.GML3.prototype.readLineStringSegment_)
   }
-};
-
-
-/**
- * @const
- * @type {Object.<string, Object.<string, ol.xml.Parser>>}
- * @private
- */
-ol.format.GML.RING_PARSERS_ = {
-  'http://www.opengis.net/gml' : {
-    'LinearRing': ol.xml.makeReplacer(ol.format.GML.readFlatLinearRing_)
-  }
-};
-
-
-/**
- * @inheritDoc
- */
-ol.format.GML.prototype.readGeometryFromNode = function(node, opt_options) {
-  var geometry = ol.format.GML.readGeometry(node,
-      [this.getReadOptions(node, goog.isDef(opt_options) ? opt_options : {})]);
-  return (goog.isDef(geometry) ? geometry : null);
-};
-
-
-/**
- * Read all features from a GML FeatureCollection.
- *
- * @function
- * @param {ArrayBuffer|Document|Node|Object|string} source Source.
- * @param {olx.format.ReadOptions=} opt_options Options.
- * @return {Array.<ol.Feature>} Features.
- * @api stable
- */
-ol.format.GML.prototype.readFeatures;
-
-
-/**
- * @inheritDoc
- */
-ol.format.GML.prototype.readFeaturesFromNode = function(node, opt_options) {
-  var options = {
-    'featureType': this.featureType_,
-    'featureNS': this.featureNS_
-  };
-  if (goog.isDef(opt_options)) {
-    goog.object.extend(options, this.getReadOptions(node, opt_options));
-  }
-  return ol.format.GML.readFeatures_(node, [options]);
-};
-
-
-/**
- * @inheritDoc
- */
-ol.format.GML.prototype.readProjectionFromNode = function(node) {
-  return ol.proj.get(goog.isDef(this.srsName_) ? this.srsName_ :
-      node.firstElementChild.getAttribute('srsName'));
-};
+});
 
 
 /**
@@ -77871,7 +78358,7 @@ ol.format.GML.prototype.readProjectionFromNode = function(node) {
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writePos_ = function(node, value, objectStack) {
+ol.format.GML3.prototype.writePos_ = function(node, value, objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
   var srsName = goog.object.get(context, 'srsName');
@@ -77897,7 +78384,7 @@ ol.format.GML.writePos_ = function(node, value, objectStack) {
  * @return {string}
  * @private
  */
-ol.format.GML.getCoords_ = function(point, opt_srsName) {
+ol.format.GML3.prototype.getCoords_ = function(point, opt_srsName) {
   var axisOrientation = 'enu';
   if (goog.isDefAndNotNull(opt_srsName)) {
     axisOrientation = ol.proj.get(opt_srsName).getAxisOrientation();
@@ -77914,7 +78401,7 @@ ol.format.GML.getCoords_ = function(point, opt_srsName) {
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writePosList_ = function(node, value, objectStack) {
+ol.format.GML3.prototype.writePosList_ = function(node, value, objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
   var srsName = goog.object.get(context, 'srsName');
@@ -77925,7 +78412,7 @@ ol.format.GML.writePosList_ = function(node, value, objectStack) {
   var point;
   for (var i = 0; i < len; ++i) {
     point = points[i];
-    parts[i] = ol.format.GML.getCoords_(point, srsName);
+    parts[i] = this.getCoords_(point, srsName);
   }
   ol.format.XSD.writeStringTextNode(node, parts.join(' '));
 };
@@ -77937,7 +78424,7 @@ ol.format.GML.writePosList_ = function(node, value, objectStack) {
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writePoint_ = function(node, geometry, objectStack) {
+ol.format.GML3.prototype.writePoint_ = function(node, geometry, objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
   var srsName = goog.object.get(context, 'srsName');
@@ -77946,7 +78433,7 @@ ol.format.GML.writePoint_ = function(node, geometry, objectStack) {
   }
   var pos = ol.xml.createElementNS(node.namespaceURI, 'pos');
   node.appendChild(pos);
-  ol.format.GML.writePos_(pos, geometry, objectStack);
+  this.writePos_(pos, geometry, objectStack);
 };
 
 
@@ -77954,7 +78441,7 @@ ol.format.GML.writePoint_ = function(node, geometry, objectStack) {
  * @type {Object.<string, Object.<string, ol.xml.Serializer>>}
  * @private
  */
-ol.format.GML.ENVELOPE_SERIALIZERS_ = {
+ol.format.GML3.ENVELOPE_SERIALIZERS_ = {
   'http://www.opengis.net/gml': {
     'lowerCorner': ol.xml.makeChildAppender(ol.format.XSD.writeStringTextNode),
     'upperCorner': ol.xml.makeChildAppender(ol.format.XSD.writeStringTextNode)
@@ -77967,7 +78454,7 @@ ol.format.GML.ENVELOPE_SERIALIZERS_ = {
  * @param {ol.Extent} extent Extent.
  * @param {Array.<*>} objectStack Node stack.
  */
-ol.format.GML.writeEnvelope = function(node, extent, objectStack) {
+ol.format.GML3.prototype.writeEnvelope = function(node, extent, objectStack) {
   goog.asserts.assert(extent.length == 4);
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
@@ -77978,10 +78465,10 @@ ol.format.GML.writeEnvelope = function(node, extent, objectStack) {
   var keys = ['lowerCorner', 'upperCorner'];
   var values = [extent[0] + ' ' + extent[1], extent[2] + ' ' + extent[3]];
   ol.xml.pushSerializeAndPop(/** @type {ol.xml.NodeStackItem} */
-      ({node: node}), ol.format.GML.ENVELOPE_SERIALIZERS_,
+      ({node: node}), ol.format.GML3.ENVELOPE_SERIALIZERS_,
       ol.xml.OBJECT_PROPERTY_NODE_FACTORY,
       values,
-      objectStack, keys);
+      objectStack, keys, this);
 };
 
 
@@ -77991,7 +78478,8 @@ ol.format.GML.writeEnvelope = function(node, extent, objectStack) {
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writeLinearRing_ = function(node, geometry, objectStack) {
+ol.format.GML3.prototype.writeLinearRing_ =
+    function(node, geometry, objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
   var srsName = goog.object.get(context, 'srsName');
@@ -78000,7 +78488,7 @@ ol.format.GML.writeLinearRing_ = function(node, geometry, objectStack) {
   }
   var posList = ol.xml.createElementNS(node.namespaceURI, 'posList');
   node.appendChild(posList);
-  ol.format.GML.writePosList_(posList, geometry, objectStack);
+  this.writePosList_(posList, geometry, objectStack);
 };
 
 
@@ -78011,7 +78499,8 @@ ol.format.GML.writeLinearRing_ = function(node, geometry, objectStack) {
  * @return {Node} Node.
  * @private
  */
-ol.format.GML.RING_NODE_FACTORY_ = function(value, objectStack, opt_nodeName) {
+ol.format.GML3.prototype.RING_NODE_FACTORY_ =
+    function(value, objectStack, opt_nodeName) {
   var context = objectStack[objectStack.length - 1];
   var parentNode = context.node;
   goog.asserts.assert(goog.isObject(context));
@@ -78030,7 +78519,8 @@ ol.format.GML.RING_NODE_FACTORY_ = function(value, objectStack, opt_nodeName) {
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writeSurfaceOrPolygon_ = function(node, geometry, objectStack) {
+ol.format.GML3.prototype.writeSurfaceOrPolygon_ =
+    function(node, geometry, objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
   var srsName = goog.object.get(context, 'srsName');
@@ -78041,12 +78531,14 @@ ol.format.GML.writeSurfaceOrPolygon_ = function(node, geometry, objectStack) {
     var rings = geometry.getLinearRings();
     ol.xml.pushSerializeAndPop(
         {node: node, srsName: srsName},
-        ol.format.GML.RING_SERIALIZERS_, ol.format.GML.RING_NODE_FACTORY_,
-        rings, objectStack);
+        ol.format.GML3.RING_SERIALIZERS_,
+        this.RING_NODE_FACTORY_,
+        rings, objectStack, undefined, this);
   } else if (node.nodeName === 'Surface') {
     var patches = ol.xml.createElementNS(node.namespaceURI, 'patches');
     node.appendChild(patches);
-    ol.format.GML.writeSurfacePatches_(patches, geometry, objectStack);
+    this.writeSurfacePatches_(
+        patches, geometry, objectStack);
   }
 };
 
@@ -78057,21 +78549,25 @@ ol.format.GML.writeSurfaceOrPolygon_ = function(node, geometry, objectStack) {
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writeCurveOrLineString_ = function(node, geometry, objectStack) {
+ol.format.GML3.prototype.writeCurveOrLineString_ =
+    function(node, geometry, objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
   var srsName = goog.object.get(context, 'srsName');
-  if (node.nodeName !== 'LineStringSegment' && goog.isDefAndNotNull(srsName)) {
+  if (node.nodeName !== 'LineStringSegment' &&
+      goog.isDefAndNotNull(srsName)) {
     node.setAttribute('srsName', srsName);
   }
-  if (node.nodeName === 'LineString' || node.nodeName === 'LineStringSegment') {
+  if (node.nodeName === 'LineString' ||
+      node.nodeName === 'LineStringSegment') {
     var posList = ol.xml.createElementNS(node.namespaceURI, 'posList');
     node.appendChild(posList);
-    ol.format.GML.writePosList_(posList, geometry, objectStack);
+    this.writePosList_(posList, geometry, objectStack);
   } else if (node.nodeName === 'Curve') {
     var segments = ol.xml.createElementNS(node.namespaceURI, 'segments');
     node.appendChild(segments);
-    ol.format.GML.writeCurveSegments_(segments, geometry, objectStack);
+    this.writeCurveSegments_(segments,
+        geometry, objectStack);
   }
 };
 
@@ -78082,8 +78578,8 @@ ol.format.GML.writeCurveOrLineString_ = function(node, geometry, objectStack) {
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writeMultiSurfaceOrPolygon_ = function(node, geometry,
-    objectStack) {
+ol.format.GML3.prototype.writeMultiSurfaceOrPolygon_ =
+    function(node, geometry, objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
   var srsName = goog.object.get(context, 'srsName');
@@ -78093,9 +78589,9 @@ ol.format.GML.writeMultiSurfaceOrPolygon_ = function(node, geometry,
   }
   var polygons = geometry.getPolygons();
   ol.xml.pushSerializeAndPop({node: node, srsName: srsName, surface: surface},
-      ol.format.GML.SURFACEORPOLYGONMEMBER_SERIALIZERS_,
-      ol.format.GML.MULTIGEOMETRY_MEMBER_NODE_FACTORY_, polygons,
-      objectStack);
+      ol.format.GML3.SURFACEORPOLYGONMEMBER_SERIALIZERS_,
+      this.MULTIGEOMETRY_MEMBER_NODE_FACTORY_, polygons,
+      objectStack, undefined, this);
 };
 
 
@@ -78105,7 +78601,7 @@ ol.format.GML.writeMultiSurfaceOrPolygon_ = function(node, geometry,
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writeMultiPoint_ = function(node, geometry,
+ol.format.GML3.prototype.writeMultiPoint_ = function(node, geometry,
     objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
@@ -78115,9 +78611,9 @@ ol.format.GML.writeMultiPoint_ = function(node, geometry,
   }
   var points = geometry.getPoints();
   ol.xml.pushSerializeAndPop({node: node, srsName: srsName},
-      ol.format.GML.POINTMEMBER_SERIALIZERS_,
+      ol.format.GML3.POINTMEMBER_SERIALIZERS_,
       ol.xml.makeSimpleNodeFactory('pointMember'), points,
-      objectStack);
+      objectStack, undefined, this);
 };
 
 
@@ -78127,8 +78623,8 @@ ol.format.GML.writeMultiPoint_ = function(node, geometry,
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writeMultiCurveOrLineString_ = function(node, geometry,
-    objectStack) {
+ol.format.GML3.prototype.writeMultiCurveOrLineString_ =
+    function(node, geometry, objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
   var srsName = goog.object.get(context, 'srsName');
@@ -78138,9 +78634,9 @@ ol.format.GML.writeMultiCurveOrLineString_ = function(node, geometry,
   }
   var lines = geometry.getLineStrings();
   ol.xml.pushSerializeAndPop({node: node, srsName: srsName, curve: curve},
-      ol.format.GML.LINESTRINGORCURVEMEMBER_SERIALIZERS_,
-      ol.format.GML.MULTIGEOMETRY_MEMBER_NODE_FACTORY_, lines,
-      objectStack);
+      ol.format.GML3.LINESTRINGORCURVEMEMBER_SERIALIZERS_,
+      this.MULTIGEOMETRY_MEMBER_NODE_FACTORY_, lines,
+      objectStack, undefined, this);
 };
 
 
@@ -78150,10 +78646,10 @@ ol.format.GML.writeMultiCurveOrLineString_ = function(node, geometry,
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writeRing_ = function(node, ring, objectStack) {
+ol.format.GML3.prototype.writeRing_ = function(node, ring, objectStack) {
   var linearRing = ol.xml.createElementNS(node.namespaceURI, 'LinearRing');
   node.appendChild(linearRing);
-  ol.format.GML.writeLinearRing_(linearRing, ring, objectStack);
+  this.writeLinearRing_(linearRing, ring, objectStack);
 };
 
 
@@ -78163,14 +78659,15 @@ ol.format.GML.writeRing_ = function(node, ring, objectStack) {
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writeSurfaceOrPolygonMember_ = function(node, polygon,
-    objectStack) {
+ol.format.GML3.prototype.writeSurfaceOrPolygonMember_ =
+    function(node, polygon, objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
-  var child = ol.format.GML.GEOMETRY_NODE_FACTORY_(polygon, objectStack);
+  var child = this.GEOMETRY_NODE_FACTORY_(
+      polygon, objectStack);
   if (goog.isDef(child)) {
     node.appendChild(child);
-    ol.format.GML.writeSurfaceOrPolygon_(child, polygon, objectStack);
+    this.writeSurfaceOrPolygon_(child, polygon, objectStack);
   }
 };
 
@@ -78181,10 +78678,11 @@ ol.format.GML.writeSurfaceOrPolygonMember_ = function(node, polygon,
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writePointMember_ = function(node, point, objectStack) {
+ol.format.GML3.prototype.writePointMember_ =
+    function(node, point, objectStack) {
   var child = ol.xml.createElementNS(node.namespaceURI, 'Point');
   node.appendChild(child);
-  ol.format.GML.writePoint_(child, point, objectStack);
+  this.writePoint_(child, point, objectStack);
 };
 
 
@@ -78194,14 +78692,14 @@ ol.format.GML.writePointMember_ = function(node, point, objectStack) {
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writeLineStringOrCurveMember_ = function(node, line,
-    objectStack) {
+ol.format.GML3.prototype.writeLineStringOrCurveMember_ =
+    function(node, line, objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
-  var child = ol.format.GML.GEOMETRY_NODE_FACTORY_(line, objectStack);
+  var child = this.GEOMETRY_NODE_FACTORY_(line, objectStack);
   if (goog.isDef(child)) {
     node.appendChild(child);
-    ol.format.GML.writeCurveOrLineString_(child, line, objectStack);
+    this.writeCurveOrLineString_(child, line, objectStack);
   }
 };
 
@@ -78212,10 +78710,11 @@ ol.format.GML.writeLineStringOrCurveMember_ = function(node, line,
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writeSurfacePatches_ = function(node, polygon, objectStack) {
+ol.format.GML3.prototype.writeSurfacePatches_ =
+    function(node, polygon, objectStack) {
   var child = ol.xml.createElementNS(node.namespaceURI, 'PolygonPatch');
   node.appendChild(child);
-  ol.format.GML.writeSurfaceOrPolygon_(child, polygon, objectStack);
+  this.writeSurfaceOrPolygon_(child, polygon, objectStack);
 };
 
 
@@ -78225,10 +78724,12 @@ ol.format.GML.writeSurfacePatches_ = function(node, polygon, objectStack) {
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writeCurveSegments_ = function(node, line, objectStack) {
-  var child = ol.xml.createElementNS(node.namespaceURI, 'LineStringSegment');
+ol.format.GML3.prototype.writeCurveSegments_ =
+    function(node, line, objectStack) {
+  var child = ol.xml.createElementNS(node.namespaceURI,
+      'LineStringSegment');
   node.appendChild(child);
-  ol.format.GML.writeCurveOrLineString_(child, line, objectStack);
+  this.writeCurveOrLineString_(child, line, objectStack);
 };
 
 
@@ -78237,7 +78738,8 @@ ol.format.GML.writeCurveSegments_ = function(node, line, objectStack) {
  * @param {ol.geom.Geometry|ol.Extent} geometry Geometry.
  * @param {Array.<*>} objectStack Node stack.
  */
-ol.format.GML.writeGeometry = function(node, geometry, objectStack) {
+ol.format.GML3.prototype.writeGeometryElement =
+    function(node, geometry, objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
   var item = goog.object.clone(context);
@@ -78256,8 +78758,9 @@ ol.format.GML.writeGeometry = function(node, geometry, objectStack) {
         ol.format.Feature.transformWithOptions(geometry, true, context);
   }
   ol.xml.pushSerializeAndPop(/** @type {ol.xml.NodeStackItem} */
-      (item), ol.format.GML.GEOMETRY_SERIALIZERS_,
-      ol.format.GML.GEOMETRY_NODE_FACTORY_, [value], objectStack);
+      (item), ol.format.GML3.GEOMETRY_SERIALIZERS_,
+      this.GEOMETRY_NODE_FACTORY_, [value],
+      objectStack, undefined, this);
 };
 
 
@@ -78266,7 +78769,8 @@ ol.format.GML.writeGeometry = function(node, geometry, objectStack) {
  * @param {ol.Feature} feature Feature.
  * @param {Array.<*>} objectStack Node stack.
  */
-ol.format.GML.writeFeature = function(node, feature, objectStack) {
+ol.format.GML3.prototype.writeFeatureElement =
+    function(node, feature, objectStack) {
   var fid = feature.getId();
   if (goog.isDef(fid)) {
     node.setAttribute('fid', fid);
@@ -78289,7 +78793,7 @@ ol.format.GML.writeFeature = function(node, feature, objectStack) {
       if (key == geometryName) {
         if (!(key in context.serializers[featureNS])) {
           context.serializers[featureNS][key] = ol.xml.makeChildAppender(
-              ol.format.GML.writeGeometry);
+              this.writeGeometryElement, this);
         }
       } else {
         if (!(key in context.serializers[featureNS])) {
@@ -78315,7 +78819,8 @@ ol.format.GML.writeFeature = function(node, feature, objectStack) {
  * @param {Array.<*>} objectStack Node stack.
  * @private
  */
-ol.format.GML.writeFeatureMembers_ = function(node, features, objectStack) {
+ol.format.GML3.prototype.writeFeatureMembers_ =
+    function(node, features, objectStack) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
   var featureType = goog.object.get(context, 'featureType');
@@ -78323,7 +78828,7 @@ ol.format.GML.writeFeatureMembers_ = function(node, features, objectStack) {
   var serializers = {};
   serializers[featureNS] = {};
   serializers[featureNS][featureType] = ol.xml.makeChildAppender(
-      ol.format.GML.writeFeature);
+      this.writeFeatureElement, this);
   var item = goog.object.clone(context);
   item.node = node;
   ol.xml.pushSerializeAndPop(/** @type {ol.xml.NodeStackItem} */
@@ -78338,12 +78843,12 @@ ol.format.GML.writeFeatureMembers_ = function(node, features, objectStack) {
  * @type {Object.<string, Object.<string, ol.xml.Serializer>>}
  * @private
  */
-ol.format.GML.SURFACEORPOLYGONMEMBER_SERIALIZERS_ = {
+ol.format.GML3.SURFACEORPOLYGONMEMBER_SERIALIZERS_ = {
   'http://www.opengis.net/gml': {
     'surfaceMember': ol.xml.makeChildAppender(
-        ol.format.GML.writeSurfaceOrPolygonMember_),
+        ol.format.GML3.prototype.writeSurfaceOrPolygonMember_),
     'polygonMember': ol.xml.makeChildAppender(
-        ol.format.GML.writeSurfaceOrPolygonMember_)
+        ol.format.GML3.prototype.writeSurfaceOrPolygonMember_)
   }
 };
 
@@ -78352,9 +78857,10 @@ ol.format.GML.SURFACEORPOLYGONMEMBER_SERIALIZERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Serializer>>}
  * @private
  */
-ol.format.GML.POINTMEMBER_SERIALIZERS_ = {
+ol.format.GML3.POINTMEMBER_SERIALIZERS_ = {
   'http://www.opengis.net/gml': {
-    'pointMember': ol.xml.makeChildAppender(ol.format.GML.writePointMember_)
+    'pointMember': ol.xml.makeChildAppender(
+        ol.format.GML3.prototype.writePointMember_)
   }
 };
 
@@ -78363,12 +78869,12 @@ ol.format.GML.POINTMEMBER_SERIALIZERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Serializer>>}
  * @private
  */
-ol.format.GML.LINESTRINGORCURVEMEMBER_SERIALIZERS_ = {
+ol.format.GML3.LINESTRINGORCURVEMEMBER_SERIALIZERS_ = {
   'http://www.opengis.net/gml': {
     'lineStringMember': ol.xml.makeChildAppender(
-        ol.format.GML.writeLineStringOrCurveMember_),
+        ol.format.GML3.prototype.writeLineStringOrCurveMember_),
     'curveMember': ol.xml.makeChildAppender(
-        ol.format.GML.writeLineStringOrCurveMember_)
+        ol.format.GML3.prototype.writeLineStringOrCurveMember_)
   }
 };
 
@@ -78377,10 +78883,10 @@ ol.format.GML.LINESTRINGORCURVEMEMBER_SERIALIZERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Serializer>>}
  * @private
  */
-ol.format.GML.RING_SERIALIZERS_ = {
+ol.format.GML3.RING_SERIALIZERS_ = {
   'http://www.opengis.net/gml': {
-    'exterior': ol.xml.makeChildAppender(ol.format.GML.writeRing_),
-    'interior': ol.xml.makeChildAppender(ol.format.GML.writeRing_)
+    'exterior': ol.xml.makeChildAppender(ol.format.GML3.prototype.writeRing_),
+    'interior': ol.xml.makeChildAppender(ol.format.GML3.prototype.writeRing_)
   }
 };
 
@@ -78389,26 +78895,31 @@ ol.format.GML.RING_SERIALIZERS_ = {
  * @type {Object.<string, Object.<string, ol.xml.Serializer>>}
  * @private
  */
-ol.format.GML.GEOMETRY_SERIALIZERS_ = {
+ol.format.GML3.GEOMETRY_SERIALIZERS_ = {
   'http://www.opengis.net/gml': {
-    'Curve': ol.xml.makeChildAppender(ol.format.GML.writeCurveOrLineString_),
+    'Curve': ol.xml.makeChildAppender(
+        ol.format.GML3.prototype.writeCurveOrLineString_),
     'MultiCurve': ol.xml.makeChildAppender(
-        ol.format.GML.writeMultiCurveOrLineString_),
-    'Point': ol.xml.makeChildAppender(ol.format.GML.writePoint_),
-    'MultiPoint': ol.xml.makeChildAppender(ol.format.GML.writeMultiPoint_),
+        ol.format.GML3.prototype.writeMultiCurveOrLineString_),
+    'Point': ol.xml.makeChildAppender(ol.format.GML3.prototype.writePoint_),
+    'MultiPoint': ol.xml.makeChildAppender(
+        ol.format.GML3.prototype.writeMultiPoint_),
     'LineString': ol.xml.makeChildAppender(
-        ol.format.GML.writeCurveOrLineString_),
+        ol.format.GML3.prototype.writeCurveOrLineString_),
     'MultiLineString': ol.xml.makeChildAppender(
-        ol.format.GML.writeMultiCurveOrLineString_),
-    'LinearRing': ol.xml.makeChildAppender(ol.format.GML.writeLinearRing_),
-    'Polygon': ol.xml.makeChildAppender(ol.format.GML.writeSurfaceOrPolygon_),
+        ol.format.GML3.prototype.writeMultiCurveOrLineString_),
+    'LinearRing': ol.xml.makeChildAppender(
+        ol.format.GML3.prototype.writeLinearRing_),
+    'Polygon': ol.xml.makeChildAppender(
+        ol.format.GML3.prototype.writeSurfaceOrPolygon_),
     'MultiPolygon': ol.xml.makeChildAppender(
-        ol.format.GML.writeMultiSurfaceOrPolygon_),
-    'Surface': ol.xml.makeChildAppender(ol.format.GML.writeSurfaceOrPolygon_),
+        ol.format.GML3.prototype.writeMultiSurfaceOrPolygon_),
+    'Surface': ol.xml.makeChildAppender(
+        ol.format.GML3.prototype.writeSurfaceOrPolygon_),
     'MultiSurface': ol.xml.makeChildAppender(
-        ol.format.GML.writeMultiSurfaceOrPolygon_),
+        ol.format.GML3.prototype.writeMultiSurfaceOrPolygon_),
     'Envelope': ol.xml.makeChildAppender(
-        ol.format.GML.writeEnvelope)
+        ol.format.GML3.prototype.writeEnvelope)
   }
 };
 
@@ -78418,7 +78929,7 @@ ol.format.GML.GEOMETRY_SERIALIZERS_ = {
  * @type {Object.<string, string>}
  * @private
  */
-ol.format.GML.MULTIGEOMETRY_TO_MEMBER_NODENAME_ = {
+ol.format.GML3.MULTIGEOMETRY_TO_MEMBER_NODENAME_ = {
   'MultiLineString': 'lineStringMember',
   'MultiCurve': 'curveMember',
   'MultiPolygon': 'polygonMember',
@@ -78434,12 +78945,12 @@ ol.format.GML.MULTIGEOMETRY_TO_MEMBER_NODENAME_ = {
  * @return {Node|undefined} Node.
  * @private
  */
-ol.format.GML.MULTIGEOMETRY_MEMBER_NODE_FACTORY_ = function(value,
-    objectStack, opt_nodeName) {
+ol.format.GML3.prototype.MULTIGEOMETRY_MEMBER_NODE_FACTORY_ =
+    function(value, objectStack, opt_nodeName) {
   var parentNode = objectStack[objectStack.length - 1].node;
   goog.asserts.assert(ol.xml.isNode(parentNode));
   return ol.xml.createElementNS('http://www.opengis.net/gml',
-      ol.format.GML.MULTIGEOMETRY_TO_MEMBER_NODENAME_[parentNode.nodeName]);
+      ol.format.GML3.MULTIGEOMETRY_TO_MEMBER_NODENAME_[parentNode.nodeName]);
 };
 
 
@@ -78451,8 +78962,8 @@ ol.format.GML.MULTIGEOMETRY_MEMBER_NODE_FACTORY_ = function(value,
  * @return {Node|undefined} Node.
  * @private
  */
-ol.format.GML.GEOMETRY_NODE_FACTORY_ = function(value, objectStack,
-    opt_nodeName) {
+ol.format.GML3.prototype.GEOMETRY_NODE_FACTORY_ =
+    function(value, objectStack, opt_nodeName) {
   var context = objectStack[objectStack.length - 1];
   goog.asserts.assert(goog.isObject(context));
   var multiSurface = goog.object.get(context, 'multiSurface');
@@ -78485,15 +78996,15 @@ ol.format.GML.GEOMETRY_NODE_FACTORY_ = function(value, objectStack,
 /**
  * @inheritDoc
  */
-ol.format.GML.prototype.writeGeometryNode = function(geometry, opt_options) {
+ol.format.GML3.prototype.writeGeometryNode = function(geometry, opt_options) {
   var geom = ol.xml.createElementNS('http://www.opengis.net/gml', 'geom');
-  var context = {node: geom, srsName: this.srsName_,
+  var context = {node: geom, srsName: this.srsName,
     curve: this.curve_, surface: this.surface_,
     multiSurface: this.multiSurface_, multiCurve: this.multiCurve_};
   if (goog.isDef(opt_options)) {
     goog.object.extend(context, opt_options);
   }
-  ol.format.GML.writeGeometry(geom, geometry, [context]);
+  this.writeGeometryElement(geom, geometry, [context]);
   return geom;
 };
 
@@ -78507,32 +79018,279 @@ ol.format.GML.prototype.writeGeometryNode = function(geometry, opt_options) {
  * @return {Node} Result.
  * @api stable
  */
-ol.format.GML.prototype.writeFeatures;
+ol.format.GML3.prototype.writeFeatures;
 
 
 /**
  * @inheritDoc
  */
-ol.format.GML.prototype.writeFeaturesNode = function(features, opt_options) {
+ol.format.GML3.prototype.writeFeaturesNode = function(features, opt_options) {
   var node = ol.xml.createElementNS('http://www.opengis.net/gml',
       'featureMembers');
   ol.xml.setAttributeNS(node, 'http://www.w3.org/2001/XMLSchema-instance',
-      'xsi:schemaLocation', this.schemaLocation_);
+      'xsi:schemaLocation', this.schemaLocation);
   var context = {
-    srsName: this.srsName_,
+    srsName: this.srsName,
     curve: this.curve_,
     surface: this.surface_,
     multiSurface: this.multiSurface_,
     multiCurve: this.multiCurve_,
-    featureNS: this.featureNS_,
-    featureType: this.featureType_
+    featureNS: this.featureNS,
+    featureType: this.featureType
   };
   if (goog.isDef(opt_options)) {
     goog.object.extend(context, opt_options);
   }
-  ol.format.GML.writeFeatureMembers_(node, features, [context]);
+  this.writeFeatureMembers_(node, features, [context]);
   return node;
 };
+
+
+
+/**
+ * @classdesc
+ * Feature format for reading and writing data in the GML format
+ * version 3.1.1.
+ * Currently only supports GML 3.1.1 Simple Features profile.
+ *
+ * @constructor
+ * @param {olx.format.GMLOptions=} opt_options
+ *     Optional configuration object.
+ * @extends {ol.format.GMLBase}
+ * @api stable
+ */
+ol.format.GML = ol.format.GML3;
+
+
+/**
+ * Encode an array of features in GML 3.1.1 Simple Features.
+ *
+ * @function
+ * @param {Array.<ol.Feature>} features Features.
+ * @param {olx.format.WriteOptions=} opt_options Options.
+ * @return {Node} Result.
+ * @api stable
+ */
+ol.format.GML.prototype.writeFeatures;
+
+goog.provide('ol.format.GML2');
+
+goog.require('goog.asserts');
+goog.require('goog.dom');
+goog.require('goog.dom.NodeType');
+goog.require('goog.object');
+goog.require('ol.extent');
+goog.require('ol.format.GML');
+goog.require('ol.format.GMLBase');
+goog.require('ol.format.XSD');
+goog.require('ol.proj');
+goog.require('ol.xml');
+
+
+
+/**
+ * @classdesc
+ * Feature format for reading and writing data in the GML format,
+ * version 2.1.2.
+ *
+ * @constructor
+ * @param {olx.format.GMLOptions=} opt_options Optional configuration object.
+ * @extends {ol.format.GMLBase}
+ * @api
+ */
+ol.format.GML2 = function(opt_options) {
+  var options = /** @type {olx.format.GMLOptions} */
+      (goog.isDef(opt_options) ? opt_options : {});
+
+  goog.base(this, options);
+
+  /**
+   * @inheritDoc
+   */
+  this.schemaLocation = goog.isDef(options.schemaLocation) ?
+      options.schemaLocation : ol.format.GML2.schemaLocation_;
+
+};
+goog.inherits(ol.format.GML2, ol.format.GMLBase);
+
+
+/**
+ * @const
+ * @type {string}
+ * @private
+ */
+ol.format.GML2.schemaLocation_ = 'http://www.opengis.net/gml ' +
+    'http://schemas.opengis.net/gml/2.1.2/feature.xsd';
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @private
+ * @return {Array.<number>|undefined} Flat coordinates.
+ */
+ol.format.GML2.prototype.readFlatCoordinates_ = function(node, objectStack) {
+  var s = ol.xml.getAllTextContent(node, false).replace(/^\s*|\s*$/g, '');
+  var context = objectStack[0];
+  goog.asserts.assert(goog.isObject(context));
+  var containerSrs = goog.object.get(context, 'srsName');
+  var containerDimension = node.parentNode.getAttribute('srsDimension');
+  var axisOrientation = 'enu';
+  if (!goog.isNull(containerSrs)) {
+    var proj = ol.proj.get(containerSrs);
+    axisOrientation = proj.getAxisOrientation();
+  }
+  var coords = s.split(/[\s,]+/);
+  // The "dimension" attribute is from the GML 3.0.1 spec.
+  var dim = 2;
+  if (!goog.isNull(node.getAttribute('srsDimension'))) {
+    dim = ol.format.XSD.readNonNegativeIntegerString(
+        node.getAttribute('srsDimension'));
+  } else if (!goog.isNull(node.getAttribute('dimension'))) {
+    dim = ol.format.XSD.readNonNegativeIntegerString(
+        node.getAttribute('dimension'));
+  } else if (!goog.isNull(containerDimension)) {
+    dim = ol.format.XSD.readNonNegativeIntegerString(containerDimension);
+  }
+  var x, y, z;
+  var flatCoordinates = [];
+  for (var i = 0, ii = coords.length; i < ii; i += dim) {
+    x = parseFloat(coords[i]);
+    y = parseFloat(coords[i + 1]);
+    z = (dim === 3) ? parseFloat(coords[i + 2]) : 0;
+    if (axisOrientation.substr(0, 2) === 'en') {
+      flatCoordinates.push(x, y, z);
+    } else {
+      flatCoordinates.push(y, x, z);
+    }
+  }
+  return flatCoordinates;
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @private
+ * @return {ol.Extent|undefined} Envelope.
+ */
+ol.format.GML2.prototype.readBox_ = function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'Box');
+  var flatCoordinates = ol.xml.pushParseAndPop(
+      /** @type {Array.<number>} */ ([null]),
+      this.BOX_PARSERS_, node, objectStack, this);
+  return ol.extent.createOrUpdate(flatCoordinates[1][0],
+      flatCoordinates[1][1], flatCoordinates[1][3],
+      flatCoordinates[1][4]);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @private
+ */
+ol.format.GML2.prototype.innerBoundaryIsParser_ =
+    function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'innerBoundaryIs');
+  var flatLinearRing = ol.xml.pushParseAndPop(
+      /** @type {Array.<number>|undefined} */ (undefined),
+      this.RING_PARSERS, node, objectStack, this);
+  if (goog.isDef(flatLinearRing)) {
+    var flatLinearRings = /** @type {Array.<Array.<number>>} */
+        (objectStack[objectStack.length - 1]);
+    goog.asserts.assert(goog.isArray(flatLinearRings));
+    goog.asserts.assert(flatLinearRings.length > 0);
+    flatLinearRings.push(flatLinearRing);
+  }
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @private
+ */
+ol.format.GML2.prototype.outerBoundaryIsParser_ =
+    function(node, objectStack) {
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  goog.asserts.assert(node.localName == 'outerBoundaryIs');
+  var flatLinearRing = ol.xml.pushParseAndPop(
+      /** @type {Array.<number>|undefined} */ (undefined),
+      this.RING_PARSERS, node, objectStack, this);
+  if (goog.isDef(flatLinearRing)) {
+    var flatLinearRings = /** @type {Array.<Array.<number>>} */
+        (objectStack[objectStack.length - 1]);
+    goog.asserts.assert(goog.isArray(flatLinearRings));
+    goog.asserts.assert(flatLinearRings.length > 0);
+    flatLinearRings[0] = flatLinearRing;
+  }
+};
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @private
+ */
+ol.format.GML2.prototype.GEOMETRY_FLAT_COORDINATES_PARSERS_ = Object({
+  'http://www.opengis.net/gml' : {
+    'coordinates': ol.xml.makeReplacer(
+        ol.format.GML2.prototype.readFlatCoordinates_)
+  }
+});
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @private
+ */
+ol.format.GML2.prototype.FLAT_LINEAR_RINGS_PARSERS_ = Object({
+  'http://www.opengis.net/gml' : {
+    'innerBoundaryIs': ol.format.GML2.prototype.innerBoundaryIsParser_,
+    'outerBoundaryIs': ol.format.GML2.prototype.outerBoundaryIsParser_
+  }
+});
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @private
+ */
+ol.format.GML2.prototype.BOX_PARSERS_ = Object({
+  'http://www.opengis.net/gml' : {
+    'coordinates': ol.xml.makeArrayPusher(
+        ol.format.GML2.prototype.readFlatCoordinates_)
+  }
+});
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.xml.Parser>>}
+ * @private
+ */
+ol.format.GML2.prototype.GEOMETRY_PARSERS_ = Object({
+  'http://www.opengis.net/gml' : {
+    'Point': ol.xml.makeReplacer(ol.format.GMLBase.prototype.readPoint),
+    'MultiPoint': ol.xml.makeReplacer(
+        ol.format.GMLBase.prototype.readMultiPoint),
+    'LineString': ol.xml.makeReplacer(
+        ol.format.GMLBase.prototype.readLineString),
+    'MultiLineString': ol.xml.makeReplacer(
+        ol.format.GMLBase.prototype.readMultiLineString),
+    'LinearRing' : ol.xml.makeReplacer(
+        ol.format.GMLBase.prototype.readLinearRing),
+    'Polygon': ol.xml.makeReplacer(ol.format.GMLBase.prototype.readPolygon),
+    'MultiPolygon': ol.xml.makeReplacer(
+        ol.format.GMLBase.prototype.readMultiPolygon),
+    'Box': ol.xml.makeReplacer(ol.format.GML2.prototype.readBox_)
+  }
+});
 
 goog.provide('ol.format.GPX');
 
@@ -78636,7 +79394,7 @@ ol.format.GPX.parseLink_ = function(node, objectStack) {
   if (!goog.isNull(href)) {
     goog.object.set(values, 'link', href);
   }
-  ol.xml.parse(ol.format.GPX.LINK_PARSERS_, node, objectStack);
+  ol.xml.parseNode(ol.format.GPX.LINK_PARSERS_, node, objectStack);
 };
 
 
@@ -78700,7 +79458,7 @@ ol.format.GPX.parseTrkSeg_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'trkseg');
   var values = /** @type {Object} */ (objectStack[objectStack.length - 1]);
-  ol.xml.parse(ol.format.GPX.TRKSEG_PARSERS_, node, objectStack);
+  ol.xml.parseNode(ol.format.GPX.TRKSEG_PARSERS_, node, objectStack);
   var flatCoordinates = /** @type {Array.<number>} */
       (goog.object.get(values, 'flatCoordinates'));
   var ends = /** @type {Array.<number>} */ (goog.object.get(values, 'ends'));
@@ -81253,7 +82011,7 @@ ol.format.KML.DataParser_ = function(node, objectStack) {
 ol.format.KML.ExtendedDataParser_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'ExtendedData');
-  ol.xml.parse(ol.format.KML.EXTENDED_DATA_PARSERS_, node, objectStack);
+  ol.xml.parseNode(ol.format.KML.EXTENDED_DATA_PARSERS_, node, objectStack);
 };
 
 
@@ -81319,7 +82077,7 @@ ol.format.KML.PlacemarkStyleMapParser_ = function(node, objectStack) {
 ol.format.KML.SchemaDataParser_ = function(node, objectStack) {
   goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
   goog.asserts.assert(node.localName == 'SchemaData');
-  ol.xml.parse(ol.format.KML.SCHEMA_DATA_PARSERS_, node, objectStack);
+  ol.xml.parseNode(ol.format.KML.SCHEMA_DATA_PARSERS_, node, objectStack);
 };
 
 
@@ -81908,7 +82666,7 @@ ol.format.KML.prototype.readName = function(source) {
   } else if (ol.xml.isNode(source)) {
     return this.readNameFromNode(/** @type {Node} */ (source));
   } else if (goog.isString(source)) {
-    var doc = ol.xml.load(source);
+    var doc = ol.xml.parse(source);
     return this.readNameFromDocument(doc);
   } else {
     goog.asserts.fail();
@@ -83165,7 +83923,7 @@ ol.format.XML.prototype.read = function(source) {
   } else if (ol.xml.isNode(source)) {
     return this.readFromNode(/** @type {Node} */ (source));
   } else if (goog.isString(source)) {
-    var doc = ol.xml.load(source);
+    var doc = ol.xml.parse(source);
     return this.readFromDocument(doc);
   } else {
     goog.asserts.fail();
@@ -83690,6 +84448,44 @@ ol.format.OWS.SERVICE_PROVIDER_PARSERS_ =
           ol.format.OWS.readServiceContact_, 'serviceContact')
     });
 
+goog.provide('ol.geom.flat.flip');
+
+goog.require('goog.asserts');
+
+
+/**
+ * @param {Array.<number>} flatCoordinates Flat coordinates.
+ * @param {number} offset Offset.
+ * @param {number} end End.
+ * @param {number} stride Stride.
+ * @param {Array.<number>=} opt_dest Destination.
+ * @param {number=} opt_destOffset Destination offset.
+ * @return {Array.<number>} Flat coordinates.
+ */
+ol.geom.flat.flip.flipXY =
+    function(flatCoordinates, offset, end, stride, opt_dest, opt_destOffset) {
+  var dest, destOffset;
+  if (goog.isDef(opt_dest)) {
+    dest = opt_dest;
+    destOffset = goog.isDef(opt_destOffset) ? opt_destOffset : 0;
+  } else {
+    goog.asserts.assert(!goog.isDef(opt_destOffset));
+    dest = [];
+    destOffset = 0;
+  }
+  var j, k;
+  for (j = offset; j < end; ) {
+    var x = flatCoordinates[j++];
+    dest[destOffset++] = flatCoordinates[j++];
+    dest[destOffset++] = x;
+    for (k = 2; k < stride; ++k) {
+      dest[destOffset++] = flatCoordinates[j++];
+    }
+  }
+  dest.length = destOffset;
+  return dest;
+};
+
 goog.provide('ol.format.Polyline');
 
 goog.require('goog.asserts');
@@ -83697,12 +84493,17 @@ goog.require('ol.Feature');
 goog.require('ol.format.Feature');
 goog.require('ol.format.TextFeature');
 goog.require('ol.geom.LineString');
+goog.require('ol.geom.flat.flip');
 goog.require('ol.geom.flat.inflate');
 goog.require('ol.proj');
 
 
 
 /**
+ * @classdesc
+ * Feature format for reading and writing data in the Encoded
+ * Polyline Algorithm Format.
+ *
  * @constructor
  * @extends {ol.format.TextFeature}
  * @param {olx.format.PolylineOptions=} opt_options
@@ -83942,7 +84743,8 @@ ol.format.Polyline.encodeUnsignedInteger = function(num) {
 
 
 /**
- * Read the feature from the Polyline source.
+ * Read the feature from the Polyline source. The coordinates are assumed to be
+ * in two dimensions and in latitude, longitude order.
  *
  * @function
  * @param {ArrayBuffer|Document|Node|Object|string} source Source.
@@ -84003,6 +84805,8 @@ ol.format.Polyline.prototype.readGeometry;
 ol.format.Polyline.prototype.readGeometryFromText =
     function(text, opt_options) {
   var flatCoordinates = ol.format.Polyline.decodeDeltas(text, 2, this.factor_);
+  ol.geom.flat.flip.flipXY(
+      flatCoordinates, 0, flatCoordinates.length, 2, flatCoordinates);
   var coordinates = ol.geom.flat.inflate.coordinates(
       flatCoordinates, 0, flatCoordinates.length, 2);
 
@@ -84079,6 +84883,8 @@ ol.format.Polyline.prototype.writeGeometryText =
           geometry, true, this.adaptOptions(opt_options)));
   var flatCoordinates = geometry.getFlatCoordinates();
   var stride = geometry.getStride();
+  ol.geom.flat.flip.flipXY(
+      flatCoordinates, 0, flatCoordinates.length, stride, flatCoordinates);
   return ol.format.Polyline.encodeDeltas(flatCoordinates, stride, this.factor_);
 };
 
@@ -84497,7 +85303,8 @@ goog.provide('ol.format.WFS');
 goog.require('goog.asserts');
 goog.require('goog.dom.NodeType');
 goog.require('goog.object');
-goog.require('ol.format.GML');
+goog.require('ol.format.GML3');
+goog.require('ol.format.GMLBase');
 goog.require('ol.format.XMLFeature');
 goog.require('ol.format.XSD');
 goog.require('ol.geom.Geometry');
@@ -84509,8 +85316,9 @@ goog.require('ol.xml');
 /**
  * @classdesc
  * Feature format for reading and writing data in the WFS format.
- * Currently only supports WFS version 1.1.0.
- * Also see {@link ol.format.GML} which is used by this format.
+ * By default, supports WFS version 1.1.0. You can pass a GML format
+ * as option if you want to read a WFS that contains GML2 (WFS 1.0.0).
+ * Also see {@link ol.format.GMLBase} which is used by this format.
  *
  * @constructor
  * @param {olx.format.WFSOptions=} opt_options
@@ -84533,6 +85341,13 @@ ol.format.WFS = function(opt_options) {
    * @type {string}
    */
   this.featureNS_ = options.featureNS;
+
+  /**
+   * @private
+   * @type {ol.format.GMLBase}
+   */
+  this.gmlFormat_ = goog.isDef(options.gmlFormat) ?
+      options.gmlFormat : new ol.format.GML3();
 
   /**
    * @private
@@ -84613,7 +85428,8 @@ ol.format.WFS.prototype.readFeaturesFromNode = function(node, opt_options) {
       goog.isDef(opt_options) ? opt_options : {}));
   var objectStack = [context];
   var features = ol.xml.pushParseAndPop([],
-      ol.format.GML.FEATURE_COLLECTION_PARSERS, node, objectStack);
+      this.gmlFormat_.FEATURE_COLLECTION_PARSERS, node,
+      objectStack, this.gmlFormat_);
   if (!goog.isDef(features)) {
     features = [];
   }
@@ -84633,7 +85449,7 @@ ol.format.WFS.prototype.readTransactionResponse = function(source) {
   } else if (ol.xml.isNode(source)) {
     return this.readTransactionResponseFromNode(/** @type {Node} */ (source));
   } else if (goog.isString(source)) {
-    var doc = ol.xml.load(source);
+    var doc = ol.xml.parse(source);
     return this.readTransactionResponseFromDocument(doc);
   } else {
     goog.asserts.fail();
@@ -84656,7 +85472,7 @@ ol.format.WFS.prototype.readFeatureCollectionMetadata = function(source) {
     return this.readFeatureCollectionMetadataFromNode(
         /** @type {Node} */ (source));
   } else if (goog.isString(source)) {
-    var doc = ol.xml.load(source);
+    var doc = ol.xml.parse(source);
     return this.readFeatureCollectionMetadataFromDocument(doc);
   } else {
     goog.asserts.fail();
@@ -84690,7 +85506,7 @@ ol.format.WFS.prototype.readFeatureCollectionMetadataFromDocument =
 ol.format.WFS.FEATURE_COLLECTION_PARSERS_ = {
   'http://www.opengis.net/gml': {
     'boundedBy': ol.xml.makeObjectPropertySetter(
-        ol.format.GML.readGeometry, 'bounds')
+        ol.format.GMLBase.prototype.readGeometryElement, 'bounds')
   }
 };
 
@@ -84709,7 +85525,7 @@ ol.format.WFS.prototype.readFeatureCollectionMetadataFromNode = function(node) {
   goog.object.set(result, 'numberOfFeatures', value);
   return ol.xml.pushParseAndPop(
       /** @type {ol.format.WFS.FeatureCollectionMetadata} */ (result),
-      ol.format.WFS.FEATURE_COLLECTION_PARSERS_, node, []);
+      ol.format.WFS.FEATURE_COLLECTION_PARSERS_, node, [], this.gmlFormat_);
 };
 
 
@@ -84762,7 +85578,7 @@ ol.format.WFS.OGC_FID_PARSERS_ = {
  * @private
  */
 ol.format.WFS.fidParser_ = function(node, objectStack) {
-  ol.xml.parse(ol.format.WFS.OGC_FID_PARSERS_, node, objectStack);
+  ol.xml.parseNode(ol.format.WFS.OGC_FID_PARSERS_, node, objectStack);
 };
 
 
@@ -84857,7 +85673,7 @@ ol.format.WFS.writeFeature_ = function(node, feature, objectStack) {
   var featureNS = goog.object.get(context, 'featureNS');
   var child = ol.xml.createElementNS(featureNS, featureType);
   node.appendChild(child);
-  ol.format.GML.writeFeature(child, feature, objectStack);
+  ol.format.GML3.prototype.writeFeatureElement(child, feature, objectStack);
 };
 
 
@@ -84951,7 +85767,8 @@ ol.format.WFS.writeProperty_ = function(node, pair, objectStack) {
     var value = ol.xml.createElementNS('http://www.opengis.net/wfs', 'Value');
     node.appendChild(value);
     if (pair.value instanceof ol.geom.Geometry) {
-      ol.format.GML.writeGeometry(value, pair.value, objectStack);
+      ol.format.GML3.prototype.writeGeometryElement(value,
+          pair.value, objectStack);
     } else {
       ol.format.XSD.writeStringTextNode(value, pair.value);
     }
@@ -85058,7 +85875,7 @@ ol.format.WFS.writeOgcBBOX_ = function(node, bbox, objectStack) {
   var bboxNode = ol.xml.createElementNS('http://www.opengis.net/ogc', 'BBOX');
   node.appendChild(bboxNode);
   ol.format.WFS.writeOgcPropertyName_(bboxNode, geometryName, objectStack);
-  ol.format.GML.writeGeometry(bboxNode, bbox, objectStack);
+  ol.format.GML3.prototype.writeGeometryElement(bboxNode, bbox, objectStack);
 };
 
 
@@ -85240,7 +86057,7 @@ ol.format.WFS.prototype.readProjectionFromNode = function(node) {
           (n.childNodes.length === 1 &&
           n.firstChild.nodeType === 3))) {
         var objectStack = [{}];
-        ol.format.GML.readGeometry(n, objectStack);
+        this.gmlFormat_.readGeometryElement(n, objectStack);
         return ol.proj.get(objectStack.pop().srsName);
       }
     }
@@ -85832,7 +86649,7 @@ ol.format.WKT.Parser.prototype.parse = function() {
 
 
 /**
- * @return {!ol.geom.Geometry|!ol.geom.GeometryCollection} The geometry.
+ * @return {!(ol.geom.Geometry|ol.geom.GeometryCollection)} The geometry.
  * @private
  */
 ol.format.WKT.Parser.prototype.parseGeometry_ = function() {
@@ -85852,7 +86669,7 @@ ol.format.WKT.Parser.prototype.parseGeometry_ = function() {
       return new ctor(coordinates);
     }
   }
-  this.raiseError_();
+  throw new Error(this.formatErrorMessage_());
 };
 
 
@@ -85872,7 +86689,7 @@ ol.format.WKT.Parser.prototype.parseGeometryCollectionText_ = function() {
   } else if (this.isEmptyGeometry_()) {
     return [];
   }
-  this.raiseError_();
+  throw new Error(this.formatErrorMessage_());
 };
 
 
@@ -85889,7 +86706,7 @@ ol.format.WKT.Parser.prototype.parsePointText_ = function() {
   } else if (this.isEmptyGeometry_()) {
     return null;
   }
-  this.raiseError_();
+  throw new Error(this.formatErrorMessage_());
 };
 
 
@@ -85906,7 +86723,7 @@ ol.format.WKT.Parser.prototype.parseLineStringText_ = function() {
   } else if (this.isEmptyGeometry_()) {
     return [];
   }
-  this.raiseError_();
+  throw new Error(this.formatErrorMessage_());
 };
 
 
@@ -85923,7 +86740,7 @@ ol.format.WKT.Parser.prototype.parsePolygonText_ = function() {
   } else if (this.isEmptyGeometry_()) {
     return [];
   }
-  this.raiseError_();
+  throw new Error(this.formatErrorMessage_());
 };
 
 
@@ -85945,7 +86762,7 @@ ol.format.WKT.Parser.prototype.parseMultiPointText_ = function() {
   } else if (this.isEmptyGeometry_()) {
     return [];
   }
-  this.raiseError_();
+  throw new Error(this.formatErrorMessage_());
 };
 
 
@@ -85963,7 +86780,7 @@ ol.format.WKT.Parser.prototype.parseMultiLineStringText_ = function() {
   } else if (this.isEmptyGeometry_()) {
     return [];
   }
-  this.raiseError_();
+  throw new Error(this.formatErrorMessage_());
 };
 
 
@@ -85980,7 +86797,7 @@ ol.format.WKT.Parser.prototype.parseMultiPolygonText_ = function() {
   } else if (this.isEmptyGeometry_()) {
     return [];
   }
-  this.raiseError_();
+  throw new Error(this.formatErrorMessage_());
 };
 
 
@@ -86001,7 +86818,7 @@ ol.format.WKT.Parser.prototype.parsePoint_ = function() {
   if (coordinates.length == this.dimension_) {
     return coordinates;
   }
-  this.raiseError_();
+  throw new Error(this.formatErrorMessage_());
 };
 
 
@@ -86072,12 +86889,13 @@ ol.format.WKT.Parser.prototype.isEmptyGeometry_ = function() {
 
 
 /**
+ * Create an error message for an unexpected token error.
+ * @return {string} Error message.
  * @private
  */
-ol.format.WKT.Parser.prototype.raiseError_ = function() {
-  throw new Error('Unexpected `' + this.token_.value +
-      '` at position ' + this.token_.position +
-      ' in `' + this.lexer_.wkt + '`');
+ol.format.WKT.Parser.prototype.formatErrorMessage_ = function() {
+  return 'Unexpected `' + this.token_.value + '` at position ' +
+      this.token_.position + ' in `' + this.lexer_.wkt + '`';
 };
 
 
@@ -86943,6 +87761,153 @@ ol.format.WMSCapabilities.KEYWORDLIST_PARSERS_ = ol.xml.makeParsersNS(
       'Keyword': ol.xml.makeArrayPusher(ol.format.XSD.readString)
     });
 
+goog.provide('ol.format.WMSGetFeatureInfo');
+
+goog.require('goog.array');
+goog.require('goog.asserts');
+goog.require('goog.dom');
+goog.require('goog.dom.NodeType');
+goog.require('goog.object');
+goog.require('goog.string');
+goog.require('ol.format.GML');
+goog.require('ol.format.GML2');
+goog.require('ol.format.XMLFeature');
+goog.require('ol.xml');
+
+
+
+/**
+ * @classdesc
+ * Format for reading WMSGetFeatureInfo format. It uses
+ * {@link ol.format.GML2} to read features.
+ *
+ * @constructor
+ * @extends {ol.format.XMLFeature}
+ * @api
+ */
+ol.format.WMSGetFeatureInfo = function() {
+
+  /**
+   * @private
+   * @type {string}
+   */
+  this.featureNS_ = 'http://mapserver.gis.umn.edu/mapserver';
+
+
+  /**
+   * @private
+   * @type {ol.format.GML2}
+   */
+  this.gmlFormat_ = new ol.format.GML2();
+
+  goog.base(this);
+};
+goog.inherits(ol.format.WMSGetFeatureInfo, ol.format.XMLFeature);
+
+
+/**
+ * @const
+ * @type {string}
+ * @private
+ */
+ol.format.WMSGetFeatureInfo.featureIdentifier_ = '_feature';
+
+
+/**
+ * @const
+ * @type {string}
+ * @private
+ */
+ol.format.WMSGetFeatureInfo.layerIdentifier_ = '_layer';
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @return {Array.<ol.Feature>} Features.
+ * @private
+ */
+ol.format.WMSGetFeatureInfo.prototype.readFeatures_ =
+    function(node, objectStack) {
+
+  node.namespaceURI = this.featureNS_;
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  var localName = ol.xml.getLocalName(node);
+  /** @type {Array.<ol.Feature>} */
+  var features = [];
+  if (node.childNodes.length === 0) {
+    return features;
+  }
+  if (localName == 'msGMLOutput') {
+    goog.array.forEach(node.childNodes, function(layer) {
+      if (layer.nodeType !== goog.dom.NodeType.ELEMENT) {
+        return;
+      }
+      var context = objectStack[0];
+      goog.asserts.assert(goog.isObject(context));
+
+      goog.asserts.assert(layer.localName.indexOf(
+          ol.format.WMSGetFeatureInfo.layerIdentifier_) >= 0);
+
+      var featureType = goog.string.remove(layer.localName,
+          ol.format.WMSGetFeatureInfo.layerIdentifier_) +
+          ol.format.WMSGetFeatureInfo.featureIdentifier_;
+
+      goog.object.set(context, 'featureType', featureType);
+      goog.object.set(context, 'featureNS', this.featureNS_);
+
+      var parsers = {};
+      parsers[featureType] = ol.xml.makeArrayPusher(
+          this.gmlFormat_.readFeatureElement, this.gmlFormat_);
+      var parsersNS = ol.xml.makeParsersNS(
+          [goog.object.get(context, 'featureNS'), null], parsers);
+      layer.namespaceURI = this.featureNS_;
+      var layerFeatures = ol.xml.pushParseAndPop(
+          [], parsersNS, layer, objectStack, this.gmlFormat_);
+      if (goog.isDef(layerFeatures)) {
+        goog.array.extend(features, layerFeatures);
+      }
+    }, this);
+  }
+  if (localName == 'FeatureCollection') {
+    var gmlFeatures = ol.xml.pushParseAndPop([],
+        this.gmlFormat_.FEATURE_COLLECTION_PARSERS, node,
+        [{}], this.gmlFormat_);
+    if (goog.isDef(gmlFeatures)) {
+      features = gmlFeatures;
+    }
+  }
+  return features;
+};
+
+
+/**
+ * Read all features from a WMSGetFeatureInfo response.
+ *
+ * @function
+ * @param {ArrayBuffer|Document|Node|Object|string} source Source.
+ * @param {olx.format.ReadOptions=} opt_options Options.
+ * @return {Array.<ol.Feature>} Features.
+ * @api stable
+ */
+ol.format.WMSGetFeatureInfo.prototype.readFeatures;
+
+
+/**
+ * @inheritDoc
+ */
+ol.format.WMSGetFeatureInfo.prototype.readFeaturesFromNode =
+    function(node, opt_options) {
+  var options = {
+    'featureType': this.featureType,
+    'featureNS': this.featureNS
+  };
+  if (goog.isDef(opt_options)) {
+    goog.object.extend(options, this.getReadOptions(node, opt_options));
+  }
+  return this.readFeatures_(node, [options]);
+};
+
 goog.provide('ol.sphere.WGS84');
 
 goog.require('ol.Sphere');
@@ -87361,44 +88326,6 @@ goog.exportProperty(
     ol.Geolocation.prototype,
     'setTrackingOptions',
     ol.Geolocation.prototype.setTrackingOptions);
-
-goog.provide('ol.geom.flat.flip');
-
-goog.require('goog.asserts');
-
-
-/**
- * @param {Array.<number>} flatCoordinates Flat coordinates.
- * @param {number} offset Offset.
- * @param {number} end End.
- * @param {number} stride Stride.
- * @param {Array.<number>=} opt_dest Destination.
- * @param {number=} opt_destOffset Destination offset.
- * @return {Array.<number>} Flat coordinates.
- */
-ol.geom.flat.flip.flipXY =
-    function(flatCoordinates, offset, end, stride, opt_dest, opt_destOffset) {
-  var dest, destOffset;
-  if (goog.isDef(opt_dest)) {
-    dest = opt_dest;
-    destOffset = goog.isDef(opt_destOffset) ? opt_destOffset : 0;
-  } else {
-    goog.asserts.assert(!goog.isDef(opt_destOffset));
-    dest = [];
-    destOffset = 0;
-  }
-  var j, k;
-  for (j = offset; j < end; ) {
-    var x = flatCoordinates[j++];
-    dest[destOffset++] = flatCoordinates[j++];
-    dest[destOffset++] = x;
-    for (k = 2; k < stride; ++k) {
-      dest[destOffset++] = flatCoordinates[j++];
-    }
-  }
-  dest.length = destOffset;
-  return dest;
-};
 
 goog.provide('ol.geom.flat.geodesic');
 
@@ -88039,9 +88966,10 @@ goog.require('ol.extent');
  * @param {Array.<ol.Attribution>} attributions Attributions.
  * @param {string} src Image source URI.
  * @param {?string} crossOrigin Cross origin.
+ * @param {ol.ImageLoadFunctionType} imageLoadFunction Image load function.
  */
-ol.Image =
-    function(extent, resolution, pixelRatio, attributions, src, crossOrigin) {
+ol.Image = function(extent, resolution, pixelRatio, attributions, src,
+    crossOrigin, imageLoadFunction) {
 
   goog.base(this, extent, resolution, pixelRatio, ol.ImageState.IDLE,
       attributions);
@@ -88078,6 +89006,13 @@ ol.Image =
    * @type {ol.ImageState}
    */
   this.state = ol.ImageState.IDLE;
+
+  /**
+   * @private
+   * @type {ol.ImageLoadFunctionType}
+   */
+  this.imageLoadFunction_ = imageLoadFunction;
+
 };
 goog.inherits(ol.Image, ol.ImageBase);
 
@@ -88085,8 +89020,9 @@ goog.inherits(ol.Image, ol.ImageBase);
 /**
  * @param {Object=} opt_context Object.
  * @return {HTMLCanvasElement|Image|HTMLVideoElement} Image.
+ * @api
  */
-ol.Image.prototype.getImageElement = function(opt_context) {
+ol.Image.prototype.getImage = function(opt_context) {
   if (goog.isDef(opt_context)) {
     var image;
     var key = goog.getUid(opt_context);
@@ -88145,7 +89081,7 @@ ol.Image.prototype.load = function() {
       goog.events.listenOnce(this.image_, goog.events.EventType.LOAD,
           this.handleImageLoad_, false, this)
     ];
-    this.image_.src = this.src_;
+    this.imageLoadFunction_(this, this.src_);
   }
 };
 
@@ -88196,9 +89132,31 @@ goog.inherits(ol.ImageCanvas, ol.ImageBase);
 /**
  * @inheritDoc
  */
-ol.ImageCanvas.prototype.getImageElement = function(opt_context) {
+ol.ImageCanvas.prototype.getImage = function(opt_context) {
   return this.canvas_;
 };
+
+goog.provide('ol.ImageLoadFunctionType');
+
+
+/**
+ * A function that takes an {@link ol.Image} for the image and a `{string}` for
+ * the src as arguments. It is supposed to make it so the underlying image
+ * {@link ol.Image#getImage} is assigned the content specified by the src. If
+ * not specified, the default is
+ *
+ *     function(image, src) {
+ *       image.getImage().src = src;
+ *     }
+ *
+ * Providing a custom `imageLoadFunction` can be useful to load images with
+ * post requests or - in general - through XHR requests, where the src of the
+ * image element would be set to a data URI when the content is loaded.
+ *
+ * @typedef {function(ol.Image, string)}
+ * @api
+ */
+ol.ImageLoadFunctionType;
 
 goog.provide('ol.TileLoadFunctionType');
 
@@ -92137,202 +93095,619 @@ ol.interaction.DragRotateAndZoom.prototype.handlePointerDown =
 ol.interaction.DragRotateAndZoom.prototype.shouldStopEvent =
     goog.functions.identity;
 
-// Based on rbush https://github.com/mourner/rbush
-// Copyright (c) 2013 Vladimir Agafonkin
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+goog.provide('ol.ext.rbush');
+/** @typedef {function(*)} */
+ol.ext.rbush;
+(function() {
+var exports = {};
+var module = {exports: exports};
+/**
+ * @fileoverview
+ * @suppress {accessControls, ambiguousFunctionDecl, checkDebuggerStatement, checkRegExp, checkTypes, checkVars, const, constantProperty, deprecated, duplicate, es5Strict, fileoverviewTags, missingProperties, nonStandardJsDocs, strictModuleDepCheck, suspiciousCode, undefinedNames, undefinedVars, unknownDefines, uselessCode, visibility}
+ */
+/*
+ (c) 2013, Vladimir Agafonkin
+ RBush, a JavaScript library for high-performance 2D spatial indexing of points and rectangles.
+ https://github.com/mourner/rbush
+*/
 
-// FIXME bulk inserts
-// FIXME is level argument needed to insert_?
+(function () { 'use strict';
+
+function rbush(maxEntries, format) {
+
+    // jshint newcap: false, validthis: true
+    if (!(this instanceof rbush)) return new rbush(maxEntries, format);
+
+    // max entries in a node is 9 by default; min node fill is 40% for best performance
+    this._maxEntries = Math.max(4, maxEntries || 9);
+    this._minEntries = Math.max(2, Math.ceil(this._maxEntries * 0.4));
+
+    if (format) {
+        this._initFormat(format);
+    }
+
+    this.clear();
+}
+
+rbush.prototype = {
+
+    all: function () {
+        return this._all(this.data, []);
+    },
+
+    search: function (bbox) {
+
+        var node = this.data,
+            result = [],
+            toBBox = this.toBBox;
+
+        if (!intersects(bbox, node.bbox)) return result;
+
+        var nodesToSearch = [],
+            i, len, child, childBBox;
+
+        while (node) {
+            for (i = 0, len = node.children.length; i < len; i++) {
+
+                child = node.children[i];
+                childBBox = node.leaf ? toBBox(child) : child.bbox;
+
+                if (intersects(bbox, childBBox)) {
+                    if (node.leaf) result.push(child);
+                    else if (contains(bbox, childBBox)) this._all(child, result);
+                    else nodesToSearch.push(child);
+                }
+            }
+            node = nodesToSearch.pop();
+        }
+
+        return result;
+    },
+
+    load: function (data) {
+        if (!(data && data.length)) return this;
+
+        if (data.length < this._minEntries) {
+            for (var i = 0, len = data.length; i < len; i++) {
+                this.insert(data[i]);
+            }
+            return this;
+        }
+
+        // recursively build the tree with the given data from stratch using OMT algorithm
+        var node = this._build(data.slice(), 0, data.length - 1, 0);
+
+        if (!this.data.children.length) {
+            // save as is if tree is empty
+            this.data = node;
+
+        } else if (this.data.height === node.height) {
+            // split root if trees have the same height
+            this._splitRoot(this.data, node);
+
+        } else {
+            if (this.data.height < node.height) {
+                // swap trees if inserted one is bigger
+                var tmpNode = this.data;
+                this.data = node;
+                node = tmpNode;
+            }
+
+            // insert the small tree into the large tree at appropriate level
+            this._insert(node, this.data.height - node.height - 1, true);
+        }
+
+        return this;
+    },
+
+    insert: function (item) {
+        if (item) this._insert(item, this.data.height - 1);
+        return this;
+    },
+
+    clear: function () {
+        this.data = {
+            children: [],
+            height: 1,
+            bbox: empty(),
+            leaf: true
+        };
+        return this;
+    },
+
+    remove: function (item) {
+        if (!item) return this;
+
+        var node = this.data,
+            bbox = this.toBBox(item),
+            path = [],
+            indexes = [],
+            i, parent, index, goingUp;
+
+        // depth-first iterative tree traversal
+        while (node || path.length) {
+
+            if (!node) { // go up
+                node = path.pop();
+                parent = path[path.length - 1];
+                i = indexes.pop();
+                goingUp = true;
+            }
+
+            if (node.leaf) { // check current node
+                index = node.children.indexOf(item);
+
+                if (index !== -1) {
+                    // item found, remove the item and condense tree upwards
+                    node.children.splice(index, 1);
+                    path.push(node);
+                    this._condense(path);
+                    return this;
+                }
+            }
+
+            if (!goingUp && !node.leaf && contains(node.bbox, bbox)) { // go down
+                path.push(node);
+                indexes.push(i);
+                i = 0;
+                parent = node;
+                node = node.children[0];
+
+            } else if (parent) { // go right
+                i++;
+                node = parent.children[i];
+                goingUp = false;
+
+            } else node = null; // nothing found
+        }
+
+        return this;
+    },
+
+    toBBox: function (item) { return item; },
+
+    compareMinX: function (a, b) { return a[0] - b[0]; },
+    compareMinY: function (a, b) { return a[1] - b[1]; },
+
+    toJSON: function () { return this.data; },
+
+    fromJSON: function (data) {
+        this.data = data;
+        return this;
+    },
+
+    _all: function (node, result) {
+        var nodesToSearch = [];
+        while (node) {
+            if (node.leaf) result.push.apply(result, node.children);
+            else nodesToSearch.push.apply(nodesToSearch, node.children);
+
+            node = nodesToSearch.pop();
+        }
+        return result;
+    },
+
+    _build: function (items, left, right, height) {
+
+        var N = right - left + 1,
+            M = this._maxEntries,
+            node;
+
+        if (N <= M) {
+            // reached leaf level; return leaf
+            node = {
+                children: items.slice(left, right + 1),
+                height: 1,
+                bbox: null,
+                leaf: true
+            };
+            calcBBox(node, this.toBBox);
+            return node;
+        }
+
+        if (!height) {
+            // target height of the bulk-loaded tree
+            height = Math.ceil(Math.log(N) / Math.log(M));
+
+            // target number of root entries to maximize storage utilization
+            M = Math.ceil(N / Math.pow(M, height - 1));
+        }
+
+        // TODO eliminate recursion?
+
+        node = {
+            children: [],
+            height: height,
+            bbox: null
+        };
+
+        // split the items into M mostly square tiles
+
+        var N2 = Math.ceil(N / M),
+            N1 = N2 * Math.ceil(Math.sqrt(M)),
+            i, j, right2, right3;
+
+        multiSelect(items, left, right, N1, this.compareMinX);
+
+        for (i = left; i <= right; i += N1) {
+
+            right2 = Math.min(i + N1 - 1, right);
+
+            multiSelect(items, i, right2, N2, this.compareMinY);
+
+            for (j = i; j <= right2; j += N2) {
+
+                right3 = Math.min(j + N2 - 1, right2);
+
+                // pack each entry recursively
+                node.children.push(this._build(items, j, right3, height - 1));
+            }
+        }
+
+        calcBBox(node, this.toBBox);
+
+        return node;
+    },
+
+    _chooseSubtree: function (bbox, node, level, path) {
+
+        var i, len, child, targetNode, area, enlargement, minArea, minEnlargement;
+
+        while (true) {
+            path.push(node);
+
+            if (node.leaf || path.length - 1 === level) break;
+
+            minArea = minEnlargement = Infinity;
+
+            for (i = 0, len = node.children.length; i < len; i++) {
+                child = node.children[i];
+                area = bboxArea(child.bbox);
+                enlargement = enlargedArea(bbox, child.bbox) - area;
+
+                // choose entry with the least area enlargement
+                if (enlargement < minEnlargement) {
+                    minEnlargement = enlargement;
+                    minArea = area < minArea ? area : minArea;
+                    targetNode = child;
+
+                } else if (enlargement === minEnlargement) {
+                    // otherwise choose one with the smallest area
+                    if (area < minArea) {
+                        minArea = area;
+                        targetNode = child;
+                    }
+                }
+            }
+
+            node = targetNode;
+        }
+
+        return node;
+    },
+
+    _insert: function (item, level, isNode) {
+
+        var toBBox = this.toBBox,
+            bbox = isNode ? item.bbox : toBBox(item),
+            insertPath = [];
+
+        // find the best node for accommodating the item, saving all nodes along the path too
+        var node = this._chooseSubtree(bbox, this.data, level, insertPath);
+
+        // put the item into the node
+        node.children.push(item);
+        extend(node.bbox, bbox);
+
+        // split on node overflow; propagate upwards if necessary
+        while (level >= 0) {
+            if (insertPath[level].children.length > this._maxEntries) {
+                this._split(insertPath, level);
+                level--;
+            } else break;
+        }
+
+        // adjust bboxes along the insertion path
+        this._adjustParentBBoxes(bbox, insertPath, level);
+    },
+
+    // split overflowed node into two
+    _split: function (insertPath, level) {
+
+        var node = insertPath[level],
+            M = node.children.length,
+            m = this._minEntries;
+
+        this._chooseSplitAxis(node, m, M);
+
+        var newNode = {
+            children: node.children.splice(this._chooseSplitIndex(node, m, M)),
+            height: node.height
+        };
+
+        if (node.leaf) newNode.leaf = true;
+
+        calcBBox(node, this.toBBox);
+        calcBBox(newNode, this.toBBox);
+
+        if (level) insertPath[level - 1].children.push(newNode);
+        else this._splitRoot(node, newNode);
+    },
+
+    _splitRoot: function (node, newNode) {
+        // split root node
+        this.data = {
+            children: [node, newNode],
+            height: node.height + 1
+        };
+        calcBBox(this.data, this.toBBox);
+    },
+
+    _chooseSplitIndex: function (node, m, M) {
+
+        var i, bbox1, bbox2, overlap, area, minOverlap, minArea, index;
+
+        minOverlap = minArea = Infinity;
+
+        for (i = m; i <= M - m; i++) {
+            bbox1 = distBBox(node, 0, i, this.toBBox);
+            bbox2 = distBBox(node, i, M, this.toBBox);
+
+            overlap = intersectionArea(bbox1, bbox2);
+            area = bboxArea(bbox1) + bboxArea(bbox2);
+
+            // choose distribution with minimum overlap
+            if (overlap < minOverlap) {
+                minOverlap = overlap;
+                index = i;
+
+                minArea = area < minArea ? area : minArea;
+
+            } else if (overlap === minOverlap) {
+                // otherwise choose distribution with minimum area
+                if (area < minArea) {
+                    minArea = area;
+                    index = i;
+                }
+            }
+        }
+
+        return index;
+    },
+
+    // sorts node children by the best axis for split
+    _chooseSplitAxis: function (node, m, M) {
+
+        var compareMinX = node.leaf ? this.compareMinX : compareNodeMinX,
+            compareMinY = node.leaf ? this.compareMinY : compareNodeMinY,
+            xMargin = this._allDistMargin(node, m, M, compareMinX),
+            yMargin = this._allDistMargin(node, m, M, compareMinY);
+
+        // if total distributions margin value is minimal for x, sort by minX,
+        // otherwise it's already sorted by minY
+        if (xMargin < yMargin) node.children.sort(compareMinX);
+    },
+
+    // total margin of all possible split distributions where each node is at least m full
+    _allDistMargin: function (node, m, M, compare) {
+
+        node.children.sort(compare);
+
+        var toBBox = this.toBBox,
+            leftBBox = distBBox(node, 0, m, toBBox),
+            rightBBox = distBBox(node, M - m, M, toBBox),
+            margin = bboxMargin(leftBBox) + bboxMargin(rightBBox),
+            i, child;
+
+        for (i = m; i < M - m; i++) {
+            child = node.children[i];
+            extend(leftBBox, node.leaf ? toBBox(child) : child.bbox);
+            margin += bboxMargin(leftBBox);
+        }
+
+        for (i = M - m - 1; i >= m; i--) {
+            child = node.children[i];
+            extend(rightBBox, node.leaf ? toBBox(child) : child.bbox);
+            margin += bboxMargin(rightBBox);
+        }
+
+        return margin;
+    },
+
+    _adjustParentBBoxes: function (bbox, path, level) {
+        // adjust bboxes along the given tree path
+        for (var i = level; i >= 0; i--) {
+            extend(path[i].bbox, bbox);
+        }
+    },
+
+    _condense: function (path) {
+        // go through the path, removing empty nodes and updating bboxes
+        for (var i = path.length - 1, siblings; i >= 0; i--) {
+            if (path[i].children.length === 0) {
+                if (i > 0) {
+                    siblings = path[i - 1].children;
+                    siblings.splice(siblings.indexOf(path[i]), 1);
+
+                } else this.clear();
+
+            } else calcBBox(path[i], this.toBBox);
+        }
+    },
+
+    _initFormat: function (format) {
+        // data format (minX, minY, maxX, maxY accessors)
+
+        // uses eval-type function compilation instead of just accepting a toBBox function
+        // because the algorithms are very sensitive to sorting functions performance,
+        // so they should be dead simple and without inner calls
+
+        // jshint evil: true
+
+        var compareArr = ['return a', ' - b', ';'];
+
+        this.compareMinX = new Function('a', 'b', compareArr.join(format[0]));
+        this.compareMinY = new Function('a', 'b', compareArr.join(format[1]));
+
+        this.toBBox = new Function('a', 'return [a' + format.join(', a') + '];');
+    }
+};
+
+
+// calculate node's bbox from bboxes of its children
+function calcBBox(node, toBBox) {
+    node.bbox = distBBox(node, 0, node.children.length, toBBox);
+}
+
+// min bounding rectangle of node children from k to p-1
+function distBBox(node, k, p, toBBox) {
+    var bbox = empty();
+
+    for (var i = k, child; i < p; i++) {
+        child = node.children[i];
+        extend(bbox, node.leaf ? toBBox(child) : child.bbox);
+    }
+
+    return bbox;
+}
+
+function empty() { return [Infinity, Infinity, -Infinity, -Infinity]; }
+
+function extend(a, b) {
+    a[0] = Math.min(a[0], b[0]);
+    a[1] = Math.min(a[1], b[1]);
+    a[2] = Math.max(a[2], b[2]);
+    a[3] = Math.max(a[3], b[3]);
+    return a;
+}
+
+function compareNodeMinX(a, b) { return a.bbox[0] - b.bbox[0]; }
+function compareNodeMinY(a, b) { return a.bbox[1] - b.bbox[1]; }
+
+function bboxArea(a)   { return (a[2] - a[0]) * (a[3] - a[1]); }
+function bboxMargin(a) { return (a[2] - a[0]) + (a[3] - a[1]); }
+
+function enlargedArea(a, b) {
+    return (Math.max(b[2], a[2]) - Math.min(b[0], a[0])) *
+           (Math.max(b[3], a[3]) - Math.min(b[1], a[1]));
+}
+
+function intersectionArea (a, b) {
+    var minX = Math.max(a[0], b[0]),
+        minY = Math.max(a[1], b[1]),
+        maxX = Math.min(a[2], b[2]),
+        maxY = Math.min(a[3], b[3]);
+
+    return Math.max(0, maxX - minX) *
+           Math.max(0, maxY - minY);
+}
+
+function contains(a, b) {
+    return a[0] <= b[0] &&
+           a[1] <= b[1] &&
+           b[2] <= a[2] &&
+           b[3] <= a[3];
+}
+
+function intersects (a, b) {
+    return b[0] <= a[2] &&
+           b[1] <= a[3] &&
+           b[2] >= a[0] &&
+           b[3] >= a[1];
+}
+
+// sort an array so that items come in groups of n unsorted items, with groups sorted between each other;
+// combines selection algorithm with binary divide & conquer approach
+
+function multiSelect(arr, left, right, n, compare) {
+    var stack = [left, right],
+        mid;
+
+    while (stack.length) {
+        right = stack.pop();
+        left = stack.pop();
+
+        if (right - left <= n) continue;
+
+        mid = left + Math.ceil((right - left) / n / 2) * n;
+        select(arr, left, right, mid, compare);
+
+        stack.push(left, mid, mid, right);
+    }
+}
+
+// sort array between left and right (inclusive) so that the smallest k elements come first (unordered)
+function select(arr, left, right, k, compare) {
+    var n, i, z, s, sd, newLeft, newRight, t, j;
+
+    while (right > left) {
+        if (right - left > 600) {
+            n = right - left + 1;
+            i = k - left + 1;
+            z = Math.log(n);
+            s = 0.5 * Math.exp(2 * z / 3);
+            sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * (i - n / 2 < 0 ? -1 : 1);
+            newLeft = Math.max(left, Math.floor(k - i * s / n + sd));
+            newRight = Math.min(right, Math.floor(k + (n - i) * s / n + sd));
+            select(arr, newLeft, newRight, k, compare);
+        }
+
+        t = arr[k];
+        i = left;
+        j = right;
+
+        swap(arr, left, k);
+        if (compare(arr[right], t) > 0) swap(arr, left, right);
+
+        while (i < j) {
+            swap(arr, i, j);
+            i++;
+            j--;
+            while (compare(arr[i], t) < 0) i++;
+            while (compare(arr[j], t) > 0) j--;
+        }
+
+        if (compare(arr[left], t) === 0) swap(arr, left, j);
+        else {
+            j++;
+            swap(arr, j, right);
+        }
+
+        if (j <= k) left = j + 1;
+        if (k <= j) right = j - 1;
+    }
+}
+
+function swap(arr, i, j) {
+    var tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+}
+
+
+// export as AMD/CommonJS module or global variable
+if (typeof define === 'function' && define.amd) define(function() { return rbush; });
+else if (typeof module !== 'undefined') module.exports = rbush;
+else if (typeof self !== 'undefined') self.rbush = rbush;
+else window.rbush = rbush;
+
+})();
+
+ol.ext.rbush = module.exports;
+})();
 
 goog.provide('ol.structs.RBush');
 
 goog.require('goog.array');
 goog.require('goog.asserts');
 goog.require('goog.object');
-goog.require('ol.extent');
+goog.require('ol.ext.rbush');
 
 
 
 /**
- * @constructor
- * @param {ol.Extent} extent Extent.
- * @param {number} height Height.
- * @param {Array.<ol.structs.RBushNode.<T>>} children Children.
- * @param {?T} value Value.
- * @struct
- * @template T
- */
-ol.structs.RBushNode = function(extent, height, children, value) {
-
-  if (height === 0) {
-    goog.asserts.assert(goog.isNull(children));
-    goog.asserts.assert(!goog.isNull(value));
-  } else {
-    goog.asserts.assert(!goog.isNull(children));
-    goog.asserts.assert(goog.isNull(value));
-  }
-
-  /**
-   * @type {ol.Extent}
-   */
-  this.extent = extent;
-
-  /**
-   * @type {number}
-   */
-  this.height = height;
-
-  /**
-   * @type {Array.<ol.structs.RBushNode.<T>>}
-   */
-  this.children = children;
-
-  /**
-   * @type {?T}
-   */
-  this.value = value;
-
-};
-
-
-/**
- * @param {ol.structs.RBushNode.<T>} node1 Node 1.
- * @param {ol.structs.RBushNode.<T>} node2 Node 2.
- * @return {number} Compare minimum X.
- * @template T
- */
-ol.structs.RBushNode.compareMinX = function(node1, node2) {
-  return node1.extent[0] - node2.extent[0];
-};
-
-
-/**
- * @param {ol.structs.RBushNode.<T>} node1 Node 1.
- * @param {ol.structs.RBushNode.<T>} node2 Node 2.
- * @return {number} Compare minimum Y.
- * @template T
- */
-ol.structs.RBushNode.compareMinY = function(node1, node2) {
-  return node1.extent[1] - node2.extent[1];
-};
-
-
-/**
- * @param {number} maxEntries Max entries.
- */
-ol.structs.RBushNode.prototype.assertValid = function(maxEntries) {
-  if (this.height === 0) {
-    goog.asserts.assert(goog.isNull(this.children));
-    goog.asserts.assert(!goog.isNull(this.value));
-  } else {
-    goog.asserts.assert(!goog.isNull(this.children));
-    goog.asserts.assert(goog.isNull(this.value));
-    goog.asserts.assert(this.children.length <= maxEntries);
-    var i, ii;
-    for (i = 0, ii = this.children.length; i < ii; ++i) {
-      var child = this.children[i];
-      goog.asserts.assert(ol.extent.containsExtent(this.extent, child.extent));
-      child.assertValid(maxEntries);
-    }
-  }
-};
-
-
-/**
- * @param {number} start Start.
- * @param {number} stop Stop.
- * @param {ol.Extent=} opt_extent Extent.
- * @return {ol.Extent} Extent.
- */
-ol.structs.RBushNode.prototype.getChildrenExtent =
-    function(start, stop, opt_extent) {
-  goog.asserts.assert(!this.isLeaf());
-  var children = this.children;
-  var extent = ol.extent.createOrUpdateEmpty(opt_extent);
-  var i;
-  for (i = start; i < stop; ++i) {
-    ol.extent.extend(extent, children[i].extent);
-  }
-  return extent;
-};
-
-
-/**
- * @param {ol.Extent} extent Extent.
- * @param {T} value Value.
- * @param {Array.<ol.structs.RBushNode.<T>>} path Path.
- * @return {boolean} Removed.
- */
-ol.structs.RBushNode.prototype.remove = function(extent, value, path) {
-  var children = this.children;
-  var ii = children.length;
-  var child, i;
-  if (this.height == 1) {
-    for (i = 0; i < ii; ++i) {
-      child = children[i];
-      if (child.value === value) {
-        goog.array.removeAt(children, i);
-        return true;
-      }
-    }
-  } else {
-    goog.asserts.assert(this.height > 1);
-    for (i = 0; i < ii; ++i) {
-      child = children[i];
-      if (ol.extent.containsExtent(child.extent, extent)) {
-        path.push(child);
-        if (child.remove(extent, value, path)) {
-          return true;
-        }
-        path.pop();
-      }
-    }
-  }
-  return false;
-};
-
-
-/**
- * FIXME empty description for jsdoc
- */
-ol.structs.RBushNode.prototype.updateExtent = function() {
-  goog.asserts.assert(!this.isLeaf());
-  var extent = ol.extent.createOrUpdateEmpty(this.extent);
-  var children = this.children;
-  var i, ii;
-  for (i = 0, ii = children.length; i < ii; ++i) {
-    ol.extent.extend(extent, children[i].extent);
-  }
-};
-
-
-/**
- * @return {boolean} Is leaf.
- */
-ol.structs.RBushNode.prototype.isLeaf = function() {
-  return goog.isNull(this.children);
-};
-
-
-
-/**
+ * Wrapper around the RBush by Vladimir Agafonkin.
+ *
  * @constructor
  * @param {number=} opt_maxEntries Max entries.
  * @see https://github.com/mourner/rbush
@@ -92343,28 +93718,16 @@ ol.structs.RBush = function(opt_maxEntries) {
 
   /**
    * @private
-   * @type {number}
    */
-  this.maxEntries_ =
-      Math.max(4, goog.isDef(opt_maxEntries) ? opt_maxEntries : 9);
+  this.rbush_ = ol.ext.rbush(opt_maxEntries);
 
   /**
+   * A mapping between the objects added to this rbush wrapper
+   * and the objects that are actually added to the internal rbush.
    * @private
-   * @type {number}
+   * @type {Object.<number, Object>}
    */
-  this.minEntries_ = Math.max(2, Math.ceil(0.4 * this.maxEntries_));
-
-  /**
-   * @private
-   * @type {ol.structs.RBushNode.<T>}
-   */
-  this.root_ = new ol.structs.RBushNode(ol.extent.createEmpty(), 1, [], null);
-
-  /**
-   * @private
-   * @type {Object.<string, ol.Extent>}
-   */
-  this.valueExtent_ = {};
+  this.items_ = {};
 
   if (goog.DEBUG) {
     /**
@@ -92373,167 +93736,119 @@ ol.structs.RBush = function(opt_maxEntries) {
      */
     this.readers_ = 0;
   }
-
 };
 
 
 /**
- * @param {ol.structs.RBushNode.<T>} node Node.
- * @param {function(ol.structs.RBushNode.<T>, ol.structs.RBushNode.<T>): number}
- *     compare Compare.
- * @private
- * @return {number} All distance margin.
- */
-ol.structs.RBush.prototype.allDistMargin_ = function(node, compare) {
-  var children = node.children;
-  var m = this.minEntries_;
-  var M = children.length;
-  var i;
-  goog.array.sort(children, compare);
-  var leftExtent = node.getChildrenExtent(0, m);
-  var rightExtent = node.getChildrenExtent(M - m, M);
-  var margin =
-      ol.extent.getMargin(leftExtent) + ol.extent.getMargin(rightExtent);
-  for (i = m; i < M - m; ++i) {
-    ol.extent.extend(leftExtent, children[i].extent);
-    margin += ol.extent.getMargin(leftExtent);
-  }
-  for (i = M - m - 1; i >= m; --i) {
-    ol.extent.extend(rightExtent, children[i].extent);
-    margin += ol.extent.getMargin(rightExtent);
-  }
-  return margin;
-};
-
-
-/**
- * FIXME empty description for jsdoc
- */
-ol.structs.RBush.prototype.assertValid = function() {
-  this.root_.assertValid(this.maxEntries_);
-};
-
-
-/**
- * @param {ol.structs.RBushNode.<T>} node Node.
- * @private
- */
-ol.structs.RBush.prototype.chooseSplitAxis_ = function(node) {
-  var xMargin = this.allDistMargin_(node, ol.structs.RBushNode.compareMinX);
-  var yMargin = this.allDistMargin_(node, ol.structs.RBushNode.compareMinY);
-  if (xMargin < yMargin) {
-    goog.array.sort(node.children, ol.structs.RBushNode.compareMinX);
-  }
-};
-
-
-/**
- * @param {ol.structs.RBushNode.<T>} node Node.
- * @private
- * @return {number} Split index.
- */
-ol.structs.RBush.prototype.chooseSplitIndex_ = function(node) {
-  var children = node.children;
-  var m = this.minEntries_;
-  var M = children.length;
-  var minOverlap = Infinity;
-  var minArea = Infinity;
-  var extent1 = ol.extent.createEmpty();
-  var extent2 = ol.extent.createEmpty();
-  var index = 0;
-  var i;
-  for (i = m; i <= M - m; ++i) {
-    extent1 = node.getChildrenExtent(0, i, extent1);
-    extent2 = node.getChildrenExtent(i, M, extent2);
-    var overlap = ol.extent.getIntersectionArea(extent1, extent2);
-    var area = ol.extent.getArea(extent1) + ol.extent.getArea(extent2);
-    if (overlap < minOverlap) {
-      minOverlap = overlap;
-      minArea = Math.min(area, minArea);
-      index = i;
-    } else if (overlap == minOverlap && area < minArea) {
-      minArea = area;
-      index = i;
-    }
-  }
-  return index;
-};
-
-
-/**
+ * Insert a value into the RBush.
  * @param {ol.Extent} extent Extent.
- * @param {ol.structs.RBushNode.<T>} node Node.
- * @param {number} level Level.
- * @param {Array.<ol.structs.RBushNode.<T>>} path Path.
- * @private
- * @return {ol.structs.RBushNode.<T>} Node.
+ * @param {T} value Value.
  */
-ol.structs.RBush.prototype.chooseSubtree_ =
-    function(extent, node, level, path) {
-  while (!node.isLeaf() && path.length - 1 != level) {
-    var minArea = Infinity;
-    var minEnlargement = Infinity;
-    var children = node.children;
-    var bestChild = null;
-    var i, ii;
-    for (i = 0, ii = children.length; i < ii; ++i) {
-      var child = children[i];
-      var area = ol.extent.getArea(child.extent);
-      var enlargement = ol.extent.getEnlargedArea(child.extent, extent) - area;
-      if (enlargement < minEnlargement) {
-        minEnlargement = enlargement;
-        minArea = Math.min(area, minArea);
-        bestChild = child;
-      } else if (enlargement == minEnlargement && area < minArea) {
-        minArea = area;
-        bestChild = child;
-      }
-    }
-    goog.asserts.assert(!goog.isNull(bestChild));
-    node = bestChild;
-    path.push(node);
+ol.structs.RBush.prototype.insert = function(extent, value) {
+  if (goog.DEBUG && this.readers_) {
+    throw new Error('Can not insert value while reading');
   }
-  return node;
+  var item = [
+    extent[0],
+    extent[1],
+    extent[2],
+    extent[3],
+    value
+  ];
+  this.rbush_.insert(item);
+  // remember the object that was added to the internal rbush
+  goog.object.add(this.items_, goog.getUid(value).toString(), item);
 };
 
 
 /**
- * FIXME empty description for jsdoc
+ * Bulk-insert values into the RBush.
+ * @param {Array.<ol.Extent>} extents Extents.
+ * @param {Array.<T>} values Values.
  */
-ol.structs.RBush.prototype.clear = function() {
-  var node = this.root_;
-  node.extent = ol.extent.createOrUpdateEmpty(this.root_.extent);
-  node.height = 1;
-  node.children.length = 0;
-  node.value = null;
-  goog.object.clear(this.valueExtent_);
-};
-
-
-/**
- * @param {Array.<ol.structs.RBushNode.<T>>} path Path.
- * @private
- */
-ol.structs.RBush.prototype.condense_ = function(path) {
-  var i;
-  for (i = path.length - 1; i >= 0; --i) {
-    var node = path[i];
-    if (node.children.length === 0) {
-      if (i > 0) {
-        goog.array.remove(path[i - 1].children, node);
-      } else {
-        this.clear();
-      }
-    } else {
-      node.updateExtent();
-    }
+ol.structs.RBush.prototype.load = function(extents, values) {
+  if (goog.DEBUG && this.readers_) {
+    throw new Error('Can not insert values while reading');
   }
+  goog.asserts.assert(extents.length === values.length);
+
+  var items = [];
+  for (var i = 0, l = values.length; i < l; i++) {
+    var extent = extents[i];
+    var value = values[i];
+
+    var item = [
+      extent[0],
+      extent[1],
+      extent[2],
+      extent[3],
+      value
+    ];
+    items.push(item);
+    goog.object.add(this.items_, goog.getUid(value).toString(), item);
+  }
+  this.rbush_.load(items);
 };
 
 
 /**
- * Calls a callback function with each node in the tree. Inside the callback,
- * no tree modifications (insert, update, remove) can be made.
+ * Remove a value from the RBush.
+ * @param {T} value Value.
+ * @return {boolean} Removed.
+ */
+ol.structs.RBush.prototype.remove = function(value) {
+  if (goog.DEBUG && this.readers_) {
+    throw new Error('Can not remove value while reading');
+  }
+  var uid = goog.getUid(value).toString();
+  goog.asserts.assert(goog.object.containsKey(this.items_, uid));
+
+  // get the object in which the value was wrapped when adding to the
+  // internal rbush. then use that object to do the removal.
+  var item = goog.object.get(this.items_, uid);
+  goog.object.remove(this.items_, uid);
+  return this.rbush_.remove(item) !== null;
+};
+
+
+/**
+ * Update the extent of a value in the RBush.
+ * @param {ol.Extent} extent Extent.
+ * @param {T} value Value.
+ */
+ol.structs.RBush.prototype.update = function(extent, value) {
+  this.remove(value);
+  this.insert(extent, value);
+};
+
+
+/**
+ * Return all values in the RBush.
+ * @return {Array.<T>} All.
+ */
+ol.structs.RBush.prototype.getAll = function() {
+  var items = this.rbush_.all();
+  return goog.array.map(items, function(item) {
+    return item[4];
+  });
+};
+
+
+/**
+ * Return all values in the given extent.
+ * @param {ol.Extent} extent Extent.
+ * @return {Array.<T>} All in extent.
+ */
+ol.structs.RBush.prototype.getInExtent = function(extent) {
+  var items = this.rbush_.search(extent);
+  return goog.array.map(items, function(item) {
+    return item[4];
+  });
+};
+
+
+/**
+ * Calls a callback function with each value in the tree.
  * If the callback returns a truthy value, this value is returned without
  * checking the rest of the tree.
  * @param {function(this: S, T): *} callback Callback.
@@ -92545,49 +93860,18 @@ ol.structs.RBush.prototype.forEach = function(callback, opt_this) {
   if (goog.DEBUG) {
     ++this.readers_;
     try {
-      return this.forEach_(this.root_, callback, opt_this);
+      return this.forEach_(this.getAll(), callback, opt_this);
     } finally {
       --this.readers_;
     }
   } else {
-    return this.forEach_(this.root_, callback, opt_this);
+    return this.forEach_(this.getAll(), callback, opt_this);
   }
 };
 
 
 /**
- * @param {ol.structs.RBushNode.<T>} node Node.
- * @param {function(this: S, T): *} callback Callback.
- * @param {S=} opt_this The object to use as `this` in `callback`.
- * @private
- * @return {*} Callback return value.
- * @template S
- */
-ol.structs.RBush.prototype.forEach_ = function(node, callback, opt_this) {
-  goog.asserts.assert(!node.isLeaf());
-  /** @type {Array.<ol.structs.RBushNode.<T>>} */
-  var toVisit = [node];
-  var children, i, ii, result;
-  while (toVisit.length > 0) {
-    node = toVisit.pop();
-    children = node.children;
-    if (node.height == 1) {
-      for (i = 0, ii = children.length; i < ii; ++i) {
-        result = callback.call(opt_this, children[i].value);
-        if (result) {
-          return result;
-        }
-      }
-    } else {
-      toVisit.push.apply(toVisit, children);
-    }
-  }
-};
-
-
-/**
- * Calls a callback function with each node in the provided extent. Inside the
- * callback, no tree modifications (insert, update, remove) can be made.
+ * Calls a callback function with each value in the provided extent.
  * @param {ol.Extent} extent Extent.
  * @param {function(this: S, T): *} callback Callback.
  * @param {S=} opt_this The object to use as `this` in `callback`.
@@ -92599,81 +93883,50 @@ ol.structs.RBush.prototype.forEachInExtent =
   if (goog.DEBUG) {
     ++this.readers_;
     try {
-      return this.forEachInExtent_(extent, callback, opt_this);
+      return this.forEach_(this.getInExtent(extent), callback, opt_this);
     } finally {
       --this.readers_;
     }
   } else {
-    return this.forEachInExtent_(extent, callback, opt_this);
+    return this.forEach_(this.getInExtent(extent), callback, opt_this);
   }
 };
 
 
 /**
- * @param {ol.Extent} extent Extent.
+ * @param {Array.<T>} values Values.
  * @param {function(this: S, T): *} callback Callback.
  * @param {S=} opt_this The object to use as `this` in `callback`.
  * @private
  * @return {*} Callback return value.
  * @template S
  */
-ol.structs.RBush.prototype.forEachInExtent_ =
-    function(extent, callback, opt_this) {
-  /** @type {Array.<ol.structs.RBushNode.<T>>} */
-  var toVisit = [this.root_];
+ol.structs.RBush.prototype.forEach_ = function(values, callback, opt_this) {
   var result;
-  while (toVisit.length > 0) {
-    var node = toVisit.pop();
-    if (ol.extent.intersects(extent, node.extent)) {
-      if (node.isLeaf()) {
-        result = callback.call(opt_this, node.value);
-        if (result) {
-          return result;
-        }
-      } else if (ol.extent.containsExtent(extent, node.extent)) {
-        result = this.forEach_(node, callback, opt_this);
-        if (result) {
-          return result;
-        }
-      } else {
-        toVisit.push.apply(toVisit, node.children);
-      }
+  for (var i = 0, l = values.length; i < l; i++) {
+    result = callback.call(opt_this, values[i]);
+    if (result) {
+      return result;
     }
   }
-  return undefined;
+  return result;
 };
 
 
 /**
- * @return {Array.<T>} All.
+ * @return {boolean} Is empty.
  */
-ol.structs.RBush.prototype.getAll = function() {
-  var values = [];
-  this.forEach(
-      /**
-       * @param {T} value Value.
-       */
-      function(value) {
-        values.push(value);
-      });
-  return values;
+ol.structs.RBush.prototype.isEmpty = function() {
+  return goog.object.isEmpty(this.items_);
 };
 
 
 /**
- * @param {ol.Extent} extent Extent.
- * @return {Array.<T>} All in extent.
+ * Remove all values from the RBush.
  */
-ol.structs.RBush.prototype.getInExtent = function(extent) {
-  var values = [];
-  this.forEachInExtent(extent,
-      /**
-       * @param {T} value Value.
-       */
-      function(value) {
-        values.push(value);
-      });
-  return values;
+ol.structs.RBush.prototype.clear = function() {
+  this.rbush_.clear();
+  goog.object.clear(this.items_);
 };
 
 
@@ -92682,162 +93935,8 @@ ol.structs.RBush.prototype.getInExtent = function(extent) {
  * @return {ol.Extent} Extent.
  */
 ol.structs.RBush.prototype.getExtent = function(opt_extent) {
-  return ol.extent.returnOrUpdate(this.root_.extent, opt_extent);
-};
-
-
-/**
- * @param {T} value Value.
- * @private
- * @return {string} Key.
- */
-ol.structs.RBush.prototype.getKey_ = function(value) {
-  goog.asserts.assert(goog.isObject(value));
-  return goog.getUid(value).toString();
-};
-
-
-/**
- * @param {ol.Extent} extent Extent.
- * @param {T} value Value.
- */
-ol.structs.RBush.prototype.insert = function(extent, value) {
-  if (goog.DEBUG && this.readers_) {
-    throw new Error('cannot insert value while reading');
-  }
-  var key = this.getKey_(value);
-  goog.asserts.assert(!this.valueExtent_.hasOwnProperty(key));
-  this.insert_(extent, value, this.root_.height - 1);
-  this.valueExtent_[key] = ol.extent.clone(extent);
-};
-
-
-/**
- * @param {ol.Extent} extent Extent.
- * @param {T} value Value.
- * @param {number} level Level.
- * @private
- * @return {ol.structs.RBushNode.<T>} Node.
- */
-ol.structs.RBush.prototype.insert_ = function(extent, value, level) {
-  /** @type {Array.<ol.structs.RBushNode.<T>>} */
-  var path = [this.root_];
-  var node = this.chooseSubtree_(extent, this.root_, level, path);
-  node.children.push(new ol.structs.RBushNode(extent, 0, null, value));
-  ol.extent.extend(node.extent, extent);
-  var i;
-  for (i = path.length - 1; i >= 0; --i) {
-    if (path[i].children.length > this.maxEntries_) {
-      this.split_(path, i);
-    } else {
-      break;
-    }
-  }
-  for (; i >= 0; --i) {
-    ol.extent.extend(path[i].extent, extent);
-  }
-  return node;
-};
-
-
-/**
- * @return {boolean} Is empty.
- */
-ol.structs.RBush.prototype.isEmpty = function() {
-  return this.root_.children.length === 0;
-};
-
-
-/**
- * @param {T} value Value.
- * @return {boolean} Removed.
- */
-ol.structs.RBush.prototype.remove = function(value) {
-  if (goog.DEBUG && this.readers_) {
-    throw new Error('cannot remove value while reading');
-  }
-  var key = this.getKey_(value);
-  goog.asserts.assert(this.valueExtent_.hasOwnProperty(key));
-  var extent = this.valueExtent_[key];
-  delete this.valueExtent_[key];
-  return this.remove_(extent, value);
-};
-
-
-/**
- * @param {ol.Extent} extent Extent.
- * @param {T} value Value.
- * @private
- * @return {boolean} Removed.
- */
-ol.structs.RBush.prototype.remove_ = function(extent, value) {
-  var root = this.root_;
-  var path = [root];
-  var removed = root.remove(extent, value, path);
-  if (removed) {
-    this.condense_(path);
-  } else {
-    goog.asserts.assert(path.length == 1);
-    goog.asserts.assert(path[0] === root);
-  }
-  return removed;
-};
-
-
-/**
- * @param {Array.<ol.structs.RBushNode.<T>>} path Path.
- * @param {number} level Level.
- * @private
- */
-ol.structs.RBush.prototype.split_ = function(path, level) {
-  var node = path[level];
-  this.chooseSplitAxis_(node);
-  var splitIndex = this.chooseSplitIndex_(node);
-  // FIXME too few arguments to splice here
-  var newChildren = node.children.splice(splitIndex);
-  var newNode = new ol.structs.RBushNode(
-      ol.extent.createEmpty(), node.height, newChildren, null);
-  node.updateExtent();
-  newNode.updateExtent();
-  if (level) {
-    path[level - 1].children.push(newNode);
-  } else {
-    this.splitRoot_(node, newNode);
-  }
-};
-
-
-/**
- * @param {ol.structs.RBushNode.<T>} node1 Node 1.
- * @param {ol.structs.RBushNode.<T>} node2 Node 2.
- * @private
- */
-ol.structs.RBush.prototype.splitRoot_ = function(node1, node2) {
-  goog.asserts.assert(node1 === this.root_);
-  var height = node1.height + 1;
-  var extent = ol.extent.extend(node1.extent.slice(), node2.extent);
-  var children = [node1, node2];
-  this.root_ = new ol.structs.RBushNode(extent, height, children, null);
-};
-
-
-/**
- * @param {ol.Extent} extent Extent.
- * @param {T} value Value.
- */
-ol.structs.RBush.prototype.update = function(extent, value) {
-  var key = this.getKey_(value);
-  var currentExtent = this.valueExtent_[key];
-  goog.asserts.assert(goog.isDef(currentExtent));
-  if (!ol.extent.equals(currentExtent, extent)) {
-    if (goog.DEBUG && this.readers_) {
-      throw new Error('cannot update extent while reading');
-    }
-    var removed = this.remove_(currentExtent, value);
-    goog.asserts.assert(removed);
-    this.insert_(extent, value, this.root_.height - 1);
-    this.valueExtent_[key] = ol.extent.clone(extent, currentExtent);
-  }
+  // FIXME add getExtent() to rbush
+  return this.rbush_.data.bbox;
 };
 
 // FIXME bulk feature upload - suppress events
@@ -92890,7 +93989,7 @@ ol.source.VectorEventType = {
 
 /**
  * @classdesc
- * Base class for vector sources.
+ * Provides a source of features for vector layers.
  *
  * @constructor
  * @extends {ol.source.Source}
@@ -92951,7 +94050,10 @@ goog.inherits(ol.source.Vector, ol.source.Source);
 
 
 /**
- * @param {ol.Feature} feature Feature.
+ * Add a single feature to the source.  If you want to add a batch of features
+ * at once, call {@link ol.source.Vector#addFeatures source.addFeatures()}
+ * instead.
+ * @param {ol.Feature} feature Feature to add.
  * @api stable
  */
 ol.source.Vector.prototype.addFeature = function(feature) {
@@ -92967,6 +94069,28 @@ ol.source.Vector.prototype.addFeature = function(feature) {
  */
 ol.source.Vector.prototype.addFeatureInternal = function(feature) {
   var featureKey = goog.getUid(feature).toString();
+  this.setupChangeEvents_(featureKey, feature);
+
+  var geometry = feature.getGeometry();
+  if (goog.isDefAndNotNull(geometry)) {
+    var extent = geometry.getExtent();
+    this.rBush_.insert(extent, feature);
+  } else {
+    this.nullGeometryFeatures_[featureKey] = feature;
+  }
+
+  this.addToIndex_(featureKey, feature);
+  this.dispatchEvent(
+      new ol.source.VectorEvent(ol.source.VectorEventType.ADDFEATURE, feature));
+};
+
+
+/**
+ * @param {string} featureKey
+ * @param {ol.Feature} feature
+ * @private
+ */
+ol.source.Vector.prototype.setupChangeEvents_ = function(featureKey, feature) {
   goog.asserts.assert(!(featureKey in this.featureChangeKeys_));
   this.featureChangeKeys_[featureKey] = [
     goog.events.listen(feature,
@@ -92976,13 +94100,15 @@ ol.source.Vector.prototype.addFeatureInternal = function(feature) {
         ol.ObjectEventType.PROPERTYCHANGE,
         this.handleFeatureChange_, false, this)
   ];
-  var geometry = feature.getGeometry();
-  if (goog.isDefAndNotNull(geometry)) {
-    var extent = geometry.getExtent();
-    this.rBush_.insert(extent, feature);
-  } else {
-    this.nullGeometryFeatures_[featureKey] = feature;
-  }
+};
+
+
+/**
+ * @param {string} featureKey
+ * @param {ol.Feature} feature
+ * @private
+ */
+ol.source.Vector.prototype.addToIndex_ = function(featureKey, feature) {
   var id = feature.getId();
   if (goog.isDef(id)) {
     this.idIndex_[id.toString()] = feature;
@@ -92991,13 +94117,12 @@ ol.source.Vector.prototype.addFeatureInternal = function(feature) {
         'Feature already added to the source');
     this.undefIdIndex_[featureKey] = feature;
   }
-  this.dispatchEvent(
-      new ol.source.VectorEvent(ol.source.VectorEventType.ADDFEATURE, feature));
 };
 
 
 /**
- * @param {Array.<ol.Feature>} features Features.
+ * Add a batch of features to the source.
+ * @param {Array.<ol.Feature>} features Features to add.
  * @api stable
  */
 ol.source.Vector.prototype.addFeatures = function(features) {
@@ -93012,16 +94137,37 @@ ol.source.Vector.prototype.addFeatures = function(features) {
  * @protected
  */
 ol.source.Vector.prototype.addFeaturesInternal = function(features) {
-  // FIXME use R-Bush bulk load when available
-  var i, ii;
-  for (i = 0, ii = features.length; i < ii; ++i) {
-    this.addFeatureInternal(features[i]);
+  var featureKey, i, length, feature;
+  var extents = [];
+  var validFeatures = [];
+  for (i = 0, length = features.length; i < length; i++) {
+    feature = features[i];
+    featureKey = goog.getUid(feature).toString();
+    this.setupChangeEvents_(featureKey, feature);
+
+    var geometry = feature.getGeometry();
+    if (goog.isDefAndNotNull(geometry)) {
+      var extent = geometry.getExtent();
+      extents.push(extent);
+      validFeatures.push(feature);
+    } else {
+      this.nullGeometryFeatures_[featureKey] = feature;
+    }
+  }
+  this.rBush_.load(extents, validFeatures);
+
+  for (i = 0, length = features.length; i < length; i++) {
+    feature = features[i];
+    featureKey = goog.getUid(feature).toString();
+    this.addToIndex_(featureKey, feature);
+    this.dispatchEvent(new ol.source.VectorEvent(
+        ol.source.VectorEventType.ADDFEATURE, feature));
   }
 };
 
 
 /**
- * Remove all features.
+ * Remove all features from the source.
  * @api stable
  */
 ol.source.Vector.prototype.clear = function() {
@@ -93036,32 +94182,43 @@ ol.source.Vector.prototype.clear = function() {
 
 
 /**
- * @param {function(this: T, ol.Feature): S} f Callback.
- * @param {T=} opt_this The object to use as `this` in `f`.
- * @return {S|undefined}
+ * Iterate through all features on the source, calling the provided callback
+ * with each one.  If the callback returns any "truthy" value, iteration will
+ * stop and the function will return the same value.
+ *
+ * @param {function(this: T, ol.Feature): S} callback Called with each feature
+ *     on the source.  Return a truthy value to stop iteration.
+ * @param {T=} opt_this The object to use as `this` in the callback.
+ * @return {S|undefined} The return value from the last call to the callback.
  * @template T,S
  * @api stable
  */
-ol.source.Vector.prototype.forEachFeature = function(f, opt_this) {
-  return this.rBush_.forEach(f, opt_this);
+ol.source.Vector.prototype.forEachFeature = function(callback, opt_this) {
+  return this.rBush_.forEach(callback, opt_this);
 };
 
 
 /**
+ * Iterate through all features whose geometries contain the provided
+ * coordinate, calling the callback with each feature.  If the callback returns
+ * a "truthy" value, iteration will stop and the function will return the same
+ * value.
+ *
  * @param {ol.Coordinate} coordinate Coordinate.
- * @param {function(this: T, ol.Feature): S} f Callback.
- * @param {T=} opt_this The object to use as `this` in `f`.
- * @return {S|undefined}
+ * @param {function(this: T, ol.Feature): S} callback Called with each feature
+ *     whose goemetry contains the provided coordinate.
+ * @param {T=} opt_this The object to use as `this` in the callback.
+ * @return {S|undefined} The return value from the last call to the callback.
  * @template T,S
  */
 ol.source.Vector.prototype.forEachFeatureAtCoordinate =
-    function(coordinate, f, opt_this) {
+    function(coordinate, callback, opt_this) {
   var extent = [coordinate[0], coordinate[1], coordinate[0], coordinate[1]];
   return this.forEachFeatureInExtent(extent, function(feature) {
     var geometry = feature.getGeometry();
     goog.asserts.assert(goog.isDefAndNotNull(geometry));
     if (geometry.containsCoordinate(coordinate)) {
-      return f.call(opt_this, feature);
+      return callback.call(opt_this, feature);
     } else {
       return undefined;
     }
@@ -93070,16 +94227,26 @@ ol.source.Vector.prototype.forEachFeatureAtCoordinate =
 
 
 /**
+ * Iterate through all features whose bounding box intersects the provided
+ * extent (note that the feature's geometry may not intersect the extent),
+ * calling the callback with each feature.  If the callback returns a "truthy"
+ * value, iteration will stop and the function will return the same value.
+ *
+ * If you are interested in features whose geometry intersects an extent, call
+ * the {@link ol.source.Vector#forEachFeatureIntersectingExtent
+ * source.forEachFeatureIntersectingExtent()} method instead.
+ *
  * @param {ol.Extent} extent Extent.
- * @param {function(this: T, ol.Feature): S} f Callback.
- * @param {T=} opt_this The object to use as `this` in `f`.
- * @return {S|undefined}
+ * @param {function(this: T, ol.Feature): S} callback Called with each feature
+ *     whose bounding box intersects the provided extent.
+ * @param {T=} opt_this The object to use as `this` in the callback.
+ * @return {S|undefined} The return value from the last call to the callback.
  * @template T,S
  * @api
  */
 ol.source.Vector.prototype.forEachFeatureInExtent =
-    function(extent, f, opt_this) {
-  return this.rBush_.forEachInExtent(extent, f, opt_this);
+    function(extent, callback, opt_this) {
+  return this.rBush_.forEachInExtent(extent, callback, opt_this);
 };
 
 
@@ -93098,19 +94265,24 @@ ol.source.Vector.prototype.forEachFeatureInExtentAtResolution =
 
 
 /**
- * This function executes the `callback` function once for each feature
- * intersecting the `extent` until `callback` returns a truthy value. When
- * `callback` returns a truthy value the function immediately returns that
- * value. Otherwise the function returns `undefined`.
+ * Iterate through all features whose geometry intersects the provided extent,
+ * calling the callback with each feature.  If the callback returns a "truthy"
+ * value, iteration will stop and the function will return the same value.
+ *
+ * If you only want to test for bounding box intersection, call the
+ * {@link ol.source.Vector#forEachFeatureInExtent
+ * source.forEachFeatureInExtent()} method instead.
+ *
  * @param {ol.Extent} extent Extent.
- * @param {function(this: T, ol.Feature): S} f Callback.
- * @param {T=} opt_this The object to use as `this` in `f`.
- * @return {S|undefined}
+ * @param {function(this: T, ol.Feature): S} callback Called with each feature
+ *     whose geometry intersects the provided extent.
+ * @param {T=} opt_this The object to use as `this` in the callback.
+ * @return {S|undefined} The return value from the last call to the callback.
  * @template T,S
  * @api
  */
 ol.source.Vector.prototype.forEachFeatureIntersectingExtent =
-    function(extent, f, opt_this) {
+    function(extent, callback, opt_this) {
   return this.forEachFeatureInExtent(extent,
       /**
        * @param {ol.Feature} feature Feature.
@@ -93121,7 +94293,7 @@ ol.source.Vector.prototype.forEachFeatureIntersectingExtent =
         var geometry = feature.getGeometry();
         goog.asserts.assert(goog.isDefAndNotNull(geometry));
         if (geometry.intersectsExtent(extent)) {
-          var result = f.call(opt_this, feature);
+          var result = callback.call(opt_this, feature);
           if (result) {
             return result;
           }
@@ -93131,6 +94303,7 @@ ol.source.Vector.prototype.forEachFeatureIntersectingExtent =
 
 
 /**
+ * Get all features on the source.
  * @return {Array.<ol.Feature>} Features.
  * @api stable
  */
@@ -93145,6 +94318,7 @@ ol.source.Vector.prototype.getFeatures = function() {
 
 
 /**
+ * Get all features whose geometry intersects the provided coordinate.
  * @param {ol.Coordinate} coordinate Coordinate.
  * @return {Array.<ol.Feature>} Features.
  * @api stable
@@ -93168,6 +94342,7 @@ ol.source.Vector.prototype.getFeaturesInExtent = function(extent) {
 
 
 /**
+ * Get the closest feature to the provided coordinate.
  * @param {ol.Coordinate} coordinate Coordinate.
  * @return {ol.Feature} Closest feature.
  * @api stable
@@ -93310,7 +94485,10 @@ ol.source.Vector.prototype.loadFeatures = goog.nullFunction;
 
 
 /**
- * @param {ol.Feature} feature Feature.
+ * Remove a single feature from the source.  If you want to remove all features
+ * at once, use the {@link ol.source.Vector#clear source.clear()} method
+ * instead.
+ * @param {ol.Feature} feature Feature to remove.
  * @api stable
  */
 ol.source.Vector.prototype.removeFeature = function(feature) {
@@ -93681,7 +94859,7 @@ ol.interaction.Draw.prototype.handlePointerUp = function(event) {
       this.startDrawing_(event);
     } else if (this.mode_ === ol.interaction.DrawMode.POINT ||
         this.atFinish_(event)) {
-      this.finishDrawing_(event);
+      this.finishDrawing();
     } else {
       this.addToDrawing_(event);
     }
@@ -93876,10 +95054,9 @@ ol.interaction.Draw.prototype.addToDrawing_ = function(event) {
 
 /**
  * Stop drawing and add the sketch feature to the target layer.
- * @param {ol.MapBrowserEvent} event Event.
- * @private
+ * @api
  */
-ol.interaction.Draw.prototype.finishDrawing_ = function(event) {
+ol.interaction.Draw.prototype.finishDrawing = function() {
   var sketchFeature = this.abortDrawing_();
   goog.asserts.assert(!goog.isNull(sketchFeature));
   var coordinates;
@@ -94939,7 +96116,7 @@ ol.interaction.Select.prototype.handleMapBrowserEvent =
     }
   } else {
     // Modify the currently selected feature(s).
-    var /** @type {Array.<number>} */ deselected = [];
+    var /** @type {Array.<ol.Feature>} */ deselected = [];
     var /** @type {Array.<ol.Feature>} */ selected = [];
     map.forEachFeatureAtPixel(mapBrowserEvent.pixel,
         /**
@@ -94954,17 +96131,17 @@ ol.interaction.Select.prototype.handleMapBrowserEvent =
             }
           } else {
             if (remove || toggle) {
-              deselected.push(index);
+              deselected.push(feature);
             }
           }
         }, undefined, this.layerFilter_);
     var i;
     for (i = deselected.length - 1; i >= 0; --i) {
-      features.removeAt(deselected[i]);
+      features.remove(deselected[i]);
     }
     features.extend(selected);
   }
-  return false;
+  return this.condition_ == ol.events.condition.mouseMove;
 };
 
 
@@ -96616,6 +97793,7 @@ ol.source.BingMaps = function(options) {
   var jsonp = new goog.net.Jsonp(uri, 'jsonp');
   jsonp.send({
     'include': 'ImageryProviders',
+    'uriScheme': ol.IS_HTTPS ? 'https' : 'http',
     'key': options.key
   }, goog.bind(this.handleImageryMetadataResponse, this));
 
@@ -96798,13 +97976,14 @@ goog.inherits(ol.source.Cluster, ol.source.Vector);
 
 
 /**
- * @param {ol.Extent} extent
- * @param {number} resolution
+ * @inheritDoc
  */
-ol.source.Cluster.prototype.loadFeatures = function(extent, resolution) {
+ol.source.Cluster.prototype.loadFeatures = function(extent, resolution,
+    projection) {
   if (resolution !== this.resolution_) {
     this.clear();
     this.resolution_ = resolution;
+    this.source_.loadFeatures(extent, resolution, projection);
     this.cluster_();
     this.addFeatures(this.features_);
   }
@@ -99335,7 +100514,7 @@ ol.source.FormatVector.prototype.loadFeaturesFromURL =
               source = xhrIo.getResponseXml();
             }
             if (!goog.isDefAndNotNull(source)) {
-              source = ol.xml.load(xhrIo.getResponseText());
+              source = ol.xml.parse(xhrIo.getResponseText());
             }
           } else {
             goog.asserts.fail();
@@ -99640,6 +100819,17 @@ ol.source.Image.prototype.findNearestResolution =
  */
 ol.source.Image.prototype.getImage = goog.abstractMethod;
 
+
+/**
+ * Default image load function for image sources that use ol.Image image
+ * instances.
+ * @param {ol.Image} image Image.
+ * @param {string} src Source.
+ */
+ol.source.Image.defaultImageLoadFunction = function(image, src) {
+  image.getImage().src = src;
+};
+
 goog.provide('ol.source.ImageCanvas');
 
 goog.require('ol.CanvasFunctionType');
@@ -99737,6 +100927,7 @@ goog.provide('ol.source.ImageMapGuide');
 goog.require('goog.object');
 goog.require('goog.uri.utils');
 goog.require('ol.Image');
+goog.require('ol.ImageLoadFunctionType');
 goog.require('ol.ImageUrlFunction');
 goog.require('ol.extent');
 goog.require('ol.source.Image');
@@ -99792,6 +100983,13 @@ ol.source.ImageMapGuide = function(options) {
    * @type {ol.ImageUrlFunctionType}
    */
   this.imageUrlFunction_ = imageUrlFunction;
+
+  /**
+   * @private
+   * @type {ol.ImageLoadFunctionType}
+   */
+  this.imageLoadFunction_ = goog.isDef(options.imageLoadFunction) ?
+      options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
 
   /**
    * @private
@@ -99874,7 +101072,8 @@ ol.source.ImageMapGuide.prototype.getImage =
   var imageUrl = this.imageUrlFunction_(extent, size, projection);
   if (goog.isDef(imageUrl)) {
     image = new ol.Image(extent, resolution, pixelRatio,
-        this.getAttributions(), imageUrl, this.crossOrigin_);
+        this.getAttributions(), imageUrl, this.crossOrigin_,
+        this.imageLoadFunction_);
   } else {
     image = null;
   }
@@ -99959,8 +101158,7 @@ goog.require('ol.source.Image');
 
 /**
  * @classdesc
- * An image source for 'static', that is, non-georeferenced, images.
- * See examples/static-image for example.
+ * A layer source for displaying a single, static image.
  *
  * @constructor
  * @extends {ol.source.Image}
@@ -99983,6 +101181,9 @@ ol.source.ImageStatic = function(options) {
   var crossOrigin = goog.isDef(options.crossOrigin) ?
       options.crossOrigin : null;
 
+  var imageLoadFunction = goog.isDef(options.imageLoadFunction) ?
+      options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
+
   goog.base(this, {
     attributions: attributions,
     logo: options.logo,
@@ -99995,7 +101196,7 @@ ol.source.ImageStatic = function(options) {
    * @type {ol.Image}
    */
   this.image_ = new ol.Image(imageExtent, resolution, 1, attributions,
-      options.url, crossOrigin);
+      options.url, crossOrigin, imageLoadFunction);
 
 };
 goog.inherits(ol.source.ImageStatic, ol.source.Image);
@@ -100340,6 +101541,7 @@ goog.require('goog.string');
 goog.require('goog.uri.utils');
 goog.require('ol');
 goog.require('ol.Image');
+goog.require('ol.ImageLoadFunctionType');
 goog.require('ol.extent');
 goog.require('ol.proj');
 goog.require('ol.source.Image');
@@ -100380,6 +101582,13 @@ ol.source.ImageWMS = function(opt_options) {
    * @type {string|undefined}
    */
   this.url_ = options.url;
+
+  /**
+   * @private
+   * @type {ol.ImageLoadFunctionType}
+   */
+  this.imageLoadFunction_ = goog.isDef(options.imageLoadFunction) ?
+      options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
 
   /**
    * @private
@@ -100567,7 +101776,7 @@ ol.source.ImageWMS.prototype.getImage =
       projection, params);
 
   this.image_ = new ol.Image(extent, resolution, pixelRatio,
-      this.getAttributions(), url, this.crossOrigin_);
+      this.getAttributions(), url, this.crossOrigin_, this.imageLoadFunction_);
 
   this.renderedRevision_ = this.getRevision();
 
@@ -100829,7 +102038,7 @@ ol.source.OSM = function(opt_options) {
   if (goog.isDef(options.attributions)) {
     attributions = options.attributions;
   } else {
-    attributions = ol.source.OSM.ATTRIBUTIONS;
+    attributions = [ol.source.OSM.ATTRIBUTION];
   }
 
   var crossOrigin = goog.isDef(options.crossOrigin) ?
@@ -100857,35 +102066,11 @@ goog.inherits(ol.source.OSM, ol.source.XYZ);
  * @type {ol.Attribution}
  * @api
  */
-ol.source.OSM.DATA_ATTRIBUTION = new ol.Attribution({
-  html: 'Data &copy; ' +
-      '<a href="http://www.openstreetmap.org/">OpenStreetMap</a> ' +
-      'contributors, ' +
-      '<a href="http://www.openstreetmap.org/copyright">ODbL</a>'
+ol.source.OSM.ATTRIBUTION = new ol.Attribution({
+  html: '&copy; ' +
+      '<a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> ' +
+      'contributors.'
 });
-
-
-/**
- * @const
- * @type {ol.Attribution}
- * @api
- */
-ol.source.OSM.TILE_ATTRIBUTION = new ol.Attribution({
-  html: 'Tiles &copy; ' +
-      '<a href="http://www.openstreetmap.org/">OpenStreetMap</a> ' +
-      'contributors, ' +
-      '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA</a>'
-});
-
-
-/**
- * @const
- * @type {Array.<ol.Attribution>}
- */
-ol.source.OSM.ATTRIBUTIONS = [
-  ol.source.OSM.TILE_ATTRIBUTION,
-  ol.source.OSM.DATA_ATTRIBUTION
-];
 
 goog.provide('ol.source.MapQuest');
 
@@ -100948,7 +102133,7 @@ ol.source.MapQuestConfig = {
     maxZoom: 28,
     attributions: [
       ol.source.MapQuest.TILE_ATTRIBUTION,
-      ol.source.OSM.DATA_ATTRIBUTION
+      ol.source.OSM.ATTRIBUTION
     ]
   },
   'sat': {
@@ -100965,7 +102150,7 @@ ol.source.MapQuestConfig = {
     maxZoom: 18,
     attributions: [
       ol.source.MapQuest.TILE_ATTRIBUTION,
-      ol.source.OSM.DATA_ATTRIBUTION
+      ol.source.OSM.ATTRIBUTION
     ]
   }
 };
@@ -101231,9 +102416,10 @@ ol.source.Stamen = function(options) {
   goog.asserts.assert(options.layer in ol.source.StamenLayerConfig);
   var layerConfig = ol.source.StamenLayerConfig[options.layer];
 
-  var protocol = ol.IS_HTTPS ? 'https:' : 'http:';
+  var root = ol.IS_HTTPS ? 'https://stamen-tiles-{a-d}.a.ssl.fastly.net/' :
+      'http://{a-d}.tile.stamen.com/';
   var url = goog.isDef(options.url) ? options.url :
-      protocol + '//{a-d}.tile.stamen.com/' + options.layer + '/{z}/{x}/{y}.' +
+      root + options.layer + '/{z}/{x}/{y}.' +
       layerConfig.extension;
 
   goog.base(this, {
@@ -101261,7 +102447,7 @@ ol.source.Stamen.ATTRIBUTIONS = [
         'under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY' +
         ' 3.0</a>.'
   }),
-  ol.source.OSM.DATA_ATTRIBUTION
+  ol.source.OSM.ATTRIBUTION
 ];
 
 goog.provide('ol.source.TileDebug');
@@ -101436,6 +102622,12 @@ ol.source.TileJSON = function(options) {
     tileLoadFunction: options.tileLoadFunction
   });
 
+  /**
+   * @type {boolean|undefined}
+   * @private
+   */
+  this.wrapX_ = options.wrapX;
+
   var request = new goog.net.Jsonp(options.url);
   request.send(undefined, goog.bind(this.handleTileJSONResponse, this));
 
@@ -101473,7 +102665,8 @@ ol.source.TileJSON.prototype.handleTileJSONResponse = function(tileJSON) {
 
   this.tileUrlFunction = ol.TileUrlFunction.withTileCoordTransform(
       tileGrid.createTileCoordTransform({
-        extent: extent
+        extent: extent,
+        wrapX: this.wrapX_
       }),
       ol.TileUrlFunction.createFromTemplates(tileJSON.tiles));
 
@@ -102379,7 +103572,8 @@ ol.source.WMTS = function(options) {
   // FIXME: should we guess this requestEncoding from options.url(s)
   //        structure? that would mean KVP only if a template is not provided.
   var requestEncoding = goog.isDef(options.requestEncoding) ?
-      options.requestEncoding : ol.source.WMTSRequestEncoding.KVP;
+      /** @type {ol.source.WMTSRequestEncoding} */ (options.requestEncoding) :
+      ol.source.WMTSRequestEncoding.KVP;
 
   // FIXME: should we create a default tileGrid?
   // we could issue a getCapabilities xhr to retrieve missing configuration
@@ -102387,7 +103581,6 @@ ol.source.WMTS = function(options) {
 
   var context = {
     'Layer': options.layer,
-    'style': options.style,
     'Style': options.style,
     'TileMatrixSet': options.matrixSet
   };
@@ -102501,6 +103694,7 @@ ol.source.WMTS = function(options) {
     crossOrigin: options.crossOrigin,
     logo: options.logo,
     projection: options.projection,
+    tileClass: options.tileClass,
     tileGrid: tileGrid,
     tileLoadFunction: options.tileLoadFunction,
     tilePixelRatio: options.tilePixelRatio,
@@ -102921,6 +104115,306 @@ ol.source.ZoomifyTile_.prototype.getImage = function(opt_context) {
   }
 };
 
+goog.provide('ol.style.RegularShape');
+
+goog.require('goog.dom');
+goog.require('goog.dom.TagName');
+goog.require('ol.color');
+goog.require('ol.render.canvas');
+goog.require('ol.style.Fill');
+goog.require('ol.style.Image');
+goog.require('ol.style.ImageState');
+goog.require('ol.style.Stroke');
+
+
+
+/**
+ * @classdesc
+ * Set regular shape style for vector features.
+ *
+ * @constructor
+ * @param {olx.style.RegularShapeOptions=} opt_options Options.
+ * @extends {ol.style.Image}
+ * @api
+ */
+ol.style.RegularShape = function(opt_options) {
+
+  var options = goog.isDef(opt_options) ? opt_options : {};
+
+  /**
+   * @private
+   * @type {HTMLCanvasElement}
+   */
+  this.canvas_ = /** @type {HTMLCanvasElement} */
+      (goog.dom.createElement(goog.dom.TagName.CANVAS));
+
+  /**
+   * @private
+   * @type {HTMLCanvasElement}
+   */
+  this.hitDetectionCanvas_ = null;
+
+  /**
+   * @private
+   * @type {ol.style.Fill}
+   */
+  this.fill_ = goog.isDef(options.fill) ? options.fill : null;
+
+  /**
+   * @private
+   * @type {Array.<number>}
+   */
+  this.origin_ = [0, 0];
+
+  /**
+   * @private
+   * @type {number}
+   */
+  this.points_ = options.points;
+
+  /**
+   * @private
+   * @type {number}
+   */
+  this.radius_ = options.radius;
+
+  /**
+   * @private
+   * @type {number}
+   */
+  this.radius2_ =
+      goog.isDef(options.radius2) ? options.radius2 : options.radius;
+
+  /**
+   * @private
+   * @type {number}
+   */
+  this.angle_ = goog.isDef(options.angle) ? options.angle : 0;
+
+  /**
+   * @private
+   * @type {ol.style.Stroke}
+   */
+  this.stroke_ = goog.isDef(options.stroke) ? options.stroke : null;
+
+  var size = this.render_();
+
+  /**
+   * @private
+   * @type {Array.<number>}
+   */
+  this.anchor_ = [size / 2, size / 2];
+
+  /**
+   * @private
+   * @type {ol.Size}
+   */
+  this.size_ = [size, size];
+
+  /**
+   * @type {boolean}
+   */
+  var snapToPixel = goog.isDef(options.snapToPixel) ?
+      options.snapToPixel : true;
+
+  goog.base(this, {
+    opacity: 1,
+    rotateWithView: false,
+    rotation: 0,
+    scale: 1,
+    snapToPixel: snapToPixel
+  });
+
+};
+goog.inherits(ol.style.RegularShape, ol.style.Image);
+
+
+/**
+ * @inheritDoc
+ * @api
+ */
+ol.style.RegularShape.prototype.getAnchor = function() {
+  return this.anchor_;
+};
+
+
+/**
+ * @return {ol.style.Fill} Fill style.
+ * @api
+ */
+ol.style.RegularShape.prototype.getFill = function() {
+  return this.fill_;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.style.RegularShape.prototype.getHitDetectionImage = function(pixelRatio) {
+  return this.hitDetectionCanvas_;
+};
+
+
+/**
+ * @inheritDoc
+ * @api
+ */
+ol.style.RegularShape.prototype.getImage = function(pixelRatio) {
+  return this.canvas_;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.style.RegularShape.prototype.getImageState = function() {
+  return ol.style.ImageState.LOADED;
+};
+
+
+/**
+ * @inheritDoc
+ * @api
+ */
+ol.style.RegularShape.prototype.getOrigin = function() {
+  return this.origin_;
+};
+
+
+/**
+ * @return {number} Radius.
+ * @api
+ */
+ol.style.RegularShape.prototype.getRadius = function() {
+  return this.radius_;
+};
+
+
+/**
+ * @inheritDoc
+ * @api
+ */
+ol.style.RegularShape.prototype.getSize = function() {
+  return this.size_;
+};
+
+
+/**
+ * @return {ol.style.Stroke} Stroke style.
+ * @api
+ */
+ol.style.RegularShape.prototype.getStroke = function() {
+  return this.stroke_;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.style.RegularShape.prototype.listenImageChange = goog.nullFunction;
+
+
+/**
+ * @inheritDoc
+ */
+ol.style.RegularShape.prototype.load = goog.nullFunction;
+
+
+/**
+ * @inheritDoc
+ */
+ol.style.RegularShape.prototype.unlistenImageChange = goog.nullFunction;
+
+
+/**
+ * @private
+ * @return {number} Size.
+ */
+ol.style.RegularShape.prototype.render_ = function() {
+  var canvas = this.canvas_;
+  var strokeStyle, strokeWidth;
+
+  if (goog.isNull(this.stroke_)) {
+    strokeWidth = 0;
+  } else {
+    strokeStyle = ol.color.asString(this.stroke_.getColor());
+    strokeWidth = this.stroke_.getWidth();
+    if (!goog.isDef(strokeWidth)) {
+      strokeWidth = ol.render.canvas.defaultLineWidth;
+    }
+  }
+
+  var size = 2 * (this.radius_ + strokeWidth) + 1;
+
+  // draw the regular shape on the canvas
+
+  canvas.height = size;
+  canvas.width = size;
+
+  // canvas.width and height are rounded to the closest integer
+  size = canvas.width;
+
+  var context = /** @type {CanvasRenderingContext2D} */
+      (canvas.getContext('2d'));
+  var i, angle0, radiusC;
+  context.beginPath();
+  if (this.radius2_ !== this.radius_) {
+    this.points_ = 2 * this.points_;
+  }
+  for (i = 0; i <= this.points_; i++) {
+    angle0 = i * 2 * Math.PI / this.points_ - Math.PI / 2 + this.angle_;
+    radiusC = i % 2 === 0 ? this.radius_ : this.radius2_;
+    context.lineTo(size / 2 + radiusC * Math.cos(angle0),
+                   size / 2 + radiusC * Math.sin(angle0));
+  }
+
+  if (!goog.isNull(this.fill_)) {
+    context.fillStyle = ol.color.asString(this.fill_.getColor());
+    context.fill();
+  }
+  if (!goog.isNull(this.stroke_)) {
+    context.strokeStyle = strokeStyle;
+    context.lineWidth = strokeWidth;
+    context.stroke();
+  }
+
+  // deal with the hit detection canvas
+
+  if (!goog.isNull(this.fill_)) {
+    this.hitDetectionCanvas_ = canvas;
+  } else {
+    this.hitDetectionCanvas_ = /** @type {HTMLCanvasElement} */
+        (goog.dom.createElement(goog.dom.TagName.CANVAS));
+    canvas = this.hitDetectionCanvas_;
+
+    canvas.height = size;
+    canvas.width = size;
+
+    context = /** @type {CanvasRenderingContext2D} */
+        (canvas.getContext('2d'));
+    context.beginPath();
+    if (this.radius2_ !== this.radius_) {
+      this.points_ = 2 * this.points_;
+    }
+    for (i = 0; i <= this.points_; i++) {
+      angle0 = i * 2 * Math.PI / this.points_ - Math.PI / 2 + this.angle_;
+      radiusC = i % 2 === 0 ? this.radius_ : this.radius2_;
+      context.lineTo(size / 2 + radiusC * Math.cos(angle0),
+                     size / 2 + radiusC * Math.sin(angle0));
+    }
+
+    context.fillStyle = ol.render.canvas.defaultFillStyle;
+    context.fill();
+    if (!goog.isNull(this.stroke_)) {
+      context.strokeStyle = strokeStyle;
+      context.lineWidth = strokeWidth;
+      context.stroke();
+    }
+  }
+
+  return size;
+};
+
 // Copyright 2009 The Closure Library Authors.
 // All Rights Reserved.
 //
@@ -102960,6 +104454,7 @@ goog.require('ol.FeatureOverlay');
 goog.require('ol.Geolocation');
 goog.require('ol.GeolocationProperty');
 goog.require('ol.Graticule');
+goog.require('ol.Image');
 goog.require('ol.ImageTile');
 goog.require('ol.Kinetic');
 goog.require('ol.Map');
@@ -103009,6 +104504,9 @@ goog.require('ol.extent.Relationship');
 goog.require('ol.feature');
 goog.require('ol.format.Feature');
 goog.require('ol.format.GML');
+goog.require('ol.format.GML2');
+goog.require('ol.format.GML3');
+goog.require('ol.format.GMLBase');
 goog.require('ol.format.GPX');
 goog.require('ol.format.GeoJSON');
 goog.require('ol.format.IGC');
@@ -103020,6 +104518,7 @@ goog.require('ol.format.TopoJSON');
 goog.require('ol.format.WFS');
 goog.require('ol.format.WKT');
 goog.require('ol.format.WMSCapabilities');
+goog.require('ol.format.WMSGetFeatureInfo');
 goog.require('ol.geom.Circle');
 goog.require('ol.geom.Geometry');
 goog.require('ol.geom.GeometryCollection');
@@ -103115,6 +104614,7 @@ goog.require('ol.style.IconImageCache');
 goog.require('ol.style.IconOrigin');
 goog.require('ol.style.Image');
 goog.require('ol.style.ImageState');
+goog.require('ol.style.RegularShape');
 goog.require('ol.style.Stroke');
 goog.require('ol.style.Style');
 goog.require('ol.style.Text');
@@ -103124,6 +104624,7 @@ goog.require('ol.tilegrid.XYZ');
 goog.require('ol.tilegrid.Zoomify');
 goog.require('ol.tilejson');
 goog.require('ol.webgl.Context');
+goog.require('ol.xml');
 
 
 goog.exportSymbol(
@@ -103594,6 +105095,11 @@ goog.exportSymbol(
     ol.has.WEBGL);
 
 goog.exportProperty(
+    ol.Image.prototype,
+    'getImage',
+    ol.Image.prototype.getImage);
+
+goog.exportProperty(
     ol.ImageTile.prototype,
     'getImage',
     ol.ImageTile.prototype.getImage);
@@ -103807,6 +105313,11 @@ goog.exportProperty(
     ol.ObjectEvent.prototype,
     'key',
     ol.ObjectEvent.prototype.key);
+
+goog.exportProperty(
+    ol.ObjectEvent.prototype,
+    'oldValue',
+    ol.ObjectEvent.prototype.oldValue);
 
 goog.exportProperty(
     ol.ObjectAccessor.prototype,
@@ -104053,6 +105564,14 @@ goog.exportProperty(
     ol.View.prototype.setZoom);
 
 goog.exportSymbol(
+    'ol.xml.getAllTextContent',
+    ol.xml.getAllTextContent);
+
+goog.exportSymbol(
+    'ol.xml.parse',
+    ol.xml.parse);
+
+goog.exportSymbol(
     'ol.webgl.Context',
     ol.webgl.Context);
 
@@ -104227,6 +105746,45 @@ goog.exportProperty(
     ol.style.Image.prototype,
     'setScale',
     ol.style.Image.prototype.setScale);
+
+goog.exportSymbol(
+    'ol.style.RegularShape',
+    ol.style.RegularShape);
+
+goog.exportProperty(
+    ol.style.RegularShape.prototype,
+    'getAnchor',
+    ol.style.RegularShape.prototype.getAnchor);
+
+goog.exportProperty(
+    ol.style.RegularShape.prototype,
+    'getFill',
+    ol.style.RegularShape.prototype.getFill);
+
+goog.exportProperty(
+    ol.style.RegularShape.prototype,
+    'getImage',
+    ol.style.RegularShape.prototype.getImage);
+
+goog.exportProperty(
+    ol.style.RegularShape.prototype,
+    'getOrigin',
+    ol.style.RegularShape.prototype.getOrigin);
+
+goog.exportProperty(
+    ol.style.RegularShape.prototype,
+    'getRadius',
+    ol.style.RegularShape.prototype.getRadius);
+
+goog.exportProperty(
+    ol.style.RegularShape.prototype,
+    'getSize',
+    ol.style.RegularShape.prototype.getSize);
+
+goog.exportProperty(
+    ol.style.RegularShape.prototype,
+    'getStroke',
+    ol.style.RegularShape.prototype.getStroke);
 
 goog.exportSymbol(
     'ol.style.Stroke',
@@ -104545,12 +106103,8 @@ goog.exportSymbol(
     ol.source.OSM);
 
 goog.exportSymbol(
-    'ol.source.OSM.DATA_ATTRIBUTION',
-    ol.source.OSM.DATA_ATTRIBUTION);
-
-goog.exportSymbol(
-    'ol.source.OSM.TILE_ATTRIBUTION',
-    ol.source.OSM.TILE_ATTRIBUTION);
+    'ol.source.OSM.ATTRIBUTION',
+    ol.source.OSM.ATTRIBUTION);
 
 goog.exportSymbol(
     'ol.source.OSMXML',
@@ -104973,6 +106527,11 @@ goog.exportProperty(
     'getSource',
     ol.layer.Layer.prototype.getSource);
 
+goog.exportProperty(
+    ol.layer.Layer.prototype,
+    'setSource',
+    ol.layer.Layer.prototype.setSource);
+
 goog.exportSymbol(
     'ol.layer.Base',
     ol.layer.Base);
@@ -105196,6 +106755,11 @@ goog.exportSymbol(
     'ol.interaction.Draw',
     ol.interaction.Draw);
 
+goog.exportProperty(
+    ol.interaction.Draw.prototype,
+    'finishDrawing',
+    ol.interaction.Draw.prototype.finishDrawing);
+
 goog.exportSymbol(
     'ol.interaction.Interaction',
     ol.interaction.Interaction);
@@ -105204,6 +106768,11 @@ goog.exportProperty(
     ol.interaction.Interaction.prototype,
     'getActive',
     ol.interaction.Interaction.prototype.getActive);
+
+goog.exportProperty(
+    ol.interaction.Interaction.prototype,
+    'handleMapBrowserEvent',
+    ol.interaction.Interaction.prototype.handleMapBrowserEvent);
 
 goog.exportProperty(
     ol.interaction.Interaction.prototype,
@@ -105373,6 +106942,11 @@ goog.exportProperty(
     ol.geom.GeometryCollection.prototype,
     'setGeometries',
     ol.geom.GeometryCollection.prototype.setGeometries);
+
+goog.exportProperty(
+    ol.geom.GeometryCollection.prototype,
+    'applyTransform',
+    ol.geom.GeometryCollection.prototype.applyTransform);
 
 goog.exportSymbol(
     'ol.geom.LinearRing',
@@ -105687,6 +107261,10 @@ goog.exportSymbol(
     ol.geom.Polygon.circular);
 
 goog.exportSymbol(
+    'ol.geom.Polygon.fromExtent',
+    ol.geom.Polygon.fromExtent);
+
+goog.exportSymbol(
     'ol.geom.SimpleGeometry',
     ol.geom.SimpleGeometry);
 
@@ -105709,6 +107287,11 @@ goog.exportProperty(
     ol.geom.SimpleGeometry.prototype,
     'getLayout',
     ol.geom.SimpleGeometry.prototype.getLayout);
+
+goog.exportProperty(
+    ol.geom.SimpleGeometry.prototype,
+    'applyTransform',
+    ol.geom.SimpleGeometry.prototype.applyTransform);
 
 goog.exportSymbol(
     'ol.format.Feature',
@@ -105752,20 +107335,6 @@ goog.exportProperty(
     ol.format.GeoJSON.prototype,
     'writeGeometry',
     ol.format.GeoJSON.prototype.writeGeometry);
-
-goog.exportSymbol(
-    'ol.format.GML',
-    ol.format.GML);
-
-goog.exportProperty(
-    ol.format.GML.prototype,
-    'readFeatures',
-    ol.format.GML.prototype.readFeatures);
-
-goog.exportProperty(
-    ol.format.GML.prototype,
-    'writeFeatures',
-    ol.format.GML.prototype.writeFeatures);
 
 goog.exportSymbol(
     'ol.format.GPX',
@@ -105988,6 +107557,46 @@ goog.exportProperty(
     ol.format.WMSCapabilities.prototype,
     'read',
     ol.format.WMSCapabilities.prototype.read);
+
+goog.exportSymbol(
+    'ol.format.WMSGetFeatureInfo',
+    ol.format.WMSGetFeatureInfo);
+
+goog.exportProperty(
+    ol.format.WMSGetFeatureInfo.prototype,
+    'readFeatures',
+    ol.format.WMSGetFeatureInfo.prototype.readFeatures);
+
+goog.exportSymbol(
+    'ol.format.GML2',
+    ol.format.GML2);
+
+goog.exportSymbol(
+    'ol.format.GML3',
+    ol.format.GML3);
+
+goog.exportProperty(
+    ol.format.GML3.prototype,
+    'writeFeatures',
+    ol.format.GML3.prototype.writeFeatures);
+
+goog.exportSymbol(
+    'ol.format.GML',
+    ol.format.GML);
+
+goog.exportProperty(
+    ol.format.GML.prototype,
+    'writeFeatures',
+    ol.format.GML.prototype.writeFeatures);
+
+goog.exportSymbol(
+    'ol.format.GMLBase',
+    ol.format.GMLBase);
+
+goog.exportProperty(
+    ol.format.GMLBase.prototype,
+    'readFeatures',
+    ol.format.GMLBase.prototype.readFeatures);
 
 goog.exportSymbol(
     'ol.events.condition.altKeyOnly',
@@ -106902,6 +108511,26 @@ goog.exportProperty(
     ol.style.Icon.prototype,
     'setScale',
     ol.style.Icon.prototype.setScale);
+
+goog.exportProperty(
+    ol.style.RegularShape.prototype,
+    'getRotation',
+    ol.style.RegularShape.prototype.getRotation);
+
+goog.exportProperty(
+    ol.style.RegularShape.prototype,
+    'getScale',
+    ol.style.RegularShape.prototype.getScale);
+
+goog.exportProperty(
+    ol.style.RegularShape.prototype,
+    'setRotation',
+    ol.style.RegularShape.prototype.setRotation);
+
+goog.exportProperty(
+    ol.style.RegularShape.prototype,
+    'setScale',
+    ol.style.RegularShape.prototype.setScale);
 
 goog.exportProperty(
     ol.source.Source.prototype,
@@ -109560,6 +111189,11 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.layer.Vector.prototype,
+    'setSource',
+    ol.layer.Vector.prototype.setSource);
+
+goog.exportProperty(
+    ol.layer.Vector.prototype,
     'getBrightness',
     ol.layer.Vector.prototype.getBrightness);
 
@@ -109740,6 +111374,11 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.layer.Heatmap.prototype,
+    'setSource',
+    ol.layer.Heatmap.prototype.setSource);
+
+goog.exportProperty(
+    ol.layer.Heatmap.prototype,
     'getBrightness',
     ol.layer.Heatmap.prototype.getBrightness);
 
@@ -109897,6 +111536,11 @@ goog.exportProperty(
     ol.layer.Heatmap.prototype,
     'unByKey',
     ol.layer.Heatmap.prototype.unByKey);
+
+goog.exportProperty(
+    ol.layer.Image.prototype,
+    'setSource',
+    ol.layer.Image.prototype.setSource);
 
 goog.exportProperty(
     ol.layer.Image.prototype,
@@ -110217,6 +111861,11 @@ goog.exportProperty(
     ol.layer.Group.prototype,
     'unByKey',
     ol.layer.Group.prototype.unByKey);
+
+goog.exportProperty(
+    ol.layer.Tile.prototype,
+    'setSource',
+    ol.layer.Tile.prototype.setSource);
 
 goog.exportProperty(
     ol.layer.Tile.prototype,
@@ -111835,6 +113484,11 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.geom.Circle.prototype,
+    'applyTransform',
+    ol.geom.Circle.prototype.applyTransform);
+
+goog.exportProperty(
+    ol.geom.Circle.prototype,
     'getClosestPoint',
     ol.geom.Circle.prototype.getClosestPoint);
 
@@ -111935,6 +113589,11 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.geom.LinearRing.prototype,
+    'applyTransform',
+    ol.geom.LinearRing.prototype.applyTransform);
+
+goog.exportProperty(
+    ol.geom.LinearRing.prototype,
     'getClosestPoint',
     ol.geom.LinearRing.prototype.getClosestPoint);
 
@@ -112000,6 +113659,11 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.geom.LineString.prototype,
+    'applyTransform',
+    ol.geom.LineString.prototype.applyTransform);
+
+goog.exportProperty(
+    ol.geom.LineString.prototype,
     'getClosestPoint',
     ol.geom.LineString.prototype.getClosestPoint);
 
@@ -112057,6 +113721,11 @@ goog.exportProperty(
     ol.geom.MultiLineString.prototype,
     'getLayout',
     ol.geom.MultiLineString.prototype.getLayout);
+
+goog.exportProperty(
+    ol.geom.MultiLineString.prototype,
+    'applyTransform',
+    ol.geom.MultiLineString.prototype.applyTransform);
 
 goog.exportProperty(
     ol.geom.MultiLineString.prototype,
@@ -112120,6 +113789,11 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.geom.MultiPoint.prototype,
+    'applyTransform',
+    ol.geom.MultiPoint.prototype.applyTransform);
+
+goog.exportProperty(
+    ol.geom.MultiPoint.prototype,
     'getClosestPoint',
     ol.geom.MultiPoint.prototype.getClosestPoint);
 
@@ -112180,6 +113854,11 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.geom.MultiPolygon.prototype,
+    'applyTransform',
+    ol.geom.MultiPolygon.prototype.applyTransform);
+
+goog.exportProperty(
+    ol.geom.MultiPolygon.prototype,
     'getClosestPoint',
     ol.geom.MultiPolygon.prototype.getClosestPoint);
 
@@ -112232,6 +113911,11 @@ goog.exportProperty(
     ol.geom.Point.prototype,
     'getLayout',
     ol.geom.Point.prototype.getLayout);
+
+goog.exportProperty(
+    ol.geom.Point.prototype,
+    'applyTransform',
+    ol.geom.Point.prototype.applyTransform);
 
 goog.exportProperty(
     ol.geom.Point.prototype,
@@ -112295,6 +113979,11 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.geom.Polygon.prototype,
+    'applyTransform',
+    ol.geom.Polygon.prototype.applyTransform);
+
+goog.exportProperty(
+    ol.geom.Polygon.prototype,
     'getClosestPoint',
     ol.geom.Polygon.prototype.getClosestPoint);
 
@@ -112332,6 +114021,21 @@ goog.exportProperty(
     ol.geom.Polygon.prototype,
     'unByKey',
     ol.geom.Polygon.prototype.unByKey);
+
+goog.exportProperty(
+    ol.format.GML2.prototype,
+    'readFeatures',
+    ol.format.GML2.prototype.readFeatures);
+
+goog.exportProperty(
+    ol.format.GML3.prototype,
+    'readFeatures',
+    ol.format.GML3.prototype.readFeatures);
+
+goog.exportProperty(
+    ol.format.GML.prototype,
+    'readFeatures',
+    ol.format.GML.prototype.readFeatures);
 
 goog.exportProperty(
     ol.dom.Input.prototype,
