@@ -1,0 +1,22 @@
+{
+    "center": [
+        {
+            "date": "Jan 01, 2015",
+            "url": "basic",
+            "title": "Basic Example",
+            "description": "Shows you how to render a map the easy-way on our HTML"
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "center",
+            "title": "Center  Example",
+            "description": "Positioning the map in a specific location"
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "layers",
+            "title": "Layers  Example",
+            "description": "Changing the tiles"
+        }
+    ]
+}

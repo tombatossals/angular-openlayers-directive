@@ -6,8 +6,9 @@ libpeerconnection.log
 .idea
 .project
 node_modules
+dist/app.min.no-header.js
+dist/app.pre.js
+dist/app.js
 dist/angular-openlayers-directive.ngmin.js
 dist/angular-openlayers-directive.min.no-header.js
-selenium
-coverage
 dist/angular-openlayers-directive.pre.js

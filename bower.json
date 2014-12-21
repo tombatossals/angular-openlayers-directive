@@ -12,7 +12,9 @@
   ],
   "dependencies": {
     "angular": "*",
-    "angular-sanitize": "*",
+    "angular-route": "*",
+    "jquery": "*",
+    "semantic-ui": "*",
     "openlayers3": "https://github.com/tombatossals/ol3.git#master"
   },
   "devDependencies": {

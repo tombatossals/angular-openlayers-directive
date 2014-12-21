@@ -1,0 +1,13 @@
+<div class="ui" ng-controller="LayerController">
+    <openlayers ol-center="london" ol-layers="layers" height="400px"></openlayers>
+    <h2 class="ui header">Layers change tiles example</h2>
+    <p>This is a map that can change the tiles of the main layer by demand</p>
+
+    <div class="4 ui fluid buttons">
+        <div class="ui button" ng-class="{ active: layers.main.source === source }" ng-repeat="(key, source) in sources" ng-click="layers.main.source=source" ng-bind="source.name"></div>
+    </div>
+
+    <h3>Current TileLayer Url:</h3>
+    <pre>{{ layers | json }}</pre>
+    <p><a href="view-source:http://localhost/dev/angular-openlayers-directive/examples/040-layers-change-tiles-example.html">View stand-alone source code</a></p>
+</div>
