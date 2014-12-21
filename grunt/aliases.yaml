@@ -1,0 +1,11 @@
+default:
+ - 'build'
+
+build:
+ - 'jshint'
+ - 'jscs'
+ - 'concat:dist'
+ - 'concat:css'
+ - 'ngAnnotate'
+ - 'uglify'
+ - 'concat:license'
