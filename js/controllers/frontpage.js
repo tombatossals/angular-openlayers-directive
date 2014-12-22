@@ -1,8 +1,7 @@
 var app = angular.module('webapp');
-var overlay;
 
 app.controller('FrontPageController', function($scope, $http, olData, olHelpers) {
-
+    var overlay;
     var continentProperties = {
         '009': {
             name: 'Oceania',
@@ -101,10 +100,12 @@ app.controller('FrontPageController', function($scope, $http, olData, olHelpers)
         });
 
         var updateBox = function(ev) {
-            overlay.setPosition(map.getCoordinateFromPixel([ev.x - 35, ev.y + 50]));
+            console.log(ev.clientX, ev.clientY, map.getCoordinateFromPixel([ev.clientX - 35, ev.clientY + 50]));
+            overlay.setPosition(map.getCoordinateFromPixel([ev.clientX - 35, ev.clientY + 50]));
         };
 
         var previousFeature;
+
         // Mouse over function, called from the Leaflet Map Events
         $scope.$on('openlayers.geojson.mousemove', function(event, feature, olEvent) {
             if (!feature) {

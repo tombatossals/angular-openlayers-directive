@@ -58,6 +58,38 @@ p {
     background-color: #FFFFFF;
 }
 
+.info {
+    background-color: #fff;
+    border: 2px #444 solid;
+    border-radius: 7px;
+    -webkit-box-shadow: 4px 4px 5px 0px rgba(50, 50, 50, 0.75);
+    -moz-box-shadow:    4px 4px 5px 0px rgba(50, 50, 50, 0.75);
+    box-shadow:         4px 4px 5px 0px rgba(50, 50, 50, 0.75);
+    color: #111;
+    font-size: 32px;
+    position: absolute;
+    bottom: 1em;
+    left: 1em;
+    z-index: 100;
+    font-weight: bold;
+    padding: .2em .5em;
+    white-space: nowrap;
+    line-height: 1.1em;
+    text-align: center;
+    z-index: 100;
+}
+
+.info:before {
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    content: "";
+    border-right: 6px solid black;
+    border-right-color: inherit;
+    position: absolute;
+    left: -8px;
+    top: 20px;
+}
+
 @media only screen and (max-width : 1000px) {
     .inbox .date {
         float: none;
