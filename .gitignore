@@ -13,3 +13,7 @@ selenium
 coverage
 bower_components
 dist/angular-openlayers-directive.pre.js
+dist/app.js
+dist/app.min.js
+dist/app.pre.js
+dist/app.min.no-header.js

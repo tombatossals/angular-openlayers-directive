@@ -38,17 +38,22 @@ angular.module('openlayers-directive').directive('olLayers', function($log, $q, 
                         layers = angular.copy(defaults.layers);
                     }
 
+                    var removeLayerFromMap = function(layer, map) {
+                        var activeLayers = map.getLayers();
+                        activeLayers.forEach(function(l) {
+                            if (l === layer) {
+                                map.removeLayer(layer);
+                            }
+                        });
+                    };
+
                     // Delete non existent layers from the map
                     for (name in olLayers) {
                         layer = olLayers[name];
                         if (!layers.hasOwnProperty(name)) {
                             // Remove from the map if it's on it
-                            var activeLayers = map.getLayers();
-                            for (var i in activeLayers) {
-                                if (activeLayers[i] === layer) {
-                                    map.removeLayer(layer);
-                                }
-                            }
+                            removeLayerFromMap(layer, map);
+
                             delete olLayers[name];
                         }
                     }
