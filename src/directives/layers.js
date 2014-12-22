@@ -44,8 +44,8 @@ angular.module('openlayers-directive').directive('olLayers', function($log, $q, 
                         if (!layers.hasOwnProperty(name)) {
                             // Remove from the map if it's on it
                             var activeLayers = map.getLayers();
-                            for (var i in activeLayers) {
-                                if (activeLayers[i] === layer) {
+                            for (var i in activeLayers.array_) {
+                                if (activeLayers.array_[i] === layer) {
                                     map.removeLayer(layer);
                                 }
                             }
