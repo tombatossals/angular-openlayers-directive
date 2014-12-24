@@ -877,6 +877,7 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
                             });
 
                             geolocation.on('change', function() {
+                                console.log('hola');
                                 if (center.autodiscover) {
                                     var location = geolocation.getPosition();
                                     safeApply(olScope, function(scope) {
@@ -1835,7 +1836,8 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
 
         isValidCenter: function(center) {
             return angular.isDefined(center) &&
-                   (angular.isNumber(center.lat) && angular.isNumber(center.lon) ||
+                   (typeof center.autodiscover === 'boolean' ||
+                    angular.isNumber(center.lat) && angular.isNumber(center.lon) ||
                    (angular.isArray(center.coord) && center.coord.length === 2 &&
                     angular.isNumber(center.coord[0]) && angular.isNumber(center.coord[1])) ||
                    (angular.isArray(center.bounds) && center.bounds.length === 4 &&
