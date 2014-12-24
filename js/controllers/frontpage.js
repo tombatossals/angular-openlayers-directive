@@ -1,7 +1,6 @@
 var app = angular.module('webapp');
 
 app.controller('FrontPageController', function($scope, $http, olData, olHelpers) {
-    var overlay;
     var continentProperties = {
         '009': {
             name: 'Oceania',
@@ -93,43 +92,46 @@ app.controller('FrontPageController', function($scope, $http, olData, olHelpers)
     });
 
     olData.getMap().then(function(map) {
-        overlay = new ol.Overlay({
+        var previousFeature;
+        var overlay = new ol.Overlay({
             element: document.getElementById('countrybox'),
             positioning: 'center-center',
+            offset: [-25, 59],
             position: [0, 0]
         });
-
-        var updateBox = function(ev) {
-            console.log(ev.clientX, ev.clientY, map.getCoordinateFromPixel([ev.clientX - 35, ev.clientY + 50]));
-            overlay.setPosition(map.getCoordinateFromPixel([ev.clientX - 35, ev.clientY + 50]));
-        };
-
-        var previousFeature;
+        var overlayHidden = true;
 
         // Mouse over function, called from the Leaflet Map Events
         $scope.$on('openlayers.geojson.mousemove', function(event, feature, olEvent) {
-            if (!feature) {
-                map.removeOverlay(overlay);
-                return;
-            }
-
-            map.addOverlay(overlay);
             $scope.$apply(function(scope) {
                 scope.selectedCountry = feature ? $scope.countries[feature.getId()] : '';
             });
 
-            updateBox(olEvent);
-            feature.setStyle(olHelpers.createStyle({
-                fill: {
-                    color: '#FFF'
-                }
-            }));
-
-            if (previousFeature && feature !== previousFeature) {
-                previousFeature.setStyle(getStyle(previousFeature));
+            if (!feature) {
+                map.removeOverlay(overlay);
+                overlayHidden = true;
+                return;
+            } else if (overlayHidden) {
+                map.addOverlay(overlay);
+                overlayHidden = false;
             }
 
-            previousFeature = feature;
+            console.log(olEvent, map.getEventCoordinate(olEvent));
+            overlay.setPosition(map.getEventCoordinate(olEvent));
+
+            if (feature) {
+                feature.setStyle(olHelpers.createStyle({
+                    fill: {
+                        color: '#FFF'
+                    }
+                }));
+
+                if (previousFeature && feature !== previousFeature) {
+                    previousFeature.setStyle(getStyle(previousFeature));
+                }
+
+                previousFeature = feature;
+            }
         });
     });
 });

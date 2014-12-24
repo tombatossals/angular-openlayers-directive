@@ -14,9 +14,40 @@
         },
         {
             "date": "Jan 01, 2015",
+            "url": "center-url-hash",
+            "title": "Center Url Hash Example",
+            "description": "Using URL parameters as a center location"
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "center-autodiscover",
+            "title": "Center Autodiscover Example",
+            "description": "Shows how to center the map to the client browser location"
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "custom",
+            "title": "Custom Parameters  Example",
+            "description": "Changing the default map composing parameters"
+        },
+        {
+            "date": "Jan 01, 2015",
             "url": "layers",
-            "title": "Layers  Example",
-            "description": "Changing the tiles"
+            "title": "Changing Layers By Demand Example",
+            "description": "Change the active layer setting an object property"
+
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "layer-zoom-changer",
+            "title": "Changing Layers On Events Response Example",
+            "description": "Change the active layer when a specific event is triggered"
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "layer-opacity",
+            "title": "Changing Layer Opacity Example",
+            "description": "Change the active layer opacity from the DOM"
         }
     ]
 }

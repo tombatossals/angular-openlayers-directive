@@ -1,0 +1,14 @@
+<div class="ui" ng-controller="LayerOpacityController">
+    <openlayers ol-center="london" ol-layers="layers" height="400px"></openlayers>
+    <h2 class="ui header">Layer Opacity example</h2>
+    <p>This examples show you how you can interact with the opacity of the layer.</p>
+    <div class="ui form">
+        <div class="field">
+            <label>Opacity</label>
+            <input type="range" min="0" max="1" step="0.01" ng-model="layers.mapbox.opacity" />
+        </div>
+    </div>
+    <h3>Layer object</h3>
+    <pre>{{ layers.mapbox | json }}</pre>
+    <p><a href="view-source:http://tombatossals.github.io/angular-openlayers-directive/examples/042-layers-opacity-example.html">View stand-alone source code</a></p
+</div>

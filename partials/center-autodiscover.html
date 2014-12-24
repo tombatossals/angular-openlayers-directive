@@ -1,8 +1,8 @@
-<div class="ui" ng-controller="CenterController">
+<div class="ui" ng-controller="CenterAutodiscoverController">
     <openlayers ol-center="london" height="400"></openlayers>
-    <h2 class="ui header">Center map example</h2>
+    <h2 class="ui header">Center Autodiscover example</h2>
     <div class="ui form">
-        <div class="three fields">
+        <div class="four fields">
             <div class="field">
                 <label>Latitude</label>
                 <input type="number" step="any" ng-model="london.lat" />
@@ -14,6 +14,10 @@
             <div class="field">
                 <label>Zoom</label>
                 <input type="number" step="any" ng-model="london.zoom" />
+            </div>
+            <div class="field">
+                <label>Discover position</label>
+                <div class="ui button" ng-click="center.autodiscover=true">Click me!</div>
             </div>
         </div>
         <p>We can interact with the map with the <strong>center</strong> object, which allows us to set the specific position where the map shoduld point, in a bi-directional way. Take a look at the <strong>center object property</strong> of this map to know how this works:</p>

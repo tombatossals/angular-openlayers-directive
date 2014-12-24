@@ -1,0 +1,10 @@
+<div class="ui" ng-controller="LayerZoomChangerController">
+    <openlayers ol-center="london" ol-layers="layers" height="400px"></openlayers>
+    <h2 class="ui header">Layer Zoom Changer example</h2>
+    <p>This examples show you how you could change the active layer in response to a simple event, for example, changing the zoom level of the map into a highter than 12 value.</p>
+    <h3>Center zoom level</h3>
+    <pre>{{ london.zoom | json }}</pre>
+    <h3>Layer Source object</h3>
+    <pre>{{ layers.main.source | json }}</pre>
+    <p><a href="view-source:http://tombatossals.github.io/angular-openlayers-directive/examples/041-layers-zoom-tiles-changer-example.html">View stand-alone source code</a></p>
+</div>

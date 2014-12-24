@@ -1,7 +1,3 @@
-'use strict';
-
-/* Controllers */
-
 var app = angular.module('webapp');
 
 app.controller('CenterController', function($scope) {
