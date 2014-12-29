@@ -4,6 +4,7 @@ default:
 build:
  - 'jshint'
  - 'jscs'
+ - 'ngtemplates'
  - 'concat:dist'
  - 'concat:css'
  - 'ngAnnotate'

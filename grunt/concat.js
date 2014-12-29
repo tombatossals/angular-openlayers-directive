@@ -9,6 +9,7 @@ module.exports = function (grunt, options) {
             },
             src: [
                 'js/**/*.js',
+                '<%= ngtemplates.webapp.dest %>'
             ],
             dest: 'dist/app.pre.js',
         },
