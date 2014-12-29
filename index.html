@@ -41,7 +41,7 @@
                 <a class="item" ng-class="{ active: active === example.url }" ng-href="#/{{ example.url }}" ng-repeat="example in examples.center">
                     <i class="map marker icon"></i>
                     <div class="content">
-                        <div ng-bind="example.title"></div>
+                        <div ng-bind="($index +1) + '.' + example.title"></div>
                         <div ng-if="example.description" class="description" ng-bind="example.description"></div>
                     </div>
                 </a>

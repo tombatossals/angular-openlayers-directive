@@ -21,6 +21,7 @@
     "grunt-contrib-jshint": "latest",
     "grunt-contrib-uglify": "latest",
     "grunt-contrib-watch": "latest",
+    "grunt-angular-templates": "latest",
     "grunt-jscs": "latest",
     "grunt-ng-annotate": "latest"
   }

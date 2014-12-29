@@ -4,50 +4,74 @@
             "date": "Jan 01, 2015",
             "url": "basic",
             "title": "Basic Example",
-            "description": "Shows you how to render a map the easy-way on our HTML"
+            "description": "Shows you how to render a map the easy-way on our HTML."
         },
         {
             "date": "Jan 01, 2015",
             "url": "center",
             "title": "Center  Example",
-            "description": "Positioning the map in a specific location"
+            "description": "Positioning the map in a specific location."
         },
         {
             "date": "Jan 01, 2015",
             "url": "center-url-hash",
             "title": "Center Url Hash Example",
-            "description": "Using URL parameters as a center location"
+            "description": "Using URL parameters as a center location."
         },
         {
             "date": "Jan 01, 2015",
             "url": "center-autodiscover",
             "title": "Center Autodiscover Example",
-            "description": "Shows how to center the map to the client browser location"
+            "description": "Shows how to center the map to the client browser location."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "center-constrain-zoom",
+            "title": "Center Constrain Zoom Example",
+            "description": "Shows how to limit the maximum and minimum zoom allowed in our map."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "center-bounds",
+            "title": "Center Bounds Example",
+            "description": "Easily get the bounds of the map inside the center object."
         },
         {
             "date": "Jan 01, 2015",
             "url": "custom",
             "title": "Custom Parameters  Example",
-            "description": "Changing the default map composing parameters"
+            "description": "Changing the default map composing parameters."
         },
         {
             "date": "Jan 01, 2015",
             "url": "layers",
             "title": "Changing Layers By Demand Example",
-            "description": "Change the active layer setting an object property"
+            "description": "Change the active layer setting an object property."
 
         },
         {
             "date": "Jan 01, 2015",
             "url": "layer-zoom-changer",
             "title": "Changing Layers On Events Response Example",
-            "description": "Change the active layer when a specific event is triggered"
+            "description": "Change the active layer when a specific event is triggered."
         },
         {
             "date": "Jan 01, 2015",
             "url": "layer-opacity",
             "title": "Changing Layer Opacity Example",
-            "description": "Change the active layer opacity from the DOM"
+            "description": "Change the active layer opacity from the DOM."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "layer-bing-maps",
+            "title": "Bing Maps Example",
+            "description": "Layer with Microsoft Bing Maps."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "layer-mapquest",
+            "title": "MapQuest Tiles Example",
+            "description": "Layer with MapQuest Maps."
         }
     ]
 }

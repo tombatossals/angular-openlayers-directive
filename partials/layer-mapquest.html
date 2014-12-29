@@ -1,0 +1,12 @@
+<div class="ui" ng-controller="LayerMapQuestController">
+    <openlayers ol-center="quebec" ol-layers="layers" height="400px"></openlayers>
+    <br />
+    <div class="3 ui fluid buttons">
+        <div class="ui button" ng-repeat="layer in [ 'sat', 'osm', 'hyb' ]" ng-click="layers.main.source.layer=layer" ng-class="{ active: layers.main.source.layer === layer }" ng-bind="layer"></div>
+    </div>
+    <h2 class="ui header">MapQuest Layer example</h2>
+    <p>You can use easily use the MapQuest Maps with OpenLayers too.</p>
+    <h3>Current <strong>layers</strong> object:</h3>
+    <pre>{{ layers | json }}</pre>
+    <p><a href="view-source:http://tombatossals.github.io/angular-openlayers-directive/examples/044-layers-mapquest-maps-example.html">View stand-alone source code</a></p>
+</div>

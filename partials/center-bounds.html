@@ -1,0 +1,24 @@
+<div class="ui" ng-controller="CenterBoundsController">
+    <openlayers ol-center="cairo" height="400"></openlayers>
+    <h2 class="ui header">Center Bounds example</h2>
+    <div class="ui form">
+        <div class="three fields">
+            <div class="field">
+                <label>Latitude</label>
+                <input type="number" step="any" ng-model="cairo.lat" />
+            </div>
+            <div class="field">
+                <label>Longitude</label>
+                <input type="number" step="any" ng-model="cairo.lon" />
+            </div>
+            <div class="field">
+                <label>Zoom</label>
+                <input type="number" step="any" ng-model="cairo.zoom" />
+            </div>
+        </div>
+        <p>If you define a <strong>bounds</strong> array inside the center object it will be updated with the bounds of the map.</p>
+        <h3>Center object</h3>
+        <pre>{{ cairo | json }}</pre>
+        <p><a href="view-source:http://tombatossals.github.io/angular-openlayers-directive/examples/024-center-bounds-example.html">View stand-alone source code</a></p>
+    </div>
+</div>

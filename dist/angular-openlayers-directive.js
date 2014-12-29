@@ -877,7 +877,6 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
                             });
 
                             geolocation.on('change', function() {
-                                console.log('hola');
                                 if (center.autodiscover) {
                                     var location = geolocation.getPosition();
                                     safeApply(olScope, function(scope) {

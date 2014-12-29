@@ -1,0 +1,24 @@
+<div class="ui" ng-controller="CenterConstrainZoomController">
+    <openlayers ol-center="london" ol-defaults="defaults" height="400"></openlayers>
+    <h2 class="ui header">Center Constrain Zoom example</h2>
+    <p>We can constrain the maximum and minimum zoom allowed in our map changing the default view options.</p>
+    <div class="ui form">
+        <div class="three fields">
+            <div class="field">
+                <label>Latitude</label>
+                <input type="number" step="any" ng-model="london.lat" />
+            </div>
+            <div class="field">
+                <label>Longitude</label>
+                <input type="number" step="any" ng-model="london.lon" />
+            </div>
+            <div class="field">
+                <label>Zoom</label>
+                <input type="number" step="any" ng-model="london.zoom" />
+            </div>
+        </div>
+        <h3>Defaults object</h3>
+        <pre>{{ defaults | json }}</pre>
+        <p><a href="view-source:http://tombatossals.github.io/angular-openlayers-directive/examples/023-center-constrain-zoom-example.html">View stand-alone source code</a></p>
+    </div>
+</div>
