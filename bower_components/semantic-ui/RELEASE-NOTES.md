@@ -1,5 +1,29 @@
 ## RELEASE NOTES
 
+### Version 1.4.1 - December 23, 2014
+
+**Bugs**
+- **Dropdown** - ``<select>`` elements will now preserve original ``<option>`` order by default. Added ``sortSelect`` setting (disabled by default) to automatically sort ``<option>`` on initialization
+- **Button** - Fixes issue with ``will-change`` property added to ``ui button`` causing layout z-indexing issues (dropdown button)
+
+### Version 1.4.0 - December 22, 2014
+
+[Browse Issues for 1.4.0](https://github.com/Semantic-Org/Semantic-UI/issues?q=milestone%3A1.4.0)
+
+**Enhancements**
+- **Modal** - Modal now accepts custom dimmer settings with setting `dimmerSettings``
+- **Form** - Form inputs without ``type`` specified are now formatted **Thanks PSyton**
+- **Accordion** - Added inverted accordion variation
+
+**Bugs**
+- **Progress** - Fixes bug where ``ui indicating progress`` would not update its label immediately in webkit
+- **Button** - Fix Chrome bug with buttons sometimes not correctly repainting (particularly evenly divided groups)
+- **Menu** - Fix border radius of dropdown menu inside `ui vertical menu`
+- **Menu** - Fix formatting of ``ui selection dropdown`` inside ``menu``
+
+**Docs**
+- Improved documentation for API and Tab to be slightly more comprehensive
+
 ### Version 1.3.2 - December 17, 2014
 
 - **Modal** - Fixed issue with modal dimmer appearing cut off in some browsers, and not hiding
