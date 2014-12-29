@@ -38,7 +38,7 @@
             <p>Any <a href="https://github.com/tombatossals/angular-openlayers-directive/blob/master/CONTRIBUTING.md">contribution</a> or new idea to the project is welcomed.</p>
             <h2>Example-driven documentation</h2>
             <div class="ui selection list">
-                <a class="item" ng-class="{ active: active === example.url }" ng-href="#/{{ example.url }}" ng-repeat="example in examples.center">
+                <a class="item" ng-class="{ active: activeExample === example.url }" ng-href="#/{{ example.url }}" ng-repeat="example in examples">
                     <i class="map marker icon"></i>
                     <div class="content">
                         <div ng-bind="($index +1) + '.' + example.title"></div>
