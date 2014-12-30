@@ -877,7 +877,6 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
                             });
 
                             geolocation.on('change', function() {
-                                console.log('hola');
                                 if (center.autodiscover) {
                                     var location = geolocation.getPosition();
                                     safeApply(olScope, function(scope) {
@@ -1855,10 +1854,13 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         },
 
         isSameCenterOnMap: function(center, map) {
-            var mapCenter = map.getView().getCenter();
+            var urlProj = center.projection || 'EPSG:4326';
+            var urlCenter = [center.lon, center.lat];
+            var mapProj = map.getView().getProjection();
+            var mapCenter = ol.proj.transform(map.getView().getCenter(), mapProj, urlProj);
             var zoom = map.getView().getZoom();
-            if (mapCenter[1].toFixed(4) === center.lat.toFixed(4) &&
-                mapCenter[1].toFixed(4) === center.lon.toFixed(4) &&
+            if (mapCenter[1].toFixed(4) === urlCenter[1].toFixed(4) &&
+                mapCenter[0].toFixed(4) === urlCenter[0].toFixed(4) &&
                 zoom === center.zoom) {
                 return true;
             }
