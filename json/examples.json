@@ -126,6 +126,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/050-layer-geojson-change-style-example.html",
             "title": "GeoJSON layer Change Style Example",
             "description": "Loading an Stamen Map with OpenLayers."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "layer-heatmap",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/052-heatmap-example.html",
+            "title": "Layer HeatMap Example",
+            "description": "Loading a heatmap in KML format with OpenLayers."
         }
     ]
 }
