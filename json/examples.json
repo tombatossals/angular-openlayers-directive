@@ -119,6 +119,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/049-layers-stamen-example.html",
             "title": "Stamen Maps Layer Example",
             "description": "Loading an Stamen Map with OpenLayers."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "layer-geojson-change-style",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/050-layer-geojson-change-style-example.html",
+            "title": "GeoJSON layer Change Style Example",
+            "description": "Loading an Stamen Map with OpenLayers."
         }
     ]
 }
