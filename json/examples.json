@@ -112,6 +112,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/048-layers-static-image-example.html",
             "title": "Static Image Example",
             "description": "Loading an Static Image inside OpenLayers."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "layer-stamen-maps",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/049-layers-stamen-example.html",
+            "title": "Stamen Maps Layer Example",
+            "description": "Loading an Stamen Map with OpenLayers."
         }
     ]
 }

@@ -1,0 +1,12 @@
+<div class="ui" ng-controller="LayerStamenMapsController">
+    <openlayers ol-center="newyork" ol-layers="layers" height="400px"></openlayers>
+    <br />
+    <div class="3 ui fluid buttons">
+        <div class="ui button" ng-repeat="layer in [ 'watercolor', 'terrain', 'toner' ]" ng-click="layers.main.source.layer=layer" ng-class="{ active: layers.main.source.layer === layer }" ng-bind="layer"></div>
+    </div>
+    <h2 class="ui header">Bing Maps example</h2>
+    <p>You can use easily the Microsoft Bing Maps tiles with OpenLayers. But first of all, you must request an API key to use these maps <a href="http://www.bingmapsportal.com">here</a>.</p>
+    <h3>Current <strong>layers</strong> object:</h3>
+    <pre>{{ layers | json }}</pre>
+    <p><a ng-href="{{ getExample().extUrl }}">View stand-alone example</a></p>
+</div>
