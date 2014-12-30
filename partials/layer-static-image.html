@@ -1,0 +1,8 @@
+<div class="ui" ng-controller="LayerStaticImageController">
+    <openlayers ol-center="center" ol-layers="layers" ol-defaults="defaults" height="400px"></openlayers>
+    <h2 class="ui header">Static Image Layer example</h2>
+    <p>You can add an static image inside a layer and use OpenLayers to pan/zoom.</p>
+    <h3>Current <strong>layers</strong> object:</h3>
+    <pre>{{ layers | json }}</pre>
+    <p><a ng-href="{{ getExample().extUrl }}">View stand-alone example</a></p>
+</div>

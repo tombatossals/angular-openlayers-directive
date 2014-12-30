@@ -105,6 +105,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/047-layers-topojson-example.html",
             "title": "TopoJSON Example",
             "description": "Loading a TopoJSON layer."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "layer-static-image",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/048-layers-static-image-example.html",
+            "title": "Static Image Example",
+            "description": "Loading an Static Image inside OpenLayers."
         }
     ]
 }
