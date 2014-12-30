@@ -133,6 +133,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/052-heatmap-example.html",
             "title": "Layer HeatMap Example",
             "description": "Loading a heatmap in KML format with OpenLayers."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "layer-wms",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/053-layers-image-wms-example.html",
+            "title": "Layer WMS Example",
+            "description": "Loading a Web Map Service (WMS) layer from a GeoServer."
         }
     ]
 }
