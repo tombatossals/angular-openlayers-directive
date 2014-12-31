@@ -1,0 +1,14 @@
+<div class="ui" ng-controller="ViewRotationController">
+    <openlayers ol-center="center" ol-view="view" height="400"></openlayers>
+    <br />
+    <div class="ui form">
+        <div class="field">
+            <label>Degrees ({{ degrees }}&deg;)</label>
+            <input type="range" min="-180" max="180" ng-change="degreesToRadians()" ng-model="degrees" />
+        </div>
+    </div>
+    <h2 class="ui header">View Rotation Example</h2>
+    <p>This examples shows how to rotate the map view interacting with the <strong>view</strong> object.</p>
+    <pre>{{ view | json }}</pre>
+    <p><a ng-href="{{ getExample().extUrl }}">View stand-alone example</a></p>
+</div>

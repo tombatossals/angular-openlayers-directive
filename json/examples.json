@@ -196,6 +196,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/065-markers-static-image-layer-example.html",
             "title": "Markers inside an Static Image Layer",
             "description": "You can render markers with an static image layer too."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "view-rotation",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/070-view-rotation-example.html",
+            "title": "View Rotation",
+            "description": "Rotating the map view from outside OpenLayers."
         }
     ]
 }
