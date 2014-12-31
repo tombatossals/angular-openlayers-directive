@@ -203,6 +203,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/070-view-rotation-example.html",
             "title": "View Rotation",
             "description": "Rotating the map view from outside OpenLayers."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "event-defaults",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/080-events-propagation-example.html",
+            "title": "Event Defaults",
+            "description": "How to listen in your controller for map events."
         }
     ]
 }

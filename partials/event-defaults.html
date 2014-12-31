@@ -1,0 +1,17 @@
+<div class="ui" ng-controller="EventDefaultsController">
+    <openlayers ol-center="london" ol-events="events" height="400"></openlayers>
+    <h2 class="ui header">Event Defaults Example</h2>
+    <h3>Map <strong>defaults</strong> object:</h3>
+    <p>You can propagate some map events so you can react based on this events on your application. Take a look at the <strong>events</strong> object.</p>
+    <h3>Projection type desired:</h3>
+    <div class="2 ui fluid buttons">
+        <div class="ui button" ng-repeat="proj in [ 'EPSG:4326', 'EPSG:3857' ]" ng-click="changeProjection(proj)" ng-class="{ active: projection === proj }" ng-bind="proj"></div>
+    </div>
+    <h3>Mouse position in map</h3>
+    <pre ng-bind="mouseposition | json"></pre>
+    <h3>Mouse click position in map</h3>
+    <pre ng-bind="mouseclickposition | json"></pre>
+    <h3>Events object</h3>
+    <pre>{{ events | json }}</pre>
+    <p><a ng-href="{{ getExample().extUrl }}">View stand-alone example</a></p>
+</div>

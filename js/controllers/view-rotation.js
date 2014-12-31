@@ -12,6 +12,11 @@
             },
             view: {
                 rotation: 0
+            },
+            defaults: {
+                interactions: {
+                    mouseWheelZoom: false
+                }
             }
         });
 
