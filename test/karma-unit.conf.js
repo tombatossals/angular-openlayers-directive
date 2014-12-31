@@ -7,6 +7,7 @@ module.exports = function(karma) {
         files: [
             'bower_components/openlayers3/build/ol-debug.js',
             'bower_components/angular/angular.js',
+            'bower_components/angular-sanitize/angular-sanitize.js',
             'bower_components/angular-mocks/angular-mocks.js',
             'dist/angular-openlayers-directive.js',
             'test/unit/*.js'

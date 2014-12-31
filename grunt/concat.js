@@ -8,7 +8,6 @@ module.exports = function (grunt, options) {
                 footer: '\n}());'
             },
             src: [
-                'bower_components/angular-sanitize/angular-sanitize.js',
                 'src/directives/openlayers.js',
                 'src/directives/center.js',
                 'src/directives/layers.js',
