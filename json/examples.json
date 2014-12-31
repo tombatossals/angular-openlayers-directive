@@ -154,6 +154,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/055-layers-geojon-dynamic-load-example.html",
             "title": "Inline GeoJSON Example",
             "description": "Adding GeoJSON inline into our layer object."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "marker",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/060-marker-example.html",
+            "title": "Marker Example",
+            "description": "Adding markers into our map."
         }
     ]
 }
