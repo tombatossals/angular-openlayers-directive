@@ -18,6 +18,7 @@
         $scope.$on('$routeChangeSuccess', function(event, route) {
             $scope.activeExample = route.params.example;
         });
+
     });
 
 })();

@@ -175,6 +175,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/062-markers-label-example.html",
             "title": "Marker with Label Example",
             "description": "Adding a label to the markers."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "marker-properties",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/063-markers-properties-example.html",
+            "title": "Change Marker Properties Dinamically",
+            "description": "You can interact with the marker properties to modify its behaviour."
         }
     ]
 }

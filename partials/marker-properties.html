@@ -1,0 +1,31 @@
+<div class="ui" ng-controller="MarkerPropertiesController">
+    <openlayers ol-center="center" ol-defaults="defaults" height="400px">
+        <ol-marker ol-marker-properties="markers.santiago" ></ol-marker>
+        <ol-marker ol-marker-properties="markers.finisterre" ></ol-marker>
+    </openlayers>
+    <h2 class="ui header">Marker Properties Example</h2>
+    <p>You can change dinamically the markers properties. Try with these two markers:</p>
+    <div class="ui form" ng-repeat="marker in markers" ng-show="styleCheckboxes()">
+        <h3 ng-bind="marker.name"></h3>
+        <div class="field">
+            <label>Message</label>
+            <input type="text" ng-model="marker.label.message" />
+        </div>
+        <div class="inline field">
+            <div class="ui checkbox" ng-click="changeShowLabel(marker)">
+                <input type="checkbox" checked="true" />
+                <label>Show label</label>
+            </div>
+        </div>
+        <div class="inline field">
+            <div class="ui checkbox" ng-click="changeShowLabelOnMouseOver(marker)">
+                <input type="checkbox" checked="true" />
+                <label>Show label on Mouse Over</label>
+            </div>
+        </div>
+        <h3>Marker object</h3>
+        <pre>{{ marker | json }}</pre>
+    </div>
+    <br />
+    <p><a ng-href="{{ getExample().extUrl }}">View stand-alone example</a></p>
+</div>
