@@ -2,7 +2,7 @@
 
     var app = angular.module('webapp');
 
-    app.controller('CenterUrlHashController', function($scope, $location, $timeout) {
+    app.controller('CenterUrlHashController', function($scope, $location) {
         angular.extend($scope, {
             london: {
                 lat: 51.505,
@@ -11,14 +11,8 @@
                 centerUrlHash: true
             }
         });
-        var promise;
         $scope.$on('centerUrlHash', function(event, centerHash) {
-            if (promise) {
-                $timeout.cancel(promise);
-            }
-            promise = $timeout(function() {
-                $location.search({ c: centerHash });
-            }, 300);
+            $location.search({ c: centerHash });
         });
     });
 
