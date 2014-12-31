@@ -13,6 +13,9 @@
                 view: {
                     maxZoom: 9,
                     minZoom: 6
+                },
+                interactions: {
+                    mouseWheelZoom: false
                 }
             }
         });

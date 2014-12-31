@@ -6,7 +6,12 @@
             center: {
                 lat: 0,
                 lon: 0,
-                autodiscover: true
+                autodiscover: false
+            },
+            defaults: {
+                interactions: {
+                    mouseWheelZoom: false
+                }
             }
         });
     });

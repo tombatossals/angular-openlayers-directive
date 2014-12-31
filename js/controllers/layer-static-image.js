@@ -12,6 +12,9 @@
                 view: {
                     projection: 'pixel',
                     extent: [0, 0, 1800, 1200]
+                },
+                interactions: {
+                    mouseWheelZoom: false
                 }
             },
             layers: {

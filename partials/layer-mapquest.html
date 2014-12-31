@@ -1,5 +1,5 @@
 <div class="ui" ng-controller="LayerMapQuestController">
-    <openlayers ol-center="quebec" ol-layers="layers" height="400px"></openlayers>
+    <openlayers ol-center="quebec" ol-layers="layers" ol-defaults="defaults" height="400px"></openlayers>
     <br />
     <div class="3 ui fluid buttons">
         <div class="ui button" ng-repeat="layer in [ 'sat', 'osm', 'hyb' ]" ng-click="layers.main.source.layer=layer" ng-class="{ active: layers.main.source.layer === layer }" ng-bind="layer"></div>

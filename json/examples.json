@@ -51,7 +51,7 @@
         },
         {
             "date": "Jan 01, 2015",
-            "url": "layers",
+            "url": "layer",
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/040-layers-change-tiles-example.html",
             "title": "Changing Layers By Demand Example",
             "description": "Change the active layer setting an object property."

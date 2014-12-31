@@ -1,5 +1,5 @@
 <div class="ui" ng-controller="CenterAutodiscoverController">
-    <openlayers ol-center="center" height="400"></openlayers>
+    <openlayers ol-center="center" ol-defaults="defaults" height="400"></openlayers>
     <h2 class="ui header">Center Autodiscover example</h2>
     <div class="ui form">
         <div class="four fields">
@@ -21,7 +21,7 @@
             </div>
         </div>
         <p>We can interact with the map with the <strong>center</strong> object, which allows us to set the specific position where the map shoduld point, in a bi-directional way. Take a look at the <strong>center object property</strong> of this map to know how this works:</p>
-        <pre>{{ london | json }}</pre>
+        <pre>{{ center | json }}</pre>
         <p><a ng-href="{{ getExample().extUrl }}">View stand-alone example</a></p>
     </div>
 </div>

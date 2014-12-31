@@ -9,6 +9,11 @@
                 lon: -0.09,
                 zoom: 4,
                 centerUrlHash: true
+            },
+            defaults: {
+                interactions: {
+                    mouseWheelZoom: false
+                }
             }
         });
         $scope.$on('centerUrlHash', function(event, centerHash) {

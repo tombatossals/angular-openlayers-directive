@@ -1,5 +1,5 @@
 <div class="ui" ng-controller="LayerBingMapsController">
-    <openlayers ol-center="quebec" ol-layers="layers" height="400px"></openlayers>
+    <openlayers ol-center="quebec" ol-layers="layers" ol-defaults="defaults" height="400px"></openlayers>
     <br />
     <div class="3 ui fluid buttons">
         <div class="ui button" ng-repeat="imagerySet in [ 'Road', 'Aerial', 'AerialWithLabels' ]" ng-click="layers.main.source.imagerySet=imagerySet" ng-class="{ active: layers.main.source.imagerySet === imagerySet }" ng-bind="imagerySet"></div>
