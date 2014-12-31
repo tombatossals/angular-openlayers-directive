@@ -89,6 +89,17 @@ input[type=range] {
     top: 20px;
 }
 
+.render-html .popup-label {
+    padding: 1px;
+    margin: 0;
+}
+
+.render-html .popup-label img {
+    border-radius: 4px;
+    padding: 0;
+    margin: 0;
+}
+
 @media only screen and (max-width : 1250px) {
     .left.column > .menu .item {
         font-size: 1rem;

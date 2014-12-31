@@ -1,0 +1,14 @@
+<div class="ui render-html" ng-controller="MarkerRenderHTMLController">
+    <openlayers ol-center="center" ol-defaults="defaults" height="400px">
+        <ol-marker ng-repeat="marker in markers" ol-marker-properties="marker"></ol-marker>
+    </openlayers>
+    <br />
+    <div class="3 ui fluid buttons">
+        <div class="ui button" ng-class="{ active: marker.label.show === true }" ng-repeat="marker in markers" ng-click="centerAndShow(marker)" ng-bind="marker.name"></div>
+    </div>
+    <h2 class="ui header">Render HTML inside the marker labels</h2>
+    <p>You can render HTML inside a marker label if you want, making use of the <a href="https://docs.angularjs.org/api/ngSanitize/service/$sanitize">angular-sanitize</strong> module.</p>
+    <h3>Markers object</h3>
+    <pre>{{ markers | json }}</pre>
+    <p><a ng-href="{{ getExample().extUrl }}">View stand-alone example</a></p>
+</div>

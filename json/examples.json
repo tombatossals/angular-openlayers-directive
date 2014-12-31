@@ -182,6 +182,14 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/063-markers-properties-example.html",
             "title": "Change Marker Properties Dinamically",
             "description": "You can interact with the marker properties to modify its behaviour."
+        },
+
+        {
+            "date": "Jan 01, 2015",
+            "url": "marker-render-html",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/064-markers-render-html-inside-labels-example.html",
+            "title": "Render HTML inside a marker label message",
+            "description": "You can render HTML inside a marker label."
         }
     ]
 }
