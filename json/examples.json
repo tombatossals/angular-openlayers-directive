@@ -140,6 +140,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/053-layers-image-wms-example.html",
             "title": "Layer WMS Example",
             "description": "Loading a Web Map Service (WMS) layer from a GeoServer."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "layer-multiple",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/054-add-remove-multiple-layers-example.html",
+            "title": "Multiple Layers Example",
+            "description": "Shows how to add/remove layers of multiple types dinamically."
         }
     ]
 }

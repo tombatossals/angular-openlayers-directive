@@ -1,0 +1,19 @@
+<div class="ui" ng-controller="LayerMultipleController">
+    <openlayers ol-center="europe" ol-layers="layers" ol-defaults="defaults" height="400px"></openlayers>
+    <br />
+    <div class="3 ui fluid buttons">
+        <div class="ui button" ng-repeat="layer in layers" ng-click="layer.visible=!layer.visible" ng-class="{ active: layer.visible===true }" ng-bind="layer.name"></div>
+    </div>
+    <br />
+    <div class="ui form">
+        <div class="field" ng-repeat="layer in layers" ng-if="layer.visible === true">
+            <label ng-bind="layer.name + ' Layer Opacity'"></label>
+            <input type="range" min="0" max="1" step="0.01" ng-model="layer.opacity" />
+        </div>
+    </div>
+    <h2 class="ui header">Multiple and different layer types example</h2>
+    <p>You can mix any of the previous seen layers together.</p>
+    <h3>Current <strong>layers</strong> object:</h3>
+    <pre>{{ layers | json }}</pre>
+    <p><a ng-href="{{ getExample().extUrl }}">View stand-alone example</a></p>
+</div>
