@@ -183,13 +183,19 @@
             "title": "Change Marker Properties Dinamically",
             "description": "You can interact with the marker properties to modify its behaviour."
         },
-
         {
             "date": "Jan 01, 2015",
             "url": "marker-render-html",
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/064-markers-render-html-inside-labels-example.html",
             "title": "Render HTML inside a marker label message",
             "description": "You can render HTML inside a marker label."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "marker-static-image-layer",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/065-markers-static-image-layer-example.html",
+            "title": "Markers inside an Static Image Layer",
+            "description": "You can render markers with an static image layer too."
         }
     ]
 }
