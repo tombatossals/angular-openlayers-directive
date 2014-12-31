@@ -1277,7 +1277,7 @@ angular.module('openlayers-directive')
             lat: 0,
             lon: 0,
             coord: [],
-            focus: true,
+            show: true,
             showOnMouseOver: false,
             style: new ol.style.Style({
                 image: new ol.style.Icon({
@@ -1384,7 +1384,7 @@ angular.module('openlayers-directive')
                             return;
                         }
 
-                        if (properties.label && properties.label.focus === true) {
+                        if (properties.label && properties.label.show === true) {
                             if (data.projection === 'pixel') {
                                 pos = data.coord;
                             } else {
@@ -1394,14 +1394,14 @@ angular.module('openlayers-directive')
                             map.addOverlay(label);
                         }
 
-                        if (label && properties.label && properties.label.focus === false) {
+                        if (label && properties.label && properties.label.show === false) {
                             map.removeOverlay(label);
                             label = undefined;
                         }
 
-                        if (properties.label && properties.label.focus === false && properties.label.showOnMouseOver) {
+                        if (properties.label && properties.label.show === false && properties.label.showOnMouseOver) {
                             map.getViewport().addEventListener('mousemove', function(evt) {
-                                if (properties.label.focus) {
+                                if (properties.label.show) {
                                     return;
                                 }
                                 var found = false;
