@@ -5,7 +5,6 @@ Global
 html,
 body {
     font-size: 15px;
-    height: 100%;
     font-family: "Open Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
     background: #FFFFFF;
     margin: 0px;
@@ -38,10 +37,6 @@ input[type=range] {
 
 .ui .header a {
     color: #333;
-}
-
-.inbox.tab .item .description {
-    margin-left: 1em;
 }
 
 .current {
@@ -92,13 +87,6 @@ input[type=range] {
     position: absolute;
     left: -8px;
     top: 20px;
-}
-
-@media only screen and (max-width : 1000px) {
-    .inbox .date {
-        float: none;
-        margin-bottom: 0.5em;
-    }
 }
 
 @media only screen and (max-width : 1250px) {
