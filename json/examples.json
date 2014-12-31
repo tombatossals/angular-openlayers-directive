@@ -147,6 +147,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/054-add-remove-multiple-layers-example.html",
             "title": "Multiple Layers Example",
             "description": "Shows how to add/remove layers of multiple types dinamically."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "layer-geojson-inline",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/055-layers-geojon-dynamic-load-example.html",
+            "title": "Inline GeoJSON Example",
+            "description": "Adding GeoJSON inline into our layer object."
         }
     ]
 }
