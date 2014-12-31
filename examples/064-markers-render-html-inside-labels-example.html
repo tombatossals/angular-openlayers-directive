@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html ng-app="demoapp">
   <head>
-    <script src="../bower_components/angular/angular.min.js"></script>
     <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
     <script src="../dist/angular-openlayers-directive.js"></script>
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <link rel="stylesheet" href="../dist/angular-openlayers-directive.css" />
@@ -37,7 +37,7 @@
                     lon: 2.294694,
                     label: {
                         message: '<img src="images/eiffel.jpg" />',
-                        focus: false,
+                        show: false,
                         showOnMouseOver: true
                     }
                 },
@@ -46,7 +46,7 @@
                     lon: 2.349902,
                     label: {
                         message: '<img src="images/notredame.jpg" />',
-                        focus: false,
+                        show: false,
                         showOnMouseOver: true
                     }
                 },
@@ -55,18 +55,18 @@
                     lon: 2.121782,
                     label: {
                         message: '<img src="images/versailles.jpg" />',
-                        focus: false,
+                        show: false,
                         showOnMouseOver: true
                     }
                 }
             });
 
             $scope.centerAndShow = function(id) {
-                if (!$scope[id].label.focus) {
+                if (!$scope[id].label.show) {
                     $scope.center.lat = $scope[id].lat;
                     $scope.center.lon = $scope[id].lon;
                 }
-                $scope[id].label.focus = !$scope[id].label.focus
+                $scope[id].label.show = !$scope[id].label.show
             };
 
         } ]);

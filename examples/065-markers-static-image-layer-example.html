@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html ng-app="demoapp">
   <head>
-    <script src="../bower_components/angular/angular.min.js"></script>
     <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
     <script src="../dist/angular-openlayers-directive.js"></script>
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <link rel="stylesheet" href="../dist/angular-openlayers-directive.css" />
@@ -19,7 +19,7 @@
                 projection: 'pixel',
                 label: {
                     message: '<img src="images/eiffel.jpg" />',
-                    focus: false,
+                    show: false,
                     showOnMouseOver: true
                 }
             },
@@ -28,7 +28,7 @@
                 projection: 'pixel',
                 label: {
                     message: '<img src="images/gizah.jpg" />',
-                    focus: false,
+                    show: false,
                     showOnMouseOver: true
                 }
             },
