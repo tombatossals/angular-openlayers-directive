@@ -161,6 +161,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/060-marker-example.html",
             "title": "Marker Example",
             "description": "Adding markers into our map."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "marker-add-remove",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/061-markers-add-remove-example.html",
+            "title": "Marker Interact Example",
+            "description": "Adding/Removing markers easily into our map."
         }
     ]
 }
