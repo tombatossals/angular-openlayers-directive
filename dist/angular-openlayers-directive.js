@@ -702,7 +702,7 @@ angular.module('openlayers-directive')
                             map.removeOverlay(label);
                         }
 
-                        if (!isDefined(scope.label)) {
+                        if (!isDefined(properties.label)) {
                             return;
                         }
 
