@@ -4,6 +4,7 @@
 
 angular.module('openlayers-directive', ['ngSanitize'])
        .directive('openlayers', ["$log", "$q", "$compile", "olHelpers", "olMapDefaults", "olData", function($log, $q, $compile, olHelpers, olMapDefaults, olData) {
+    var _map = $q.defer();
     return {
         restrict: 'EA',
         transclude: true,
@@ -18,21 +19,19 @@ angular.module('openlayers-directive', ['ngSanitize'])
         },
         template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',
         controller: ["$scope", function($scope) {
+            $scope.getMap = function() {
+                return _map.promise;
+            };
+
             this.getOpenlayersScope = function() {
                 return $scope;
             };
         }],
-
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined;
             var createLayer = olHelpers.createLayer;
             var createView = olHelpers.createView;
             var defaults = olMapDefaults.setDefaults(scope);
-            var _map = $q.defer();
-
-            scope.getMap = function() {
-                return _map.promise;
-            };
 
             // Set width and height if they are defined
             if (isDefined(attrs.width)) {
