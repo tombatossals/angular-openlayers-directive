@@ -224,6 +224,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/090-multiple-maps-example.html",
             "title": "Multiple Maps",
             "description": "Rendering and interacting with two maps on screen."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "control",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/100-controls-example.html",
+            "title": "Controls",
+            "description": "Showing more controls in the map screen."
         }
     ]
 }

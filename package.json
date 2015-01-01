@@ -14,7 +14,9 @@
     "cli"
   ],
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "grunt-angular-templates": "^0.5.7"
+  },
   "devDependencies": {
     "grunt": "latest",
     "grunt-contrib-concat": "latest",
