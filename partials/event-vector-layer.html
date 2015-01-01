@@ -1,0 +1,8 @@
+<div class="ui" ng-controller="EventVectorLayerController">
+    <openlayers ol-center="center" ol-events="events" ol-layers="layers" ol-defaults="defaults" height="400"></openlayers>
+    <h2 class="ui header">Event propagation of a GeojJSON object Example</h2>
+    <p>You can propagate layer events, like a vector layer, with the feature selected by the user in the event.</p>
+    <h3>Mouse over this country: {{ mouseMoveCountry }}</h3>
+    <h3>Mouse click on this country: {{ mouseClickCountry }}</h3>
+    <p><a ng-href="{{ getExample().extUrl }}">View stand-alone example</a></p>
+</div>

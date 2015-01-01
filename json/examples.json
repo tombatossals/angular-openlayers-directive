@@ -210,6 +210,13 @@
             "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/080-events-propagation-example.html",
             "title": "Event Defaults",
             "description": "How to listen in your controller for map events."
+        },
+        {
+            "date": "Jan 01, 2015",
+            "url": "event-vector-layer",
+            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/081-events-vector-example.html",
+            "title": "Events in a Vector Layer",
+            "description": "Propagating events of every feature of a GeoJSON object."
         }
     ]
 }

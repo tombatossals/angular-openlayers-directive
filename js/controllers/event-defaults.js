@@ -9,6 +9,11 @@
                 lon: -0.09,
                 zoom: 4
             },
+            defaults: {
+                interactions: {
+                    mouseWheelZoom: false
+                }
+            },
             events: {
                 map: ['singleclick', 'pointermove']
             },
