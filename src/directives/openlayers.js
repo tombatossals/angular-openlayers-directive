@@ -1,6 +1,5 @@
 angular.module('openlayers-directive', ['ngSanitize'])
        .directive('openlayers', function($log, $q, $compile, olHelpers, olMapDefaults, olData) {
-    var _map = $q.defer();
     return {
         restrict: 'EA',
         transclude: true,
@@ -15,8 +14,13 @@ angular.module('openlayers-directive', ['ngSanitize'])
         },
         template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',
         controller: function($scope) {
+            var _map = $q.defer();
             $scope.getMap = function() {
                 return _map.promise;
+            };
+
+            $scope.setMap = function(map) {
+                _map.resolve(map);
             };
 
             this.getOpenlayersScope = function() {
@@ -78,7 +82,7 @@ angular.module('openlayers-directive', ['ngSanitize'])
             }
 
             // Resolve the map object to the promises
-            _map.resolve(map);
+            scope.setMap(map);
             olData.setMap(map, attrs.id);
         }
     };
