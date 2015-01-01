@@ -59,7 +59,6 @@
                 $scope.center.lon = marker.lon;
             }
             marker.label.show = !marker.label.show;
-            console.log($scope.markers);
         };
 
     });
