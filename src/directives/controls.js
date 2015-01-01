@@ -9,8 +9,8 @@ angular.module('openlayers-directive')
         link: function(scope, element, attrs, controller) {
             var olScope   = controller.getOpenlayersScope();
 
-            controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
+            olScope.getMap().then(function(map) {
+                var defaults = olMapDefaults.getDefaults(olScope);
                 var detectControls = olHelpers.detectControls;
                 var getControlClasses = olHelpers.getControlClasses;
                 var controls = olScope.controls;

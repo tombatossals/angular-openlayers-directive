@@ -1,6 +1,5 @@
 angular.module('openlayers-directive', ['ngSanitize'])
        .directive('openlayers', function($log, $q, $compile, olHelpers, olMapDefaults, olData) {
-    var _olMap;
     return {
         restrict: 'EA',
         transclude: true,
@@ -15,11 +14,6 @@ angular.module('openlayers-directive', ['ngSanitize'])
         },
         template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',
         controller: function($scope) {
-            _olMap = $q.defer();
-            this.getMap = function() {
-                return _olMap.promise;
-            };
-
             this.getOpenlayersScope = function() {
                 return $scope;
             };
@@ -29,7 +23,12 @@ angular.module('openlayers-directive', ['ngSanitize'])
             var isDefined = olHelpers.isDefined;
             var createLayer = olHelpers.createLayer;
             var createView = olHelpers.createView;
-            var defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
+            var defaults = olMapDefaults.setDefaults(scope);
+            var _map = $q.defer();
+
+            scope.getMap = function() {
+                return _map.promise;
+            };
 
             // Set width and height if they are defined
             if (isDefined(attrs.width)) {
@@ -80,8 +79,8 @@ angular.module('openlayers-directive', ['ngSanitize'])
             }
 
             // Resolve the map object to the promises
+            _map.resolve(map);
             olData.setMap(map, attrs.id);
-            _olMap.resolve(map);
         }
     };
 });

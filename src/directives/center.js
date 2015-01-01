@@ -16,8 +16,8 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
             var setZoom           = olHelpers.setZoom;
             var olScope           = controller.getOpenlayersScope();
 
-            controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
+            olScope.getMap().then(function(map) {
+                var defaults = olMapDefaults.getDefaults(olScope);
                 var view = map.getView();
                 var center = olScope.center;
 

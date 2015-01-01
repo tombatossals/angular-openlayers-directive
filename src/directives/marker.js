@@ -65,7 +65,8 @@ angular.module('openlayers-directive')
 
         link: function(scope, element, attrs, controllers) {
             var isDefined = olHelpers.isDefined;
-            var olScope = controllers[0];
+            var olMapController = controllers[0];
+            var olScope = olMapController.getOpenlayersScope();
             var createMarkerLayer = olHelpers.createMarkerLayer;
             var createMarker = olHelpers.createMarker;
             var createOverlay = olHelpers.createOverlay;
@@ -89,7 +90,8 @@ angular.module('openlayers-directive')
                     map.addLayer(markerLayer);
 
                     var data = getMarkerDefaults();
-                    var mapDefaults = olMapDefaults.getDefaults(attrs.id);
+
+                    var mapDefaults = olMapDefaults.getDefaults(olScope);
                     var viewProjection = mapDefaults.view.projection;
                     var label;
                     var pos;
@@ -137,6 +139,10 @@ angular.module('openlayers-directive')
 
                         if (isDefined(label)) {
                             map.removeOverlay(label);
+                        }
+
+                        if (!isDefined(scope.label)) {
+                            return;
                         }
 
                         scope.message = properties.label.message;

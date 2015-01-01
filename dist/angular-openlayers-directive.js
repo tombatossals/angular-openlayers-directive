@@ -4,7 +4,6 @@
 
 angular.module('openlayers-directive', ['ngSanitize'])
        .directive('openlayers', ["$log", "$q", "$compile", "olHelpers", "olMapDefaults", "olData", function($log, $q, $compile, olHelpers, olMapDefaults, olData) {
-    var _olMap;
     return {
         restrict: 'EA',
         transclude: true,
@@ -19,11 +18,6 @@ angular.module('openlayers-directive', ['ngSanitize'])
         },
         template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',
         controller: ["$scope", function($scope) {
-            _olMap = $q.defer();
-            this.getMap = function() {
-                return _olMap.promise;
-            };
-
             this.getOpenlayersScope = function() {
                 return $scope;
             };
@@ -33,7 +27,12 @@ angular.module('openlayers-directive', ['ngSanitize'])
             var isDefined = olHelpers.isDefined;
             var createLayer = olHelpers.createLayer;
             var createView = olHelpers.createView;
-            var defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
+            var defaults = olMapDefaults.setDefaults(scope);
+            var _map = $q.defer();
+
+            scope.getMap = function() {
+                return _map.promise;
+            };
 
             // Set width and height if they are defined
             if (isDefined(attrs.width)) {
@@ -84,8 +83,8 @@ angular.module('openlayers-directive', ['ngSanitize'])
             }
 
             // Resolve the map object to the promises
+            _map.resolve(map);
             olData.setMap(map, attrs.id);
-            _olMap.resolve(map);
         }
     };
 }]);
@@ -108,8 +107,8 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
             var setZoom           = olHelpers.setZoom;
             var olScope           = controller.getOpenlayersScope();
 
-            controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
+            olScope.getMap().then(function(map) {
+                var defaults = olMapDefaults.getDefaults(olScope);
                 var view = map.getView();
                 var center = olScope.center;
 
@@ -296,8 +295,8 @@ angular.module('openlayers-directive').directive('olLayers', ["$log", "$q", "olD
             var createStyle = olHelpers.createStyle;
             var isBoolean   = olHelpers.isBoolean;
 
-            controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
+            olScope.getMap().then(function(map) {
+                var defaults = olMapDefaults.getDefaults(olScope);
                 var projection = map.getView().getProjection();
 
                 olScope.$watch('layers', function(layers, oldLayers) {
@@ -433,7 +432,7 @@ angular.module('openlayers-directive').directive('olEvents', ["$log", "$q", "olD
             var mapController = controller[0];
             var olScope       = mapController.getOpenlayersScope();
 
-            mapController.getMap().then(function(map) {
+            olScope.getMap().then(function(map) {
 
                 var getLayers;
                 if (isDefined(controller[1]) && controller[1] !== null) {
@@ -469,8 +468,8 @@ angular.module('openlayers-directive')
             var safeApply = olHelpers.safeApply;
             var createView = olHelpers.createView;
 
-            controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
+            olScope.getMap().then(function(map) {
+                var defaults = olMapDefaults.getDefaults(olScope);
                 var view = olScope.view;
 
                 if (!view.projection) {
@@ -520,8 +519,8 @@ angular.module('openlayers-directive')
         link: function(scope, element, attrs, controller) {
             var olScope   = controller.getOpenlayersScope();
 
-            controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
+            olScope.getMap().then(function(map) {
+                var defaults = olMapDefaults.getDefaults(olScope);
                 var detectControls = olHelpers.detectControls;
                 var getControlClasses = olHelpers.getControlClasses;
                 var controls = olScope.controls;
@@ -624,7 +623,8 @@ angular.module('openlayers-directive')
 
         link: function(scope, element, attrs, controllers) {
             var isDefined = olHelpers.isDefined;
-            var olScope = controllers[0];
+            var olMapController = controllers[0];
+            var olScope = olMapController.getOpenlayersScope();
             var createMarkerLayer = olHelpers.createMarkerLayer;
             var createMarker = olHelpers.createMarker;
             var createOverlay = olHelpers.createOverlay;
@@ -648,7 +648,8 @@ angular.module('openlayers-directive')
                     map.addLayer(markerLayer);
 
                     var data = getMarkerDefaults();
-                    var mapDefaults = olMapDefaults.getDefaults(attrs.id);
+
+                    var mapDefaults = olMapDefaults.getDefaults(olScope);
                     var viewProjection = mapDefaults.view.projection;
                     var label;
                     var pos;
@@ -696,6 +697,10 @@ angular.module('openlayers-directive')
 
                         if (isDefined(label)) {
                             map.removeOverlay(label);
+                        }
+
+                        if (!isDefined(scope.label)) {
+                            return;
                         }
 
                         scope.message = properties.label.message;
@@ -1239,14 +1244,6 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             return id;
         },
 
-        generateUniqueUID: function() {
-            function s4() {
-                return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-            }
-
-            return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-        },
-
         createStyle: createStyle,
 
         setEvents: function(events, map, scope, layers) {
@@ -1415,17 +1412,22 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
     };
 
     var isDefined = olHelpers.isDefined;
-    var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
     var defaults = {};
 
     // Get the _defaults dictionary, and override the properties defined by the user
     return {
-        getDefaults: function(scopeId) {
-            var mapId = obtainEffectiveMapId(defaults, scopeId);
-            return defaults[mapId];
+        getDefaults: function(scope) {
+            if (!isDefined(scope)) {
+                for (var i in defaults) {
+                    return defaults[i];
+                }
+            }
+            return defaults[scope.$id];
         },
 
-        setDefaults: function(userDefaults, scopeId) {
+        setDefaults: function(scope) {
+            var userDefaults = scope.defaults;
+            var scopeId = scope.$id;
             var newDefaults = _getDefaults();
 
             if (isDefined(userDefaults)) {
@@ -1455,8 +1457,7 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
 
             }
 
-            var mapId = obtainEffectiveMapId(defaults, scopeId);
-            defaults[mapId] = newDefaults;
+            defaults[scopeId] = newDefaults;
             return newDefaults;
         }
     };

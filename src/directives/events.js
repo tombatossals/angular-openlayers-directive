@@ -10,7 +10,7 @@ angular.module('openlayers-directive').directive('olEvents', function($log, $q, 
             var mapController = controller[0];
             var olScope       = mapController.getOpenlayersScope();
 
-            mapController.getMap().then(function(map) {
+            olScope.getMap().then(function(map) {
 
                 var getLayers;
                 if (isDefined(controller[1]) && controller[1] !== null) {

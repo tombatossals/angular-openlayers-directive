@@ -38,17 +38,22 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
     };
 
     var isDefined = olHelpers.isDefined;
-    var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
     var defaults = {};
 
     // Get the _defaults dictionary, and override the properties defined by the user
     return {
-        getDefaults: function(scopeId) {
-            var mapId = obtainEffectiveMapId(defaults, scopeId);
-            return defaults[mapId];
+        getDefaults: function(scope) {
+            if (!isDefined(scope)) {
+                for (var i in defaults) {
+                    return defaults[i];
+                }
+            }
+            return defaults[scope.$id];
         },
 
-        setDefaults: function(userDefaults, scopeId) {
+        setDefaults: function(scope) {
+            var userDefaults = scope.defaults;
+            var scopeId = scope.$id;
             var newDefaults = _getDefaults();
 
             if (isDefined(userDefaults)) {
@@ -78,8 +83,7 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
 
             }
 
-            var mapId = obtainEffectiveMapId(defaults, scopeId);
-            defaults[mapId] = newDefaults;
+            defaults[scopeId] = newDefaults;
             return newDefaults;
         }
     };

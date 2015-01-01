@@ -21,8 +21,8 @@ angular.module('openlayers-directive').directive('olLayers', function($log, $q, 
             var createStyle = olHelpers.createStyle;
             var isBoolean   = olHelpers.isBoolean;
 
-            controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
+            olScope.getMap().then(function(map) {
+                var defaults = olMapDefaults.getDefaults(olScope);
                 var projection = map.getView().getProjection();
 
                 olScope.$watch('layers', function(layers, oldLayers) {

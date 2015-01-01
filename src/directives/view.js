@@ -11,8 +11,8 @@ angular.module('openlayers-directive')
             var safeApply = olHelpers.safeApply;
             var createView = olHelpers.createView;
 
-            controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
+            olScope.getMap().then(function(map) {
+                var defaults = olMapDefaults.getDefaults(olScope);
                 var view = olScope.view;
 
                 if (!view.projection) {
