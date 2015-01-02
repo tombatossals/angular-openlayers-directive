@@ -38,8 +38,15 @@
             <p>This project provides an <a href="http://angularjs.org">AngularJS</a> directive useful to manage the <a href="http://openlayers.org">Openlayers Maps library</a> inside your angular application. Very easy to use, you can take a look at the <a href="https://github.com/tombatossals/angular-openlayers-directive/tree/master/doc">not-extensive-enough documentation</a>, or the source code of these example to check if it fits your needs.</p>
             <p>Any <a href="https://github.com/tombatossals/angular-openlayers-directive/blob/master/CONTRIBUTING.md">contribution</a> or new idea to the project is welcomed.</p>
             <h2>Example-driven documentation</h2>
+            <div class="ui tabular filter menu">
+                <a class="item" ng-class="{ active: section === 'first' }" ng-click="section='first'">First steps</a>
+                <a class="item" ng-class="{ active: section === 'layers' }" ng-click="section='layers'">Layers</a>
+                <a class="item" ng-class="{ active: section === 'markers' }" ng-click="section='markers'">Markers</a>
+                <a class="item" ng-class="{ active: section === 'events' }" ng-click="section='events'">Events</a>
+                <a class="item" ng-class="{ active: section === 'more' }" ng-click="section='more'">More...</a>
+            </div>
             <div class="ui selection list">
-                <a class="item" ng-class="{ active: activeExample === example.url }" ng-href="#/{{ example.url }}" ng-repeat="example in examples">
+                <a class="item" ng-class="{ active: activeExample === example.url }" ng-href="#/{{ example.url }}" ng-repeat="example in examples[section]">
                     <i class="map marker icon"></i>
                     <div class="content">
                         <div ng-bind="($index +1) + '.' + example.title"></div>

@@ -12,6 +12,7 @@
         };
 
         $http.get('json/examples.json').success(function(data) {
+            $scope.section = 'first';
             $scope.examples = data.examples;
         });
 

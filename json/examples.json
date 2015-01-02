@@ -1,236 +1,246 @@
 {
-    "examples": [
-        {
-            "date": "Jan 01, 2015",
-            "url": "basic",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/010-simple-example.html",
-            "title": "Basic Example",
-            "description": "Shows you how to render a map the easy-way on our HTML."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "center",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/020-center-example.html",
-            "title": "Center  Example",
-            "description": "Positioning the map in a specific location."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "center-url-hash",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/021-center-url-hash-example.html",
-            "title": "Center Url Hash Example",
-            "description": "Using URL parameters as a center location."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "center-autodiscover",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/022-center-autodiscover-example.html",
-            "title": "Center Autodiscover Example",
-            "description": "Shows how to center the map to the client browser location."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "center-constrain-zoom",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/023-center-constrain-zoom-example.html",
-            "title": "Center Constrain Zoom Example",
-            "description": "Shows how to limit the maximum and minimum zoom allowed in our map."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "center-bounds",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/024-center-bounds-example.html",
-            "title": "Center Bounds Example",
-            "description": "Easily get the bounds of the map inside the center object."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "custom",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/030-custom-parameters-example.html",
-            "title": "Custom Parameters  Example",
-            "description": "Changing the default map composing parameters."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/040-layers-change-tiles-example.html",
-            "title": "Changing Layers By Demand Example",
-            "description": "Change the active layer setting an object property."
+    "examples": {
+        "first": [
+            {
+                "date": "Jan 01, 2015",
+                "url": "basic",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/010-simple-example.html",
+                "title": "Basic Example",
+                "description": "Shows you how to render a map the easy-way on our HTML."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "center",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/020-center-example.html",
+                "title": "Center  Example",
+                "description": "Positioning the map in a specific location."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "center-url-hash",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/021-center-url-hash-example.html",
+                "title": "Center Url Hash Example",
+                "description": "Using URL parameters as a center location."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "center-autodiscover",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/022-center-autodiscover-example.html",
+                "title": "Center Autodiscover Example",
+                "description": "Shows how to center the map to the client browser location."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "center-constrain-zoom",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/023-center-constrain-zoom-example.html",
+                "title": "Center Constrain Zoom Example",
+                "description": "Shows how to limit the maximum and minimum zoom allowed in our map."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "center-bounds",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/024-center-bounds-example.html",
+                "title": "Center Bounds Example",
+                "description": "Easily get the bounds of the map inside the center object."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "custom",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/030-custom-parameters-example.html",
+                "title": "Custom Parameters  Example",
+                "description": "Changing the default map composing parameters."
+            }
+        ],
+        "layers": [
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/040-layers-change-tiles-example.html",
+                "title": "Changing Layers By Demand Example",
+                "description": "Change the active layer setting an object property."
 
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-zoom-changer",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/041-layers-zoom-tiles-changer-example.html",
-            "title": "Changing Layers On Events Response Example",
-            "description": "Change the active layer when a specific event is triggered."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-opacity",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/042-layers-opacity-example.html",
-            "title": "Changing Layer Opacity Example",
-            "description": "Change the active layer opacity from the DOM."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-bing-maps",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/043-layers-bing-maps-example.html",
-            "title": "Bing Maps Example",
-            "description": "Layer with Microsoft Bing Maps."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-mapquest",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/044-layers-mapquest-maps-example.html",
-            "title": "MapQuest Tiles Example",
-            "description": "Layer with MapQuest Maps."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-geojson",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/045-layers-geojson-example.html",
-            "title": "GeoJSON Layer Example",
-            "description": "Loading a GeoJSON layer."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-geojson-center",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/046-geojson-center-example.html",
-            "title": "GeoJSON Center Example",
-            "description": "Centering a GeoJSON region interactively."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-topojson",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/047-layers-topojson-example.html",
-            "title": "TopoJSON Example",
-            "description": "Loading a TopoJSON layer."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-static-image",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/048-layers-static-image-example.html",
-            "title": "Static Image Example",
-            "description": "Loading an Static Image inside OpenLayers."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-stamen-maps",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/049-layers-stamen-example.html",
-            "title": "Stamen Maps Layer Example",
-            "description": "Loading an Stamen Map with OpenLayers."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-geojson-change-style",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/050-layer-geojson-change-style-example.html",
-            "title": "GeoJSON layer Change Style Example",
-            "description": "Loading an Stamen Map with OpenLayers."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-heatmap",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/052-heatmap-example.html",
-            "title": "Layer HeatMap Example",
-            "description": "Loading a heatmap in KML format with OpenLayers."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-wms",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/053-layers-image-wms-example.html",
-            "title": "Layer WMS Example",
-            "description": "Loading a Web Map Service (WMS) layer from a GeoServer."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-multiple",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/054-add-remove-multiple-layers-example.html",
-            "title": "Multiple Layers Example",
-            "description": "Shows how to add/remove layers of multiple types dinamically."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "layer-geojson-inline",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/055-layers-geojon-dynamic-load-example.html",
-            "title": "Inline GeoJSON Example",
-            "description": "Adding GeoJSON inline into our layer object."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "marker",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/060-marker-example.html",
-            "title": "Marker Example",
-            "description": "Adding markers into our map."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "marker-add-remove",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/061-markers-add-remove-example.html",
-            "title": "Marker Interact Example",
-            "description": "Adding/Removing markers easily into our map."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "marker-label",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/062-markers-label-example.html",
-            "title": "Marker with Label Example",
-            "description": "Adding a label to the markers."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "marker-properties",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/063-markers-properties-example.html",
-            "title": "Change Marker Properties Dinamically",
-            "description": "You can interact with the marker properties to modify its behaviour."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "marker-render-html",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/064-markers-render-html-inside-labels-example.html",
-            "title": "Render HTML inside a marker label message",
-            "description": "You can render HTML inside a marker label."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "marker-static-image-layer",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/065-markers-static-image-layer-example.html",
-            "title": "Markers inside an Static Image Layer",
-            "description": "You can render markers with an static image layer too."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "view-rotation",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/070-view-rotation-example.html",
-            "title": "View Rotation",
-            "description": "Rotating the map view from outside OpenLayers."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "event-defaults",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/080-events-propagation-example.html",
-            "title": "Event Defaults",
-            "description": "How to listen in your controller for map events."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "event-vector-layer",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/081-events-vector-example.html",
-            "title": "Events in a Vector Layer",
-            "description": "Propagating events of every feature of a GeoJSON object."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "multiple-map",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/090-multiple-maps-example.html",
-            "title": "Multiple Maps",
-            "description": "Rendering and interacting with two maps on screen."
-        },
-        {
-            "date": "Jan 01, 2015",
-            "url": "control",
-            "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/100-controls-example.html",
-            "title": "Controls",
-            "description": "Showing more controls in the map screen."
-        }
-    ]
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-zoom-changer",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/041-layers-zoom-tiles-changer-example.html",
+                "title": "Changing Layers On Events Response Example",
+                "description": "Change the active layer when a specific event is triggered."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-opacity",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/042-layers-opacity-example.html",
+                "title": "Changing Layer Opacity Example",
+                "description": "Change the active layer opacity from the DOM."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-bing-maps",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/043-layers-bing-maps-example.html",
+                "title": "Bing Maps Example",
+                "description": "Layer with Microsoft Bing Maps."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-mapquest",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/044-layers-mapquest-maps-example.html",
+                "title": "MapQuest Tiles Example",
+                "description": "Layer with MapQuest Maps."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-geojson",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/045-layers-geojson-example.html",
+                "title": "GeoJSON Layer Example",
+                "description": "Loading a GeoJSON layer."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-geojson-center",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/046-geojson-center-example.html",
+                "title": "GeoJSON Center Example",
+                "description": "Centering a GeoJSON region interactively."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-topojson",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/047-layers-topojson-example.html",
+                "title": "TopoJSON Example",
+                "description": "Loading a TopoJSON layer."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-static-image",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/048-layers-static-image-example.html",
+                "title": "Static Image Example",
+                "description": "Loading an Static Image inside OpenLayers."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-stamen-maps",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/049-layers-stamen-example.html",
+                "title": "Stamen Maps Layer Example",
+                "description": "Loading an Stamen Map with OpenLayers."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-geojson-change-style",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/050-layer-geojson-change-style-example.html",
+                "title": "GeoJSON layer Change Style Example",
+                "description": "Loading an Stamen Map with OpenLayers."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-heatmap",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/052-heatmap-example.html",
+                "title": "Layer HeatMap Example",
+                "description": "Loading a heatmap in KML format with OpenLayers."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-wms",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/053-layers-image-wms-example.html",
+                "title": "Layer WMS Example",
+                "description": "Loading a Web Map Service (WMS) layer from a GeoServer."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-multiple",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/054-add-remove-multiple-layers-example.html",
+                "title": "Multiple Layers Example",
+                "description": "Shows how to add/remove layers of multiple types dinamically."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "layer-geojson-inline",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/055-layers-geojon-dynamic-load-example.html",
+                "title": "Inline GeoJSON Example",
+                "description": "Adding GeoJSON inline into our layer object."
+            }
+        ],
+        "markers": [
+            {
+                "date": "Jan 01, 2015",
+                "url": "marker",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/060-marker-example.html",
+                "title": "Marker Example",
+                "description": "Adding markers into our map."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "marker-add-remove",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/061-markers-add-remove-example.html",
+                "title": "Marker Interact Example",
+                "description": "Adding/Removing markers easily into our map."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "marker-label",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/062-markers-label-example.html",
+                "title": "Marker with Label Example",
+                "description": "Adding a label to the markers."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "marker-properties",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/063-markers-properties-example.html",
+                "title": "Change Marker Properties Dinamically",
+                "description": "You can interact with the marker properties to modify its behaviour."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "marker-render-html",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/064-markers-render-html-inside-labels-example.html",
+                "title": "Render HTML inside a marker label message",
+                "description": "You can render HTML inside a marker label."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "marker-static-image-layer",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/065-markers-static-image-layer-example.html",
+                "title": "Markers inside an Static Image Layer",
+                "description": "You can render markers with an static image layer too."
+            }
+        ],
+        "events": [
+            {
+                "date": "Jan 01, 2015",
+                "url": "event-defaults",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/080-events-propagation-example.html",
+                "title": "Event Defaults",
+                "description": "How to listen in your controller for map events."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "event-vector-layer",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/081-events-vector-example.html",
+                "title": "Events in a Vector Layer",
+                "description": "Propagating events of every feature of a GeoJSON object."
+            }
+        ],
+        "more": [
+            {
+                "date": "Jan 01, 2015",
+                "url": "view-rotation",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/070-view-rotation-example.html",
+                "title": "View Rotation",
+                "description": "Rotating the map view from outside OpenLayers."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "multiple-map",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/090-multiple-maps-example.html",
+                "title": "Multiple Maps",
+                "description": "Rendering and interacting with two maps on screen."
+            },
+            {
+                "date": "Jan 01, 2015",
+                "url": "control",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/100-controls-example.html",
+                "title": "Controls",
+                "description": "Showing more controls in the map screen."
+            }
+        ]
+    }
 }
