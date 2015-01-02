@@ -16,7 +16,18 @@
                 }
             }
         });
+
+        var first;
+        if ($location.search().c) {
+            first = $location.search().c;
+            $location.search({ c: '' });
+        }
+
         $scope.$on('centerUrlHash', function(event, centerHash) {
+            if (first) {
+                centerHash = first;
+                first = undefined;
+            }
             $location.search({ c: centerHash });
         });
     });
