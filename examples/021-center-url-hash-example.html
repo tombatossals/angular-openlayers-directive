@@ -19,12 +19,7 @@
             });
             var promise;
             $scope.$on("centerUrlHash", function(event, centerHash) {
-                if (promise) {
-                    $timeout.cancel(promise);
-                }
-                promise = $timeout(function() {
-                    $location.search({ c: centerHash });
-                }, 300);
+                $location.search({ c: centerHash });
             });
         }]);
     </script>
