@@ -8,6 +8,7 @@ app.config(function($routeProvider) {
     }).when('/:example', {
         templateUrl: function(attrs) {
             return 'partials/' + attrs.example + '.html';
-        }
+        },
+        reloadOnSearch: false
     });
 });
