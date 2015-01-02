@@ -14,7 +14,6 @@ goog.require('goog.math');
 goog.require('goog.object');
 goog.require('goog.string');
 goog.require('ol.Feature');
-goog.require('ol.array');
 goog.require('ol.color');
 goog.require('ol.feature');
 goog.require('ol.format.Feature');
@@ -850,7 +849,7 @@ ol.format.KML.readMultiGeometry_ = function(node, objectStack) {
         geometry = geometries[i];
         goog.asserts.assertInstanceof(geometry, ol.geom.Point);
         goog.asserts.assert(geometry.getLayout() == layout);
-        ol.array.safeExtend(flatCoordinates, geometry.getFlatCoordinates());
+        goog.array.extend(flatCoordinates, geometry.getFlatCoordinates());
       }
       var multiPoint = new ol.geom.MultiPoint(null);
       multiPoint.setFlatCoordinates(layout, flatCoordinates);
@@ -916,7 +915,7 @@ ol.format.KML.readPolygon_ = function(node, objectStack) {
     var ends = [flatCoordinates.length];
     var i, ii;
     for (i = 1, ii = flatLinearRings.length; i < ii; ++i) {
-      ol.array.safeExtend(flatCoordinates, flatLinearRings[i]);
+      goog.array.extend(flatCoordinates, flatLinearRings[i]);
       ends.push(flatCoordinates.length);
     }
     polygon.setFlatCoordinates(
@@ -2581,16 +2580,22 @@ ol.format.KML.OUTER_BOUNDARY_NODE_FACTORY_ =
  * @function
  * @param {Array.<ol.Feature>} features Features.
  * @param {olx.format.WriteOptions=} opt_options Options.
- * @return {Node} Result.
+ * @return {string} Result.
  * @api stable
  */
 ol.format.KML.prototype.writeFeatures;
 
 
 /**
- * @inheritDoc
+ * Encode an array of features in the KML format as an XML node.
+ *
+ * @param {Array.<ol.Feature>} features Features.
+ * @param {olx.format.WriteOptions=} opt_options Options.
+ * @return {Node} Node.
+ * @api
  */
 ol.format.KML.prototype.writeFeaturesNode = function(features, opt_options) {
+  opt_options = this.adaptOptions(opt_options);
   var kml = ol.xml.createElementNS(ol.format.KML.NAMESPACE_URIS_[4], 'kml');
   var xmlnsUri = 'http://www.w3.org/2000/xmlns/';
   var xmlSchemaInstanceUri = 'http://www.w3.org/2001/XMLSchema-instance';

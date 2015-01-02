@@ -2517,7 +2517,7 @@
     {
       "name": "ol.Map#getEventPixel",
       "kind": "function",
-      "description": "Returns the map pixel position for a browser event.",
+      "description": "Returns the map pixel position for a browser event relative to the viewport.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/map.js",
       "params": [
@@ -2549,6 +2549,22 @@
           "Element",
           "string",
           "undefined"
+        ]
+      },
+      "provides": [
+        "ol.Map",
+        "ol.MapProperty"
+      ]
+    },
+    {
+      "name": "ol.Map#getTargetElement",
+      "kind": "function",
+      "description": "Get the DOM element into which this map is rendered. In contrast to\n`getTarget` this method always return an `Element`, or `null` if the\nmap has no target.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/map.js",
+      "returns": {
+        "types": [
+          "Element"
         ]
       },
       "provides": [
@@ -3470,6 +3486,20 @@
       ]
     },
     {
+      "name": "ol.WEBGL_MAX_TEXTURE_SIZE",
+      "kind": "constant",
+      "description": "The maximum supported WebGL texture size in pixels. If WebGL is not\nsupported, the value is set to `undefined`.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/ol.js",
+      "types": [
+        "number",
+        "undefined"
+      ],
+      "provides": [
+        "ol"
+      ]
+    },
+    {
       "name": "ol.inherits",
       "kind": "function",
       "description": "Inherit the prototype methods from one constructor into another.\n\nUsage:\n\n    function ParentClass(a, b) { }\n    ParentClass.prototype.foo = function(a) { }\n\n    function ChildClass(a, b, c) {\n      // Call parent constructor\n      ParentClass.call(this, a, b);\n    }\n    ol.inherits(ChildClass, ParentClass);\n\n    var child = new ChildClass('a', 'b', 'see');\n    child.foo(); // This works.\n\nIn addition, a superclass' implementation of a method can be invoked as\nfollows:\n\n    ChildClass.prototype.foo = function(a) {\n      ChildClass.base(this, 'foo', a);\n      // Other code here.\n    };",
@@ -4261,6 +4291,7 @@
     {
       "name": "ol.webgl.Context#useProgram",
       "kind": "function",
+      "description": "Just return false if that program is used already. Other use\nthat program (call `gl.useProgram`) and make it the \"current\nprogram\".",
       "stability": "experimental",
       "path": "/home/dave/dev/ol3/src/ol/webgl/context.js",
       "params": [
@@ -4385,6 +4416,77 @@
       ]
     },
     {
+      "name": "ol.tilegrid.TileGrid#getTileCoordForCoordAndResolution",
+      "kind": "function",
+      "description": "Get the tile coordinate for the given map coordinate and resolution.  This\nmethod considers that coordinates that intersect tile boundaries should be\nassigned the higher tile coordinate.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/tilegrid/tilegrid.js",
+      "params": [
+        {
+          "name": "coordinate",
+          "types": [
+            "ol.Coordinate"
+          ]
+        },
+        {
+          "name": "resolution",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "opt_tileCoord",
+          "types": [
+            "ol.TileCoord"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "ol.TileCoord"
+        ]
+      },
+      "provides": [
+        "ol.tilegrid.TileGrid"
+      ]
+    },
+    {
+      "name": "ol.tilegrid.TileGrid#getTileCoordForCoordAndZ",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/tilegrid/tilegrid.js",
+      "params": [
+        {
+          "name": "coordinate",
+          "types": [
+            "ol.Coordinate"
+          ]
+        },
+        {
+          "name": "z",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "opt_tileCoord",
+          "types": [
+            "ol.TileCoord"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "ol.TileCoord"
+        ]
+      },
+      "provides": [
+        "ol.tilegrid.TileGrid"
+      ]
+    },
+    {
       "name": "ol.tilegrid.TileGrid#getTileSize",
       "kind": "function",
       "stability": "stable",
@@ -4476,6 +4578,26 @@
       ],
       "provides": [
         "ol.tilegrid.Zoomify"
+      ]
+    },
+    {
+      "name": "ol.style.AtlasManager",
+      "kind": "class",
+      "description": "Manages the creation of image atlases.\n\nImages added to this manager will be inserted into an atlas, which\nwill be used for rendering.\nThe `size` given in the constructor is the size for the first\natlas. After that, when new atlases are created, they will have\ntwice the size as the latest atlas (until `maxSize` is reached).\n\nIf an application uses many images or very large images, it is recommended\nto set a higher `size` value to avoid the creation of too many atlases.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/atlasmanager.js",
+      "params": [
+        {
+          "name": "opt_options",
+          "types": [
+            "olx.style.AtlasManagerOptions"
+          ],
+          "optional": true
+        }
+      ],
+      "provides": [
+        "ol.style.Atlas",
+        "ol.style.AtlasManager"
       ]
     },
     {
@@ -4764,6 +4886,36 @@
       ]
     },
     {
+      "name": "ol.style.Image#getOpacity",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/imagestyle.js",
+      "returns": {
+        "types": [
+          "number"
+        ]
+      },
+      "provides": [
+        "ol.style.Image",
+        "ol.style.ImageState"
+      ]
+    },
+    {
+      "name": "ol.style.Image#getRotateWithView",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/imagestyle.js",
+      "returns": {
+        "types": [
+          "boolean"
+        ]
+      },
+      "provides": [
+        "ol.style.Image",
+        "ol.style.ImageState"
+      ]
+    },
+    {
       "name": "ol.style.Image#getRotation",
       "kind": "function",
       "stability": "experimental",
@@ -4786,6 +4938,21 @@
       "returns": {
         "types": [
           "number"
+        ]
+      },
+      "provides": [
+        "ol.style.Image",
+        "ol.style.ImageState"
+      ]
+    },
+    {
+      "name": "ol.style.Image#getSnapToPixel",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/imagestyle.js",
+      "returns": {
+        "types": [
+          "boolean"
         ]
       },
       "provides": [
@@ -4859,17 +5026,16 @@
     {
       "name": "ol.style.RegularShape",
       "kind": "class",
-      "description": "Set regular shape style for vector features.",
+      "description": "Set regular shape style for vector features. The resulting shape will be\na regular polygon when `radius` is provided, or a star when `radius1` and\n`radius2` are provided.",
       "stability": "experimental",
       "path": "/home/dave/dev/ol3/src/ol/style/regularshapestyle.js",
       "extends": "ol.style.Image",
       "params": [
         {
-          "name": "opt_options",
+          "name": "options",
           "types": [
             "olx.style.RegularShapeOptions"
-          ],
-          "optional": true
+          ]
         }
       ],
       "provides": [
@@ -4881,6 +5047,20 @@
       "kind": "function",
       "stability": "experimental",
       "path": "/home/dave/dev/ol3/src/ol/style/regularshapestyle.js",
+      "provides": [
+        "ol.style.RegularShape"
+      ]
+    },
+    {
+      "name": "ol.style.RegularShape#getAngle",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/regularshapestyle.js",
+      "returns": {
+        "types": [
+          "number"
+        ]
+      },
       "provides": [
         "ol.style.RegularShape"
       ]
@@ -4918,7 +5098,35 @@
       ]
     },
     {
+      "name": "ol.style.RegularShape#getPoints",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/regularshapestyle.js",
+      "returns": {
+        "types": [
+          "number"
+        ]
+      },
+      "provides": [
+        "ol.style.RegularShape"
+      ]
+    },
+    {
       "name": "ol.style.RegularShape#getRadius",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/regularshapestyle.js",
+      "returns": {
+        "types": [
+          "number"
+        ]
+      },
+      "provides": [
+        "ol.style.RegularShape"
+      ]
+    },
+    {
+      "name": "ol.style.RegularShape#getRadius2",
       "kind": "function",
       "stability": "experimental",
       "path": "/home/dave/dev/ol3/src/ol/style/regularshapestyle.js",
@@ -5191,7 +5399,41 @@
         }
       ],
       "provides": [
-        "ol.style.Style"
+        "ol.style.Style",
+        "ol.style.defaultGeometryFunction"
+      ]
+    },
+    {
+      "name": "ol.style.Style#getGeometry",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/style.js",
+      "returns": {
+        "types": [
+          "string",
+          "ol.geom.Geometry",
+          "ol.style.GeometryFunction"
+        ]
+      },
+      "provides": [
+        "ol.style.Style",
+        "ol.style.defaultGeometryFunction"
+      ]
+    },
+    {
+      "name": "ol.style.Style#getGeometryFunction",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/style.js",
+      "returns": {
+        "types": [
+          "ol.style.GeometryFunction"
+        ],
+        "nullable": false
+      },
+      "provides": [
+        "ol.style.Style",
+        "ol.style.defaultGeometryFunction"
       ]
     },
     {
@@ -5205,7 +5447,8 @@
         ]
       },
       "provides": [
-        "ol.style.Style"
+        "ol.style.Style",
+        "ol.style.defaultGeometryFunction"
       ]
     },
     {
@@ -5219,7 +5462,8 @@
         ]
       },
       "provides": [
-        "ol.style.Style"
+        "ol.style.Style",
+        "ol.style.defaultGeometryFunction"
       ]
     },
     {
@@ -5233,7 +5477,8 @@
         ]
       },
       "provides": [
-        "ol.style.Style"
+        "ol.style.Style",
+        "ol.style.defaultGeometryFunction"
       ]
     },
     {
@@ -5247,7 +5492,8 @@
         ]
       },
       "provides": [
-        "ol.style.Style"
+        "ol.style.Style",
+        "ol.style.defaultGeometryFunction"
       ]
     },
     {
@@ -5262,7 +5508,29 @@
         ]
       },
       "provides": [
-        "ol.style.Style"
+        "ol.style.Style",
+        "ol.style.defaultGeometryFunction"
+      ]
+    },
+    {
+      "name": "ol.style.Style#setGeometry",
+      "kind": "function",
+      "description": "Set a geometry that is rendered instead of the feature's geometry.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/style.js",
+      "params": [
+        {
+          "name": "geometry",
+          "types": [
+            "string",
+            "ol.geom.Geometry",
+            "ol.style.GeometryFunction"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.style.Style",
+        "ol.style.defaultGeometryFunction"
       ]
     },
     {
@@ -5281,7 +5549,8 @@
         }
       ],
       "provides": [
-        "ol.style.Style"
+        "ol.style.Style",
+        "ol.style.defaultGeometryFunction"
       ]
     },
     {
@@ -6491,6 +6760,85 @@
       ]
     },
     {
+      "name": "ol.source.TileUTFGrid",
+      "kind": "class",
+      "description": "Layer source for UTFGrid interaction data loaded from TileJSON format.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/source/tileutfgridsource.js",
+      "extends": "ol.source.Tile",
+      "params": [
+        {
+          "name": "options",
+          "types": [
+            "olx.source.TileUTFGridOptions"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.source.TileUTFGrid"
+      ]
+    },
+    {
+      "name": "ol.source.TileUTFGrid#getTemplate",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/source/tileutfgridsource.js",
+      "returns": {
+        "types": [
+          "string",
+          "undefined"
+        ]
+      },
+      "provides": [
+        "ol.source.TileUTFGrid"
+      ]
+    },
+    {
+      "name": "ol.source.TileUTFGrid#forDataAtCoordinateAndResolution",
+      "kind": "function",
+      "description": "Calls the callback (synchronously by default) with the available data\nfor given coordinate and resolution (or `null` if not yet loaded or\nin case of an error).",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/source/tileutfgridsource.js",
+      "params": [
+        {
+          "name": "coordinate",
+          "types": [
+            "ol.Coordinate"
+          ]
+        },
+        {
+          "name": "resolution",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "callback",
+          "types": [
+            "Function"
+          ]
+        },
+        {
+          "name": "opt_this",
+          "types": [
+            "T"
+          ],
+          "optional": true
+        },
+        {
+          "name": "opt_request",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
+      "template": "T",
+      "provides": [
+        "ol.source.TileUTFGrid"
+      ]
+    },
+    {
       "name": "ol.source.TileVector",
       "kind": "class",
       "description": "A vector source in one of the supported formats, where the data is divided\ninto tiles in a fixed grid pattern.",
@@ -6505,6 +6853,44 @@
           ]
         }
       ],
+      "provides": [
+        "ol.source.TileVector"
+      ]
+    },
+    {
+      "name": "ol.source.TileVector#getFeatures",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/source/tilevectorsource.js",
+      "provides": [
+        "ol.source.TileVector"
+      ]
+    },
+    {
+      "name": "ol.source.TileVector#getFeaturesAtCoordinateAndResolution",
+      "kind": "function",
+      "description": "Get all features whose geometry intersects the provided coordinate for the\nprovided resolution.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/source/tilevectorsource.js",
+      "params": [
+        {
+          "name": "coordinate",
+          "types": [
+            "ol.Coordinate"
+          ]
+        },
+        {
+          "name": "resolution",
+          "types": [
+            "number"
+          ]
+        }
+      ],
+      "returns": {
+        "types": [
+          "Array.<ol.Feature>"
+        ]
+      },
       "provides": [
         "ol.source.TileVector"
       ]
@@ -6745,6 +7131,15 @@
       "description": "Remove all features from the source.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/source/vectorsource.js",
+      "params": [
+        {
+          "name": "opt_fast",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
       "provides": [
         "ol.source.Vector",
         "ol.source.VectorEvent",
@@ -7193,6 +7588,146 @@
       ]
     },
     {
+      "name": "ol.render.webgl.Immediate#drawAsync",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "params": [
+        {
+          "name": "zIndex",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "callback",
+          "types": [
+            "Function"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#drawCircleGeometry",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#drawFeature",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#drawGeometryCollectionGeometry",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#drawPointGeometry",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#drawLineStringGeometry",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#drawMultiLineStringGeometry",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#drawMultiPointGeometry",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#drawMultiPolygonGeometry",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#drawPolygonGeometry",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#drawText",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#setFillStrokeStyle",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#setImageStyle",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
+      "name": "ol.render.webgl.Immediate#setTextStyle",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/render/webgl/webglimmediate.js",
+      "provides": [
+        "ol.render.webgl.Immediate"
+      ]
+    },
+    {
       "name": "ol.render.canvas.Immediate#drawAsync",
       "kind": "function",
       "description": "Register a function to be called for rendering at a given zIndex.  The\nfunction will be called asynchronously.  The callback will receive a\nreference to {@link ol.render.canvas.Immediate} context for drawing.",
@@ -7230,9 +7765,9 @@
           ]
         },
         {
-          "name": "data",
+          "name": "feature",
           "types": [
-            "Object"
+            "ol.Feature"
           ]
         }
       ],
@@ -7278,9 +7813,9 @@
           ]
         },
         {
-          "name": "data",
+          "name": "feature",
           "types": [
-            "Object"
+            "ol.Feature"
           ]
         }
       ],
@@ -7302,9 +7837,9 @@
           ]
         },
         {
-          "name": "data",
+          "name": "feature",
           "types": [
-            "Object"
+            "ol.Feature"
           ]
         }
       ],
@@ -7326,9 +7861,9 @@
           ]
         },
         {
-          "name": "data",
+          "name": "feature",
           "types": [
-            "Object"
+            "ol.Feature"
           ]
         }
       ],
@@ -7350,9 +7885,9 @@
           ]
         },
         {
-          "name": "data",
+          "name": "feature",
           "types": [
-            "Object"
+            "ol.Feature"
           ]
         }
       ],
@@ -7374,9 +7909,9 @@
           ]
         },
         {
-          "name": "data",
+          "name": "feature",
           "types": [
-            "Object"
+            "ol.Feature"
           ]
         }
       ],
@@ -7398,9 +7933,9 @@
           ]
         },
         {
-          "name": "data",
+          "name": "feature",
           "types": [
-            "Object"
+            "ol.Feature"
           ]
         }
       ],
@@ -8655,6 +9190,28 @@
       ]
     },
     {
+      "name": "ol.interaction.DoubleClickZoom.handleEvent",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/interaction/doubleclickzoominteraction.js",
+      "params": [
+        {
+          "name": "mapBrowserEvent",
+          "types": [
+            "ol.MapBrowserEvent"
+          ]
+        }
+      ],
+      "returns": {
+        "types": [
+          "boolean"
+        ]
+      },
+      "provides": [
+        "ol.interaction.DoubleClickZoom"
+      ]
+    },
+    {
       "name": "ol.interaction.DragAndDrop",
       "kind": "class",
       "description": "Handles input of vector data by drag and drop.",
@@ -8670,6 +9227,29 @@
           "optional": true
         }
       ],
+      "provides": [
+        "ol.interaction.DragAndDrop",
+        "ol.interaction.DragAndDropEvent"
+      ]
+    },
+    {
+      "name": "ol.interaction.DragAndDrop.handleEvent",
+      "kind": "member",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/interaction/draganddropinteraction.js",
+      "params": [
+        {
+          "name": "mapBrowserEvent",
+          "types": [
+            "ol.MapBrowserEvent"
+          ]
+        }
+      ],
+      "returns": {
+        "types": [
+          "boolean"
+        ]
+      },
       "provides": [
         "ol.interaction.DragAndDrop",
         "ol.interaction.DragAndDropEvent"
@@ -8736,7 +9316,7 @@
       "description": "Allows the user to draw a vector box by clicking and dragging on the map,\nnormally combined with an {@link ol.events.condition} that limits\nit to when the shift or other key is held down. This is used, for example,\nfor zooming to a specific area of the map\n(see {@link ol.interaction.DragZoom} and\n{@link ol.interaction.DragRotateAndZoom}).\n\nThis interaction is only supported for mouse devices.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/interaction/dragboxinteraction.js",
-      "extends": "ol.interaction.Interaction",
+      "extends": "ol.interaction.Pointer",
       "params": [
         {
           "name": "opt_options",
@@ -8773,7 +9353,7 @@
       "description": "Allows the user to pan the map by dragging the map.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/interaction/dragpaninteraction.js",
-      "extends": "ol.interaction.Interaction",
+      "extends": "ol.interaction.Pointer",
       "params": [
         {
           "name": "opt_options",
@@ -8793,7 +9373,7 @@
       "description": "Allows the user to zoom and rotate the map by clicking and dragging\non the map.  By default, this interaction is limited to when the shift\nkey is held down.\n\nThis interaction is only supported for mouse devices.\n\nAnd this interaction is not included in the default interactions.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/interaction/dragrotateandzoominteraction.js",
-      "extends": "ol.interaction.Interaction",
+      "extends": "ol.interaction.Pointer",
       "params": [
         {
           "name": "opt_options",
@@ -8813,7 +9393,7 @@
       "description": "Allows the user to rotate the map by clicking and dragging on the map,\nnormally combined with an {@link ol.events.condition} that limits\nit to when the alt and shift keys are held down.\n\nThis interaction is only supported for mouse devices.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/interaction/dragrotateinteraction.js",
-      "extends": "ol.interaction.Interaction",
+      "extends": "ol.interaction.Pointer",
       "params": [
         {
           "name": "opt_options",
@@ -8867,7 +9447,7 @@
       "description": "Interaction that allows drawing geometries.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/interaction/drawinteraction.js",
-      "extends": "ol.interaction.Interaction",
+      "extends": "ol.interaction.Pointer",
       "params": [
         {
           "name": "options",
@@ -8876,6 +9456,29 @@
           ]
         }
       ],
+      "provides": [
+        "ol.DrawEvent",
+        "ol.interaction.Draw"
+      ]
+    },
+    {
+      "name": "ol.interaction.Draw.handleEvent",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/interaction/drawinteraction.js",
+      "params": [
+        {
+          "name": "mapBrowserEvent",
+          "types": [
+            "ol.MapBrowserEvent"
+          ]
+        }
+      ],
+      "returns": {
+        "types": [
+          "boolean"
+        ]
+      },
       "provides": [
         "ol.DrawEvent",
         "ol.interaction.Draw"
@@ -8899,6 +9502,14 @@
       "stability": "experimental",
       "path": "/home/dave/dev/ol3/src/ol/interaction/interaction.js",
       "extends": "ol.Object",
+      "params": [
+        {
+          "name": "options",
+          "types": [
+            "olx.interaction.InteractionOptions"
+          ]
+        }
+      ],
       "provides": [
         "ol.interaction.Interaction",
         "ol.interaction.InteractionProperty"
@@ -8909,30 +9520,6 @@
       "kind": "function",
       "stability": "experimental",
       "path": "/home/dave/dev/ol3/src/ol/interaction/interaction.js",
-      "returns": {
-        "types": [
-          "boolean"
-        ]
-      },
-      "provides": [
-        "ol.interaction.Interaction",
-        "ol.interaction.InteractionProperty"
-      ]
-    },
-    {
-      "name": "ol.interaction.Interaction#handleMapBrowserEvent",
-      "kind": "function",
-      "description": "Method called by the map to notify the interaction that a browser\nevent was dispatched on the map. If the interaction wants to handle\nthat event it can return `false` to prevent the propagation of the\nevent to other interactions in the map's interactions chain.",
-      "stability": "experimental",
-      "path": "/home/dave/dev/ol3/src/ol/interaction/interaction.js",
-      "params": [
-        {
-          "name": "mapBrowserEvent",
-          "types": [
-            "ol.MapBrowserEvent"
-          ]
-        }
-      ],
       "returns": {
         "types": [
           "boolean"
@@ -9007,6 +9594,28 @@
       ]
     },
     {
+      "name": "ol.interaction.KeyboardPan.handleEvent",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/interaction/keyboardpaninteraction.js",
+      "params": [
+        {
+          "name": "mapBrowserEvent",
+          "types": [
+            "ol.MapBrowserEvent"
+          ]
+        }
+      ],
+      "returns": {
+        "types": [
+          "boolean"
+        ]
+      },
+      "provides": [
+        "ol.interaction.KeyboardPan"
+      ]
+    },
+    {
       "name": "ol.interaction.KeyboardZoom",
       "kind": "class",
       "description": "Allows the user to zoom the map using keyboard + and -.\nNote that, although this interaction is by default included in maps,\nthe keys can only be used when browser focus is on the element to which\nthe keyboard events are attached. By default, this is the map div,\nthough you can change this with the `keyboardEventTarget` in\n{@link ol.Map}. `document` never loses focus but, for any other element,\nfocus will have to be on, and returned to, this element if the keys are to\nfunction.\nSee also {@link ol.interaction.KeyboardPan}.",
@@ -9027,12 +9636,34 @@
       ]
     },
     {
+      "name": "ol.interaction.KeyboardZoom.handleEvent",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/interaction/keyboardzoominteraction.js",
+      "params": [
+        {
+          "name": "mapBrowserEvent",
+          "types": [
+            "ol.MapBrowserEvent"
+          ]
+        }
+      ],
+      "returns": {
+        "types": [
+          "boolean"
+        ]
+      },
+      "provides": [
+        "ol.interaction.KeyboardZoom"
+      ]
+    },
+    {
       "name": "ol.interaction.Modify",
       "kind": "class",
       "description": "Interaction for modifying vector data.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/interaction/modifyinteraction.js",
-      "extends": "ol.interaction.Interaction",
+      "extends": "ol.interaction.Pointer",
       "params": [
         {
           "name": "options",
@@ -9041,6 +9672,28 @@
           ]
         }
       ],
+      "provides": [
+        "ol.interaction.Modify"
+      ]
+    },
+    {
+      "name": "ol.interaction.Modify.handleEvent",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/interaction/modifyinteraction.js",
+      "params": [
+        {
+          "name": "mapBrowserEvent",
+          "types": [
+            "ol.MapBrowserEvent"
+          ]
+        }
+      ],
+      "returns": {
+        "types": [
+          "boolean"
+        ]
+      },
       "provides": [
         "ol.interaction.Modify"
       ]
@@ -9066,12 +9719,34 @@
       ]
     },
     {
+      "name": "ol.interaction.MouseWheelZoom.handleEvent",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/interaction/mousewheelzoominteraction.js",
+      "params": [
+        {
+          "name": "mapBrowserEvent",
+          "types": [
+            "ol.MapBrowserEvent"
+          ]
+        }
+      ],
+      "returns": {
+        "types": [
+          "boolean"
+        ]
+      },
+      "provides": [
+        "ol.interaction.MouseWheelZoom"
+      ]
+    },
+    {
       "name": "ol.interaction.PinchRotate",
       "kind": "class",
       "description": "Allows the user to rotate the map by twisting with two fingers\non a touch screen.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/interaction/pinchrotateinteraction.js",
-      "extends": "ol.interaction.Interaction",
+      "extends": "ol.interaction.Pointer",
       "params": [
         {
           "name": "opt_options",
@@ -9091,7 +9766,7 @@
       "description": "Allows the user to zoom the map by pinching with two fingers\non a touch screen.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/interaction/pinchzoominteraction.js",
-      "extends": "ol.interaction.Interaction",
+      "extends": "ol.interaction.Pointer",
       "params": [
         {
           "name": "opt_options",
@@ -9103,6 +9778,48 @@
       ],
       "provides": [
         "ol.interaction.PinchZoom"
+      ]
+    },
+    {
+      "name": "ol.interaction.Pointer",
+      "kind": "class",
+      "description": "Base class that calls user-defined functions on `down`, `move` and `up`\nevents. This class also manages \"drag sequences\".\n\nWhen the `handleDownEvent` user function returns `true` a drag sequence is\nstarted. During a drag sequence the `handleDragEvent` user function is\ncalled on `move` events. The drag sequence ends when the `handleUpEvent`\nuser function is called and returns `false`.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/interaction/pointerinteraction.js",
+      "extends": "ol.interaction.Interaction",
+      "params": [
+        {
+          "name": "opt_options",
+          "types": [
+            "olx.interaction.PointerOptions"
+          ],
+          "optional": true
+        }
+      ],
+      "provides": [
+        "ol.interaction.Pointer"
+      ]
+    },
+    {
+      "name": "ol.interaction.Pointer.handleEvent",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/interaction/pointerinteraction.js",
+      "params": [
+        {
+          "name": "mapBrowserEvent",
+          "types": [
+            "ol.MapBrowserEvent"
+          ]
+        }
+      ],
+      "returns": {
+        "types": [
+          "boolean"
+        ]
+      },
+      "provides": [
+        "ol.interaction.Pointer"
       ]
     },
     {
@@ -9134,6 +9851,28 @@
       "returns": {
         "types": [
           "ol.Collection.<ol.Feature>"
+        ]
+      },
+      "provides": [
+        "ol.interaction.Select"
+      ]
+    },
+    {
+      "name": "ol.interaction.Select.handleEvent",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/interaction/selectinteraction.js",
+      "params": [
+        {
+          "name": "mapBrowserEvent",
+          "types": [
+            "ol.MapBrowserEvent"
+          ]
+        }
+      ],
+      "returns": {
+        "types": [
+          "boolean"
         ]
       },
       "provides": [
@@ -9491,6 +10230,31 @@
       ]
     },
     {
+      "name": "ol.geom.Geometry#translate",
+      "kind": "function",
+      "description": "Translate the geometry.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/geom/geometry.js",
+      "params": [
+        {
+          "name": "deltaX",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "deltaY",
+          "types": [
+            "number"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.geom.Geometry",
+        "ol.geom.GeometryType"
+      ]
+    },
+    {
       "name": "ol.geom.Geometry#transform",
       "kind": "function",
       "description": "Transform each coordinate of the geometry from one coordinate reference\nsystem to another. The geometry is modified in place.\nFor example, a line will be transformed to a line and a circle to a circle.\nIf you do not want the geometry modified in place, first clone() it and\nthen use this function on the clone.",
@@ -9619,6 +10383,30 @@
       "kind": "function",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/geom/geometrycollection.js",
+      "provides": [
+        "ol.geom.GeometryCollection"
+      ]
+    },
+    {
+      "name": "ol.geom.GeometryCollection#translate",
+      "kind": "function",
+      "description": "Translate the geometry.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/geom/geometrycollection.js",
+      "params": [
+        {
+          "name": "deltaX",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "deltaY",
+          "types": [
+            "number"
+          ]
+        }
+      ],
       "provides": [
         "ol.geom.GeometryCollection"
       ]
@@ -10833,6 +11621,30 @@
       ]
     },
     {
+      "name": "ol.geom.SimpleGeometry#translate",
+      "kind": "function",
+      "description": "Translate the geometry.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/geom/simplegeometry.js",
+      "params": [
+        {
+          "name": "deltaX",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "deltaY",
+          "types": [
+            "number"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.geom.SimpleGeometry"
+      ]
+    },
+    {
       "name": "ol.format.Feature",
       "kind": "class",
       "description": "Abstract base class; normally only used for creating subclasses and not\ninstantiated in apps.\nBase class for feature formats.\n{ol.format.Feature} subclasses provide the ability to decode and encode\n{@link ol.Feature} objects from a variety of commonly used geospatial\nfile formats.  See the documentation for each format for more details.",
@@ -10994,7 +11806,7 @@
     {
       "name": "ol.format.GeoJSON#writeFeature",
       "kind": "function",
-      "description": "Encode a feature as a GeoJSON Feature object.",
+      "description": "Encode a feature as a GeoJSON Feature string.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/format/geojsonformat.js",
       "params": [
@@ -11013,7 +11825,37 @@
       ],
       "returns": {
         "types": [
-          "GeoJSONFeature"
+          "string"
+        ]
+      },
+      "provides": [
+        "ol.format.GeoJSON"
+      ]
+    },
+    {
+      "name": "ol.format.GeoJSON#writeFeatureObject",
+      "kind": "function",
+      "description": "Encode a feature as a GeoJSON Feature object.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/format/geojsonformat.js",
+      "params": [
+        {
+          "name": "feature",
+          "types": [
+            "ol.Feature"
+          ]
+        },
+        {
+          "name": "opt_options",
+          "types": [
+            "olx.format.WriteOptions"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "Object"
         ]
       },
       "provides": [
@@ -11042,7 +11884,37 @@
       ],
       "returns": {
         "types": [
-          "GeoJSONObject"
+          "string"
+        ]
+      },
+      "provides": [
+        "ol.format.GeoJSON"
+      ]
+    },
+    {
+      "name": "ol.format.GeoJSON#writeFeaturesObject",
+      "kind": "function",
+      "description": "Encode an array of features as a GeoJSON object.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/format/geojsonformat.js",
+      "params": [
+        {
+          "name": "features",
+          "types": [
+            "Array.<ol.Feature>"
+          ]
+        },
+        {
+          "name": "opt_options",
+          "types": [
+            "olx.format.WriteOptions"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "Object"
         ]
       },
       "provides": [
@@ -11052,7 +11924,7 @@
     {
       "name": "ol.format.GeoJSON#writeGeometry",
       "kind": "function",
-      "description": "Encode a geometry as GeoJSON.",
+      "description": "Encode a geometry as a GeoJSON string.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/format/geojsonformat.js",
       "params": [
@@ -11067,6 +11939,36 @@
           "types": [
             "olx.format.WriteOptions"
           ]
+        }
+      ],
+      "returns": {
+        "types": [
+          "string"
+        ]
+      },
+      "provides": [
+        "ol.format.GeoJSON"
+      ]
+    },
+    {
+      "name": "ol.format.GeoJSON#writeGeometryObject",
+      "kind": "function",
+      "description": "Encode a geometry as a GeoJSON object.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/format/geojsonformat.js",
+      "params": [
+        {
+          "name": "geometry",
+          "types": [
+            "ol.geom.Geometry"
+          ]
+        },
+        {
+          "name": "opt_options",
+          "types": [
+            "olx.format.WriteOptions"
+          ],
+          "optional": true
         }
       ],
       "returns": {
@@ -11199,6 +12101,36 @@
       "kind": "function",
       "description": "Encode an array of features in the GPX format.",
       "stability": "stable",
+      "path": "/home/dave/dev/ol3/src/ol/format/gpxformat.js",
+      "params": [
+        {
+          "name": "features",
+          "types": [
+            "Array.<ol.Feature>"
+          ]
+        },
+        {
+          "name": "opt_options",
+          "types": [
+            "olx.format.WriteOptions"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "string"
+        ]
+      },
+      "provides": [
+        "ol.format.GPX"
+      ]
+    },
+    {
+      "name": "ol.format.GPX#writeFeaturesNode",
+      "kind": "function",
+      "description": "Encode an array of features in the GPX format as an XML node.",
+      "stability": "experimental",
       "path": "/home/dave/dev/ol3/src/ol/format/gpxformat.js",
       "params": [
         {
@@ -11488,6 +12420,36 @@
       "kind": "function",
       "description": "Encode an array of features in the KML format.",
       "stability": "stable",
+      "path": "/home/dave/dev/ol3/src/ol/format/kmlformat.js",
+      "params": [
+        {
+          "name": "features",
+          "types": [
+            "Array.<ol.Feature>"
+          ]
+        },
+        {
+          "name": "opt_options",
+          "types": [
+            "olx.format.WriteOptions"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "string"
+        ]
+      },
+      "provides": [
+        "ol.format.KML"
+      ]
+    },
+    {
+      "name": "ol.format.KML#writeFeaturesNode",
+      "kind": "function",
+      "description": "Encode an array of features in the KML format as an XML node.",
+      "stability": "experimental",
       "path": "/home/dave/dev/ol3/src/ol/format/kmlformat.js",
       "params": [
         {
@@ -12458,7 +13420,7 @@
       "kind": "class",
       "description": "Feature format for reading and writing data in the GML format,\nversion 2.1.2.",
       "stability": "experimental",
-      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml2.js",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml2format.js",
       "extends": "ol.format.GMLBase",
       "params": [
         {
@@ -12478,7 +13440,7 @@
       "kind": "class",
       "description": "Feature format for reading and writing data in the GML format\nversion 3.1.1.\nCurrently only supports GML 3.1.1 Simple Features profile.",
       "stability": "experimental",
-      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml3.js",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml3format.js",
       "extends": "ol.format.GMLBase",
       "params": [
         {
@@ -12495,11 +13457,73 @@
       ]
     },
     {
+      "name": "ol.format.GML3#writeGeometryNode",
+      "kind": "function",
+      "description": "Encode a geometry in GML 3.1.1 Simple Features.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml3format.js",
+      "params": [
+        {
+          "name": "geometry",
+          "types": [
+            "ol.geom.Geometry"
+          ]
+        },
+        {
+          "name": "opt_options",
+          "types": [
+            "olx.format.WriteOptions"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "Node"
+        ]
+      },
+      "provides": [
+        "ol.format.GML",
+        "ol.format.GML3"
+      ]
+    },
+    {
       "name": "ol.format.GML3#writeFeatures",
       "kind": "function",
       "description": "Encode an array of features in GML 3.1.1 Simple Features.",
       "stability": "stable",
-      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml3.js",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml3format.js",
+      "params": [
+        {
+          "name": "features",
+          "types": [
+            "Array.<ol.Feature>"
+          ]
+        },
+        {
+          "name": "opt_options",
+          "types": [
+            "olx.format.WriteOptions"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "string"
+        ]
+      },
+      "provides": [
+        "ol.format.GML",
+        "ol.format.GML3"
+      ]
+    },
+    {
+      "name": "ol.format.GML3#writeFeaturesNode",
+      "kind": "function",
+      "description": "Encode an array of features in the GML 3.1.1 format as an XML node.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml3format.js",
       "params": [
         {
           "name": "features",
@@ -12530,7 +13554,7 @@
       "kind": "class",
       "description": "Feature format for reading and writing data in the GML format\nversion 3.1.1.\nCurrently only supports GML 3.1.1 Simple Features profile.",
       "stability": "stable",
-      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml3.js",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml3format.js",
       "extends": "ol.format.GMLBase",
       "params": [
         {
@@ -12551,12 +13575,43 @@
       "kind": "function",
       "description": "Encode an array of features in GML 3.1.1 Simple Features.",
       "stability": "stable",
-      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml3.js",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml3format.js",
       "params": [
         {
           "name": "features",
           "types": [
             "Array.<ol.Feature>"
+          ]
+        },
+        {
+          "name": "opt_options",
+          "types": [
+            "olx.format.WriteOptions"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "string"
+        ]
+      },
+      "provides": [
+        "ol.format.GML",
+        "ol.format.GML3"
+      ]
+    },
+    {
+      "name": "ol.format.GML#writeFeaturesNode",
+      "kind": "function",
+      "description": "Encode an array of features in the GML 3.1.1 format as an XML node.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gml3format.js",
+      "params": [
+        {
+          "name": "feature",
+          "types": [
+            "ol.Feature"
           ]
         },
         {
@@ -12582,7 +13637,7 @@
       "kind": "class",
       "description": "Abstract base class; normally only used for creating subclasses and not\ninstantiated in apps.\nFeature base format for reading and writing data in the GML format.\nThis class cannot be instantiate, it contains only base content that\nis shared with versioned format classes ol.format.GML2 and\nol.format.GML3.",
       "stability": "experimental",
-      "path": "/home/dave/dev/ol3/src/ol/format/gml/gmlbase.js",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gmlbaseformat.js",
       "extends": "ol.format.Feature",
       "params": [
         {
@@ -12602,7 +13657,7 @@
       "kind": "function",
       "description": "Read all features from a GML FeatureCollection.",
       "stability": "stable",
-      "path": "/home/dave/dev/ol3/src/ol/format/gml/gmlbase.js",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gmlbaseformat.js",
       "params": [
         {
           "name": "source",
@@ -13022,6 +14077,23 @@
       ]
     },
     {
+      "name": "ol.control.Attribution.render",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/control/attributioncontrol.js",
+      "params": [
+        {
+          "name": "mapEvent",
+          "types": [
+            "ol.MapEvent"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.control.Attribution"
+      ]
+    },
+    {
       "name": "ol.control.Attribution#getCollapsible",
       "kind": "function",
       "stability": "stable",
@@ -13200,6 +14272,23 @@
       ]
     },
     {
+      "name": "ol.control.MousePosition.render",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/control/mousepositioncontrol.js",
+      "params": [
+        {
+          "name": "mapEvent",
+          "types": [
+            "ol.MapEvent"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.control.MousePosition"
+      ]
+    },
+    {
       "name": "ol.control.MousePosition#getCoordinateFormat",
       "kind": "function",
       "stability": "stable",
@@ -13302,6 +14391,23 @@
       ]
     },
     {
+      "name": "ol.control.OverviewMap.render",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/control/overviewmapcontrol.js",
+      "params": [
+        {
+          "name": "mapEvent",
+          "types": [
+            "ol.MapEvent"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.control.OverviewMap"
+      ]
+    },
+    {
       "name": "ol.control.OverviewMap#getCollapsible",
       "kind": "function",
       "stability": "stable",
@@ -13384,6 +14490,23 @@
       ]
     },
     {
+      "name": "ol.control.Rotate.render",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/control/rotatecontrol.js",
+      "params": [
+        {
+          "name": "mapEvent",
+          "types": [
+            "ol.MapEvent"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.control.Rotate"
+      ]
+    },
+    {
       "name": "ol.control.ScaleLine",
       "kind": "class",
       "description": "A control displaying rough x-axis distances, calculated for the center of the\nviewport.\nNo scale line will be shown when the x-axis distance cannot be calculated in\nthe view projection (e.g. at or beyond the poles in EPSG:4326).\nBy default the scale line will show in the bottom left portion of the map,\nbut this can be changed by using the css selector `.ol-scale-line`.",
@@ -13416,6 +14539,25 @@
           "undefined"
         ]
       },
+      "provides": [
+        "ol.control.ScaleLine",
+        "ol.control.ScaleLineProperty",
+        "ol.control.ScaleLineUnits"
+      ]
+    },
+    {
+      "name": "ol.control.ScaleLine.render",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/control/scalelinecontrol.js",
+      "params": [
+        {
+          "name": "mapEvent",
+          "types": [
+            "ol.MapEvent"
+          ]
+        }
+      ],
       "provides": [
         "ol.control.ScaleLine",
         "ol.control.ScaleLineProperty",
@@ -13482,6 +14624,23 @@
       ]
     },
     {
+      "name": "ol.control.ZoomSlider.render",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/control/zoomslidercontrol.js",
+      "params": [
+        {
+          "name": "mapEvent",
+          "types": [
+            "ol.MapEvent"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.control.ZoomSlider"
+      ]
+    },
+    {
       "name": "ol.control.ZoomToExtent",
       "kind": "class",
       "description": "A button control which, when pressed, changes the map view to a specific\nextent. To style this control use the css selector `.ol-zoom-extent`.",
@@ -13504,6 +14663,7 @@
     {
       "name": "ol.color.asArray",
       "kind": "function",
+      "description": "Return the color as an array. This function maintains a cache of calculated\narrays which means the result should not be modified.",
       "stability": "experimental",
       "path": "/home/dave/dev/ol3/src/ol/color/color.js",
       "params": [
@@ -13527,6 +14687,7 @@
     {
       "name": "ol.color.asString",
       "kind": "function",
+      "description": "Return the color as an rgba string.",
       "stability": "experimental",
       "path": "/home/dave/dev/ol3/src/ol/color/color.js",
       "params": [
@@ -16185,6 +17346,77 @@
       ]
     },
     {
+      "name": "ol.tilegrid.WMTS#getTileCoordForCoordAndResolution",
+      "kind": "function",
+      "description": "Get the tile coordinate for the given map coordinate and resolution.  This\nmethod considers that coordinates that intersect tile boundaries should be\nassigned the higher tile coordinate.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/tilegrid/tilegrid.js",
+      "params": [
+        {
+          "name": "coordinate",
+          "types": [
+            "ol.Coordinate"
+          ]
+        },
+        {
+          "name": "resolution",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "opt_tileCoord",
+          "types": [
+            "ol.TileCoord"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "ol.TileCoord"
+        ]
+      },
+      "provides": [
+        "ol.tilegrid.TileGrid"
+      ]
+    },
+    {
+      "name": "ol.tilegrid.WMTS#getTileCoordForCoordAndZ",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/tilegrid/tilegrid.js",
+      "params": [
+        {
+          "name": "coordinate",
+          "types": [
+            "ol.Coordinate"
+          ]
+        },
+        {
+          "name": "z",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "opt_tileCoord",
+          "types": [
+            "ol.TileCoord"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "ol.TileCoord"
+        ]
+      },
+      "provides": [
+        "ol.tilegrid.TileGrid"
+      ]
+    },
+    {
       "name": "ol.tilegrid.WMTS#getTileSize",
       "kind": "function",
       "stability": "stable",
@@ -16286,6 +17518,77 @@
       "returns": {
         "types": [
           "Array.<number>"
+        ]
+      },
+      "provides": [
+        "ol.tilegrid.TileGrid"
+      ]
+    },
+    {
+      "name": "ol.tilegrid.XYZ#getTileCoordForCoordAndResolution",
+      "kind": "function",
+      "description": "Get the tile coordinate for the given map coordinate and resolution.  This\nmethod considers that coordinates that intersect tile boundaries should be\nassigned the higher tile coordinate.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/tilegrid/tilegrid.js",
+      "params": [
+        {
+          "name": "coordinate",
+          "types": [
+            "ol.Coordinate"
+          ]
+        },
+        {
+          "name": "resolution",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "opt_tileCoord",
+          "types": [
+            "ol.TileCoord"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "ol.TileCoord"
+        ]
+      },
+      "provides": [
+        "ol.tilegrid.TileGrid"
+      ]
+    },
+    {
+      "name": "ol.tilegrid.XYZ#getTileCoordForCoordAndZ",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/tilegrid/tilegrid.js",
+      "params": [
+        {
+          "name": "coordinate",
+          "types": [
+            "ol.Coordinate"
+          ]
+        },
+        {
+          "name": "z",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "opt_tileCoord",
+          "types": [
+            "ol.TileCoord"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "ol.TileCoord"
         ]
       },
       "provides": [
@@ -16401,6 +17704,77 @@
       ]
     },
     {
+      "name": "ol.tilegrid.Zoomify#getTileCoordForCoordAndResolution",
+      "kind": "function",
+      "description": "Get the tile coordinate for the given map coordinate and resolution.  This\nmethod considers that coordinates that intersect tile boundaries should be\nassigned the higher tile coordinate.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/tilegrid/tilegrid.js",
+      "params": [
+        {
+          "name": "coordinate",
+          "types": [
+            "ol.Coordinate"
+          ]
+        },
+        {
+          "name": "resolution",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "opt_tileCoord",
+          "types": [
+            "ol.TileCoord"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "ol.TileCoord"
+        ]
+      },
+      "provides": [
+        "ol.tilegrid.TileGrid"
+      ]
+    },
+    {
+      "name": "ol.tilegrid.Zoomify#getTileCoordForCoordAndZ",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/tilegrid/tilegrid.js",
+      "params": [
+        {
+          "name": "coordinate",
+          "types": [
+            "ol.Coordinate"
+          ]
+        },
+        {
+          "name": "z",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "opt_tileCoord",
+          "types": [
+            "ol.TileCoord"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "ol.TileCoord"
+        ]
+      },
+      "provides": [
+        "ol.tilegrid.TileGrid"
+      ]
+    },
+    {
       "name": "ol.tilegrid.Zoomify#getTileSize",
       "kind": "function",
       "stability": "stable",
@@ -16420,6 +17794,36 @@
       },
       "provides": [
         "ol.tilegrid.TileGrid"
+      ]
+    },
+    {
+      "name": "ol.style.Circle#getOpacity",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/imagestyle.js",
+      "returns": {
+        "types": [
+          "number"
+        ]
+      },
+      "provides": [
+        "ol.style.Image",
+        "ol.style.ImageState"
+      ]
+    },
+    {
+      "name": "ol.style.Circle#getRotateWithView",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/imagestyle.js",
+      "returns": {
+        "types": [
+          "boolean"
+        ]
+      },
+      "provides": [
+        "ol.style.Image",
+        "ol.style.ImageState"
       ]
     },
     {
@@ -16445,6 +17849,21 @@
       "returns": {
         "types": [
           "number"
+        ]
+      },
+      "provides": [
+        "ol.style.Image",
+        "ol.style.ImageState"
+      ]
+    },
+    {
+      "name": "ol.style.Circle#getSnapToPixel",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/imagestyle.js",
+      "returns": {
+        "types": [
+          "boolean"
         ]
       },
       "provides": [
@@ -16491,6 +17910,36 @@
       ]
     },
     {
+      "name": "ol.style.Icon#getOpacity",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/imagestyle.js",
+      "returns": {
+        "types": [
+          "number"
+        ]
+      },
+      "provides": [
+        "ol.style.Image",
+        "ol.style.ImageState"
+      ]
+    },
+    {
+      "name": "ol.style.Icon#getRotateWithView",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/imagestyle.js",
+      "returns": {
+        "types": [
+          "boolean"
+        ]
+      },
+      "provides": [
+        "ol.style.Image",
+        "ol.style.ImageState"
+      ]
+    },
+    {
       "name": "ol.style.Icon#getRotation",
       "kind": "function",
       "stability": "experimental",
@@ -16513,6 +17962,21 @@
       "returns": {
         "types": [
           "number"
+        ]
+      },
+      "provides": [
+        "ol.style.Image",
+        "ol.style.ImageState"
+      ]
+    },
+    {
+      "name": "ol.style.Icon#getSnapToPixel",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/imagestyle.js",
+      "returns": {
+        "types": [
+          "boolean"
         ]
       },
       "provides": [
@@ -16559,6 +18023,36 @@
       ]
     },
     {
+      "name": "ol.style.RegularShape#getOpacity",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/imagestyle.js",
+      "returns": {
+        "types": [
+          "number"
+        ]
+      },
+      "provides": [
+        "ol.style.Image",
+        "ol.style.ImageState"
+      ]
+    },
+    {
+      "name": "ol.style.RegularShape#getRotateWithView",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/imagestyle.js",
+      "returns": {
+        "types": [
+          "boolean"
+        ]
+      },
+      "provides": [
+        "ol.style.Image",
+        "ol.style.ImageState"
+      ]
+    },
+    {
       "name": "ol.style.RegularShape#getRotation",
       "kind": "function",
       "stability": "experimental",
@@ -16581,6 +18075,21 @@
       "returns": {
         "types": [
           "number"
+        ]
+      },
+      "provides": [
+        "ol.style.Image",
+        "ol.style.ImageState"
+      ]
+    },
+    {
+      "name": "ol.style.RegularShape#getSnapToPixel",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/style/imagestyle.js",
+      "returns": {
+        "types": [
+          "boolean"
         ]
       },
       "provides": [
@@ -17752,6 +19261,15 @@
       "description": "Remove all features from the source.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/source/vectorsource.js",
+      "params": [
+        {
+          "name": "opt_fast",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
       "provides": [
         "ol.source.Vector",
         "ol.source.VectorEvent",
@@ -18258,6 +19776,15 @@
       "description": "Remove all features from the source.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/source/vectorsource.js",
+      "params": [
+        {
+          "name": "opt_fast",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
       "provides": [
         "ol.source.Vector",
         "ol.source.VectorEvent",
@@ -18790,6 +20317,15 @@
       "description": "Remove all features from the source.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/source/vectorsource.js",
+      "params": [
+        {
+          "name": "opt_fast",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
       "provides": [
         "ol.source.Vector",
         "ol.source.VectorEvent",
@@ -19322,6 +20858,15 @@
       "description": "Remove all features from the source.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/source/vectorsource.js",
+      "params": [
+        {
+          "name": "opt_fast",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
       "provides": [
         "ol.source.Vector",
         "ol.source.VectorEvent",
@@ -19854,6 +21399,15 @@
       "description": "Remove all features from the source.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/source/vectorsource.js",
+      "params": [
+        {
+          "name": "opt_fast",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
       "provides": [
         "ol.source.Vector",
         "ol.source.VectorEvent",
@@ -20386,6 +21940,15 @@
       "description": "Remove all features from the source.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/source/vectorsource.js",
+      "params": [
+        {
+          "name": "opt_fast",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
       "provides": [
         "ol.source.Vector",
         "ol.source.VectorEvent",
@@ -22178,6 +23741,15 @@
       "description": "Remove all features from the source.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/source/vectorsource.js",
+      "params": [
+        {
+          "name": "opt_fast",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
       "provides": [
         "ol.source.Vector",
         "ol.source.VectorEvent",
@@ -23572,6 +25144,15 @@
       "description": "Remove all features from the source.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/source/vectorsource.js",
+      "params": [
+        {
+          "name": "opt_fast",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
       "provides": [
         "ol.source.Vector",
         "ol.source.VectorEvent",
@@ -25335,6 +26916,231 @@
       ]
     },
     {
+      "name": "ol.source.TileUTFGrid#getTileGrid",
+      "kind": "function",
+      "stability": "stable",
+      "path": "/home/dave/dev/ol3/src/ol/source/tilesource.js",
+      "returns": {
+        "types": [
+          "ol.tilegrid.TileGrid"
+        ]
+      },
+      "provides": [
+        "ol.source.Tile",
+        "ol.source.TileOptions"
+      ]
+    },
+    {
+      "name": "ol.source.TileUTFGrid#getAttributions",
+      "kind": "function",
+      "stability": "stable",
+      "path": "/home/dave/dev/ol3/src/ol/source/source.js",
+      "returns": {
+        "types": [
+          "Array.<ol.Attribution>"
+        ]
+      },
+      "provides": [
+        "ol.source.Source",
+        "ol.source.State"
+      ]
+    },
+    {
+      "name": "ol.source.TileUTFGrid#getLogo",
+      "kind": "function",
+      "stability": "stable",
+      "path": "/home/dave/dev/ol3/src/ol/source/source.js",
+      "returns": {
+        "types": [
+          "string",
+          "olx.LogoOptions",
+          "undefined"
+        ]
+      },
+      "provides": [
+        "ol.source.Source",
+        "ol.source.State"
+      ]
+    },
+    {
+      "name": "ol.source.TileUTFGrid#getProjection",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/source/source.js",
+      "returns": {
+        "types": [
+          "ol.proj.Projection"
+        ]
+      },
+      "provides": [
+        "ol.source.Source",
+        "ol.source.State"
+      ]
+    },
+    {
+      "name": "ol.source.TileUTFGrid#getState",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/source/source.js",
+      "returns": {
+        "types": [
+          "ol.source.State"
+        ]
+      },
+      "provides": [
+        "ol.source.Source",
+        "ol.source.State"
+      ]
+    },
+    {
+      "name": "ol.source.TileUTFGrid#changed",
+      "kind": "function",
+      "description": "Increases the revision counter and disptches a 'change' event.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/observable.js",
+      "provides": [
+        "ol.Observable"
+      ]
+    },
+    {
+      "name": "ol.source.TileUTFGrid#getRevision",
+      "kind": "function",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/observable.js",
+      "returns": {
+        "types": [
+          "number"
+        ]
+      },
+      "provides": [
+        "ol.Observable"
+      ]
+    },
+    {
+      "name": "ol.source.TileUTFGrid#on",
+      "kind": "function",
+      "description": "Listen for a certain type of event.",
+      "stability": "stable",
+      "path": "/home/dave/dev/ol3/src/ol/observable.js",
+      "params": [
+        {
+          "name": "type",
+          "types": [
+            "string",
+            "Array.<string>"
+          ]
+        },
+        {
+          "name": "listener",
+          "types": [
+            "Function"
+          ]
+        },
+        {
+          "name": "opt_this",
+          "types": [
+            "Object"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "goog.events.Key"
+        ]
+      },
+      "provides": [
+        "ol.Observable"
+      ]
+    },
+    {
+      "name": "ol.source.TileUTFGrid#once",
+      "kind": "function",
+      "description": "Listen once for a certain type of event.",
+      "stability": "stable",
+      "path": "/home/dave/dev/ol3/src/ol/observable.js",
+      "params": [
+        {
+          "name": "type",
+          "types": [
+            "string",
+            "Array.<string>"
+          ]
+        },
+        {
+          "name": "listener",
+          "types": [
+            "Function"
+          ]
+        },
+        {
+          "name": "opt_this",
+          "types": [
+            "Object"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "goog.events.Key"
+        ]
+      },
+      "provides": [
+        "ol.Observable"
+      ]
+    },
+    {
+      "name": "ol.source.TileUTFGrid#un",
+      "kind": "function",
+      "description": "Unlisten for a certain type of event.",
+      "stability": "stable",
+      "path": "/home/dave/dev/ol3/src/ol/observable.js",
+      "params": [
+        {
+          "name": "type",
+          "types": [
+            "string",
+            "Array.<string>"
+          ]
+        },
+        {
+          "name": "listener",
+          "types": [
+            "Function"
+          ]
+        },
+        {
+          "name": "opt_this",
+          "types": [
+            "Object"
+          ],
+          "optional": true
+        }
+      ],
+      "provides": [
+        "ol.Observable"
+      ]
+    },
+    {
+      "name": "ol.source.TileUTFGrid#unByKey",
+      "kind": "function",
+      "description": "Removes an event listener using the key returned by `on()` or `once()`.\nNote that using the {@link ol.Observable.unByKey} static function is to\nbe preferred.",
+      "stability": "stable",
+      "path": "/home/dave/dev/ol3/src/ol/observable.js",
+      "params": [
+        {
+          "name": "key",
+          "types": [
+            "goog.events.Key"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.Observable"
+      ]
+    },
+    {
       "name": "ol.source.TileVector#readFeatures",
       "kind": "function",
       "stability": "experimental",
@@ -26020,6 +27826,15 @@
       "description": "Remove all features from the source.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/source/vectorsource.js",
+      "params": [
+        {
+          "name": "opt_fast",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
       "provides": [
         "ol.source.Vector",
         "ol.source.VectorEvent",
@@ -37999,6 +39814,30 @@
       ]
     },
     {
+      "name": "ol.geom.Circle#translate",
+      "kind": "function",
+      "description": "Translate the geometry.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/geom/simplegeometry.js",
+      "params": [
+        {
+          "name": "deltaX",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "deltaY",
+          "types": [
+            "number"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.geom.SimpleGeometry"
+      ]
+    },
+    {
       "name": "ol.geom.Circle#getClosestPoint",
       "kind": "function",
       "stability": "stable",
@@ -38469,6 +40308,30 @@
       ]
     },
     {
+      "name": "ol.geom.LinearRing#translate",
+      "kind": "function",
+      "description": "Translate the geometry.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/geom/simplegeometry.js",
+      "params": [
+        {
+          "name": "deltaX",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "deltaY",
+          "types": [
+            "number"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.geom.SimpleGeometry"
+      ]
+    },
+    {
       "name": "ol.geom.LinearRing#getClosestPoint",
       "kind": "function",
       "stability": "stable",
@@ -38761,6 +40624,30 @@
       ]
     },
     {
+      "name": "ol.geom.LineString#translate",
+      "kind": "function",
+      "description": "Translate the geometry.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/geom/simplegeometry.js",
+      "params": [
+        {
+          "name": "deltaX",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "deltaY",
+          "types": [
+            "number"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.geom.SimpleGeometry"
+      ]
+    },
+    {
       "name": "ol.geom.LineString#getClosestPoint",
       "kind": "function",
       "stability": "stable",
@@ -39024,6 +40911,30 @@
       "kind": "function",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/geom/simplegeometry.js",
+      "provides": [
+        "ol.geom.SimpleGeometry"
+      ]
+    },
+    {
+      "name": "ol.geom.MultiLineString#translate",
+      "kind": "function",
+      "description": "Translate the geometry.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/geom/simplegeometry.js",
+      "params": [
+        {
+          "name": "deltaX",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "deltaY",
+          "types": [
+            "number"
+          ]
+        }
+      ],
       "provides": [
         "ol.geom.SimpleGeometry"
       ]
@@ -39297,6 +41208,30 @@
       ]
     },
     {
+      "name": "ol.geom.MultiPoint#translate",
+      "kind": "function",
+      "description": "Translate the geometry.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/geom/simplegeometry.js",
+      "params": [
+        {
+          "name": "deltaX",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "deltaY",
+          "types": [
+            "number"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.geom.SimpleGeometry"
+      ]
+    },
+    {
       "name": "ol.geom.MultiPoint#getClosestPoint",
       "kind": "function",
       "stability": "stable",
@@ -39565,6 +41500,30 @@
       ]
     },
     {
+      "name": "ol.geom.MultiPolygon#translate",
+      "kind": "function",
+      "description": "Translate the geometry.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/geom/simplegeometry.js",
+      "params": [
+        {
+          "name": "deltaX",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "deltaY",
+          "types": [
+            "number"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.geom.SimpleGeometry"
+      ]
+    },
+    {
       "name": "ol.geom.MultiPolygon#getClosestPoint",
       "kind": "function",
       "stability": "stable",
@@ -39819,6 +41778,30 @@
       "kind": "function",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/geom/simplegeometry.js",
+      "provides": [
+        "ol.geom.SimpleGeometry"
+      ]
+    },
+    {
+      "name": "ol.geom.Point#translate",
+      "kind": "function",
+      "description": "Translate the geometry.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/geom/simplegeometry.js",
+      "params": [
+        {
+          "name": "deltaX",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "deltaY",
+          "types": [
+            "number"
+          ]
+        }
+      ],
       "provides": [
         "ol.geom.SimpleGeometry"
       ]
@@ -40092,6 +42075,30 @@
       ]
     },
     {
+      "name": "ol.geom.Polygon#translate",
+      "kind": "function",
+      "description": "Translate the geometry.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/geom/simplegeometry.js",
+      "params": [
+        {
+          "name": "deltaX",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "deltaY",
+          "types": [
+            "number"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.geom.SimpleGeometry"
+      ]
+    },
+    {
       "name": "ol.geom.Polygon#getClosestPoint",
       "kind": "function",
       "stability": "stable",
@@ -40304,7 +42311,7 @@
       "kind": "function",
       "description": "Read all features from a GML FeatureCollection.",
       "stability": "stable",
-      "path": "/home/dave/dev/ol3/src/ol/format/gml/gmlbase.js",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gmlbaseformat.js",
       "params": [
         {
           "name": "source",
@@ -40338,7 +42345,7 @@
       "kind": "function",
       "description": "Read all features from a GML FeatureCollection.",
       "stability": "stable",
-      "path": "/home/dave/dev/ol3/src/ol/format/gml/gmlbase.js",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gmlbaseformat.js",
       "params": [
         {
           "name": "source",
@@ -40372,7 +42379,7 @@
       "kind": "function",
       "description": "Read all features from a GML FeatureCollection.",
       "stability": "stable",
-      "path": "/home/dave/dev/ol3/src/ol/format/gml/gmlbase.js",
+      "path": "/home/dave/dev/ol3/src/ol/format/gml/gmlbaseformat.js",
       "params": [
         {
           "name": "source",
@@ -44298,6 +46305,12 @@
       ]
     },
     {
+      "name": "olx.interaction.InteractionOptions",
+      "types": [
+        "{handleEvent: (Function)}"
+      ]
+    },
+    {
       "name": "olx.MapOptions",
       "types": [
         "{controls: (ol.Collection.<ol.control.Control>|Array.<ol.control.Control>|undefined), deviceOptions: (olx.DeviceOptions|undefined), pixelRatio: (number|undefined), interactions: (ol.Collection.<ol.interaction.Interaction>|Array.<ol.interaction.Interaction>|undefined), keyboardEventTarget: (Element|Document|string|undefined), layers: (Array.<ol.layer.Base>|ol.Collection.<ol.layer.Base>|undefined), logo: (boolean|string|olx.LogoOptions|undefined), overlays: (ol.Collection.<ol.Overlay>|Array.<ol.Overlay>|undefined), renderer: (ol.RendererType|Array.<(ol.RendererType|string)>|string|undefined), target: (Element|string|undefined), view: (ol.View|undefined)}"
@@ -44348,13 +46361,13 @@
     {
       "name": "olx.control.AttributionOptions",
       "types": [
-        "{className: (string|undefined), target: (Element|undefined), collapsible: (boolean|undefined), collapsed: (boolean|undefined), tipLabel: (string|undefined), label: (string|undefined), collapseLabel: (string|undefined)}"
+        "{className: (string|undefined), target: (Element|undefined), collapsible: (boolean|undefined), collapsed: (boolean|undefined), tipLabel: (string|undefined), label: (string|undefined), collapseLabel: (string|undefined), render: (Function|undefined)}"
       ]
     },
     {
       "name": "olx.control.ControlOptions",
       "types": [
-        "{element: (Element|undefined), target: (Element|string|undefined)}"
+        "{element: (Element|undefined), render: (Function|undefined), target: (Element|string|undefined)}"
       ]
     },
     {
@@ -44372,25 +46385,25 @@
     {
       "name": "olx.control.MousePositionOptions",
       "types": [
-        "{className: (string|undefined), coordinateFormat: (ol.CoordinateFormatType|undefined), projection: (ol.proj.ProjectionLike), target: (Element|undefined), undefinedHTML: (string|undefined)}"
+        "{className: (string|undefined), coordinateFormat: (ol.CoordinateFormatType|undefined), projection: (ol.proj.ProjectionLike), render: (Function|undefined), target: (Element|undefined), undefinedHTML: (string|undefined)}"
       ]
     },
     {
       "name": "olx.control.OverviewMapOptions",
       "types": [
-        "{collapsed: (boolean|undefined), collapseLabel: (string|undefined), collapsible: (boolean|undefined), label: (string|undefined), layers: (!Array.<ol.layer.Layer>|ol.Collection|undefined), target: (Element|undefined), tipLabel: (string|undefined)}"
+        "{collapsed: (boolean|undefined), collapseLabel: (string|undefined), collapsible: (boolean|undefined), label: (string|undefined), layers: (!Array.<ol.layer.Layer>|ol.Collection|undefined), render: (Function|undefined), target: (Element|undefined), tipLabel: (string|undefined)}"
       ]
     },
     {
       "name": "olx.control.ScaleLineOptions",
       "types": [
-        "{className: (string|undefined), minWidth: (number|undefined), target: (Element|undefined), units: (ol.control.ScaleLineUnits|string|undefined)}"
+        "{className: (string|undefined), minWidth: (number|undefined), render: (Function|undefined), target: (Element|undefined), units: (ol.control.ScaleLineUnits|string|undefined)}"
       ]
     },
     {
       "name": "olx.control.RotateOptions",
       "types": [
-        "{className: (string|undefined), label: (string|undefined), tipLabel: (string|undefined), duration: (number|undefined), autoHide: (boolean|undefined), target: (Element|undefined)}"
+        "{className: (string|undefined), label: (string|undefined), tipLabel: (string|undefined), duration: (number|undefined), autoHide: (boolean|undefined), render: (Function|undefined), target: (Element|undefined)}"
       ]
     },
     {
@@ -44402,7 +46415,7 @@
     {
       "name": "olx.control.ZoomSliderOptions",
       "types": [
-        "{className: (string|undefined), maxResolution: (number|undefined), minResolution: (number|undefined)}"
+        "{className: (string|undefined), maxResolution: (number|undefined), minResolution: (number|undefined), render: (Function|undefined)}"
       ]
     },
     {
@@ -44414,13 +46427,13 @@
     {
       "name": "olx.format.ReadOptions",
       "types": [
-        "{dataProjection: (ol.proj.ProjectionLike|undefined), featureProjection: (ol.proj.ProjectionLike|undefined)}"
+        "{dataProjection: (ol.proj.ProjectionLike), featureProjection: (ol.proj.ProjectionLike)}"
       ]
     },
     {
       "name": "olx.format.WriteOptions",
       "types": [
-        "{dataProjection: (ol.proj.ProjectionLike|undefined), featureProjection: (ol.proj.ProjectionLike)}"
+        "{dataProjection: (ol.proj.ProjectionLike), featureProjection: (ol.proj.ProjectionLike)}"
       ]
     },
     {
@@ -44468,13 +46481,13 @@
     {
       "name": "olx.format.WFSOptions",
       "types": [
-        "{featureNS: (string), featureType: (string), schemaLocation: (string|undefined)}"
+        "{featureNS: (string), featureType: (string), gmlFormat: (ol.format.GMLBase|undefined), schemaLocation: (string|undefined)}"
       ]
     },
     {
       "name": "olx.format.WFSWriteGetFeatureOptions",
       "types": [
-        "{featureNS: (string), featurePrefix: (string), featureTypes: (Array.<string>), srsName: (string|undefined), handle: (string|undefined), outputFormat: (string|undefined), maxFeatures: (number|undefined), geometryName: (string|undefined), gmlFormat: (ol.format.GMLBase|undefined), bbox: (ol.Extent|undefined)}"
+        "{featureNS: (string), featurePrefix: (string), featureTypes: (Array.<string>), srsName: (string|undefined), handle: (string|undefined), outputFormat: (string|undefined), maxFeatures: (number|undefined), geometryName: (string|undefined), bbox: (ol.Extent|undefined)}"
       ]
     },
     {
@@ -44580,6 +46593,12 @@
       ]
     },
     {
+      "name": "olx.interaction.PointerOptions",
+      "types": [
+        "{handleDownEvent: (Function|undefined), handleDragEvent: (Function|undefined), handleEvent: (Function|undefined), handleMoveEvent: (Function|undefined), handleUpEvent: (Function|undefined)}"
+      ]
+    },
+    {
       "name": "olx.interaction.SelectOptions",
       "types": [
         "{addCondition: (ol.events.ConditionType|undefined), condition: (ol.events.ConditionType|undefined), layers: (Array.<ol.layer.Layer>|Function), style: (ol.style.Style|Array.<ol.style.Style>|ol.style.StyleFunction|undefined), removeCondition: (ol.events.ConditionType|undefined), toggleCondition: (ol.events.ConditionType|undefined), undefined: (Object)}"
@@ -44624,7 +46643,7 @@
     {
       "name": "olx.layer.VectorOptions",
       "types": [
-        "{brightness: (number|undefined), contrast: (number|undefined), renderOrder: (Function), hue: (number|undefined), extent: (ol.Extent|undefined), minResolution: (number|undefined), maxResolution: (number|undefined), opacity: (number|undefined), saturation: (number|undefined), source: (ol.source.Vector), style: (ol.style.Style|Array.<ol.style.Style>|ol.style.StyleFunction|undefined), visible: (boolean|undefined)}"
+        "{brightness: (number|undefined), contrast: (number|undefined), renderOrder: (Function), hue: (number|undefined), extent: (ol.Extent|undefined), minResolution: (number|undefined), maxResolution: (number|undefined), opacity: (number|undefined), renderBuffer: (number|undefined), saturation: (number|undefined), source: (ol.source.Vector), style: (ol.style.Style|Array.<ol.style.Style>|ol.style.StyleFunction|undefined), visible: (boolean|undefined)}"
       ]
     },
     {
@@ -44661,6 +46680,12 @@
       "name": "olx.source.GPXOptions",
       "types": [
         "{attributions: (Array.<ol.Attribution>|undefined), doc: (Document|undefined), logo: (string|olx.LogoOptions|undefined), node: (Node|undefined), projection: (ol.proj.ProjectionLike), text: (string|undefined), url: (string|undefined), urls: (Array.<string>|undefined)}"
+      ]
+    },
+    {
+      "name": "olx.source.TileUTFGridOptions",
+      "types": [
+        "{preemptive: (boolean|undefined), url: (string)}"
       ]
     },
     {
@@ -44804,7 +46829,7 @@
     {
       "name": "olx.style.CircleOptions",
       "types": [
-        "{fill: (ol.style.Fill|undefined), radius: (number), snapToPixel: (boolean|undefined), stroke: (ol.style.Stroke|undefined)}"
+        "{fill: (ol.style.Fill|undefined), radius: (number), snapToPixel: (boolean|undefined), stroke: (ol.style.Stroke|undefined), atlasManager: (ol.style.AtlasManager|undefined)}"
       ]
     },
     {
@@ -44822,7 +46847,7 @@
     {
       "name": "olx.style.RegularShapeOptions",
       "types": [
-        "{fill: (ol.style.Fill|undefined), points: (number), radius: (number), radius2: (number), angle: (number), snapToPixel: (boolean|undefined), stroke: (ol.style.Stroke|undefined)}"
+        "{fill: (ol.style.Fill|undefined), points: (number), radius: (number|undefined), radius1: (number|undefined), radius2: (number|undefined), angle: (number|undefined), snapToPixel: (boolean|undefined), stroke: (ol.style.Stroke|undefined), rotation: (number|undefined), atlasManager: (ol.style.AtlasManager|undefined)}"
       ]
     },
     {
@@ -44840,7 +46865,7 @@
     {
       "name": "olx.style.StyleOptions",
       "types": [
-        "{fill: (ol.style.Fill|undefined), image: (ol.style.Image|undefined), stroke: (ol.style.Stroke|undefined), text: (ol.style.Text|undefined), zIndex: (number|undefined), undefined: (Object)}"
+        "{geometry: (undefined|string|ol.geom.Geometry|ol.style.GeometryFunction), fill: (ol.style.Fill|undefined), image: (ol.style.Image|undefined), stroke: (ol.style.Stroke|undefined), text: (ol.style.Text|undefined), zIndex: (number|undefined), undefined: (Object)}"
       ]
     },
     {
@@ -44883,6 +46908,12 @@
       "name": "olx.ViewState",
       "types": [
         "{center: (ol.Coordinate), resolution: (number), rotation: (number)}"
+      ]
+    },
+    {
+      "name": "olx.style.AtlasManagerOptions",
+      "types": [
+        "{initialSize: (number|undefined), maxSize: (number|undefined), space: (number|undefined)}"
       ]
     },
     {
@@ -44983,6 +47014,12 @@
     },
     {
       "name": "ol.style.StyleFunction",
+      "types": [
+        "Function"
+      ]
+    },
+    {
+      "name": "ol.style.GeometryFunction",
       "types": [
         "Function"
       ]
@@ -45114,7 +47151,7 @@
     {
       "name": "GeoJSONCRS#properties",
       "kind": "member",
-      "description": "TODO: remove GeoJSONCRSCode when http://jira.codehaus.org/browse/GEOS-5996is fixed and widely deployed.",
+      "description": "TODO: remove GeoJSONCRSCode when http://jira.codehaus.org/browse/GEOS-5996\nis fixed and widely deployed.",
       "path": "/home/dave/dev/ol3/externs/geojson.js",
       "types": [
         "GeoJSONCRSCode",
@@ -45136,7 +47173,7 @@
     {
       "name": "GeoJSONCRSName#code",
       "kind": "member",
-      "description": "TODO: remove this when http://jira.codehaus.org/browse/GEOS-5996 is fixedand widely deployed.",
+      "description": "TODO: remove this when http://jira.codehaus.org/browse/GEOS-5996 is fixed\nand widely deployed.",
       "path": "/home/dave/dev/ol3/externs/geojson.js",
       "types": [
         "string"
@@ -45360,6 +47397,12 @@
       "virtual": true
     },
     {
+      "name": "ol.structs.IHasChecksum",
+      "kind": "class",
+      "path": "/home/dave/dev/ol3/src/ol/structs/checksum.js",
+      "virtual": true
+    },
+    {
       "name": "ol.render.IReplayGroup",
       "kind": "class",
       "path": "/home/dave/dev/ol3/src/ol/render/ireplay.js",
@@ -45368,7 +47411,7 @@
     {
       "name": "ol.render.IVectorContext",
       "kind": "class",
-      "description": "VectorContext interface. Currently implemented by\n{@link ol.render.canvas.Immediate}",
+      "description": "VectorContext interface. Implemented by\n{@link ol.render.canvas.Immediate} and {@link ol.render.webgl.Immediate}.",
       "path": "/home/dave/dev/ol3/src/ol/render/ivectorcontext.js",
       "virtual": true
     },
