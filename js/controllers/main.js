@@ -12,12 +12,15 @@
         };
 
         $http.get('json/examples.json').success(function(data) {
-            $scope.section = 'first';
+            if (!$scope.section) {
+                $scope.section = 'first';
+            }
             $scope.examples = data.examples;
         });
 
         $scope.$on('$routeChangeSuccess', function(event, route) {
             $scope.activeExample = route.params.example;
+            $scope.section = route.params.section;
         });
 
     });

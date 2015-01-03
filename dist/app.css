@@ -10,6 +10,7 @@ body {
     margin: 0px;
     padding: 0px;
     color: #555555;
+    min-height: 1000px;
     text-rendering: optimizeLegibility;
     min-width: 320px;
 }
@@ -20,6 +21,7 @@ p {
 
 .leftside {
     background-color: #f7f7f7;
+    height: 100%;
 }
 
 .ui.header {

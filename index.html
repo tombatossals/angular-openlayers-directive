@@ -46,7 +46,7 @@
                 <a class="item" ng-class="{ active: section === 'more' }" ng-click="section='more'">More...</a>
             </div>
             <div class="ui selection list">
-                <a class="item" ng-class="{ active: activeExample === example.url }" ng-href="#/{{ example.url }}" ng-repeat="example in examples[section]">
+                <a class="item" ng-class="{ active: activeExample === example.url }" ng-href="#/{{ section }}/{{ example.url }}" ng-repeat="example in examples[section]">
                     <i class="map marker icon"></i>
                     <div class="content">
                         <div ng-bind="($index +1) + '.' + example.title"></div>
