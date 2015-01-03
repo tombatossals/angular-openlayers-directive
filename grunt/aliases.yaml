@@ -48,6 +48,7 @@ build:
  - 'ngAnnotate'
  - 'uglify'
  - 'test-unit'
+ - 'ddescribe-iit'
  - 'concat:license'
 
 travis:
