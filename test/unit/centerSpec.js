@@ -5,18 +5,20 @@
 /* jasmine specs for directives go here */
 
 describe('Directive: openlayers center', function() {
-    var $compile = null;
-    var $rootScope = null;
+    var $compile;
+    var $rootScope;
     var $timeout;
-    var olData = null;
-    var olMapDefaults = null;
+    var $location;
+    var olData;
+    var olMapDefaults;
     var scope;
 
     beforeEach(module('openlayers-directive'));
-    beforeEach(inject(function(_$compile_, _$rootScope_, _$timeout_, _olData_, _olMapDefaults_) {
+    beforeEach(inject(function(_$compile_, _$rootScope_, _$timeout_, _olData_, _olMapDefaults_, _$location_) {
         $compile = _$compile_;
         $rootScope = _$rootScope_;
         $timeout = _$timeout_;
+        $location = _$location_;
         olData = _olData_;
         olMapDefaults = _olMapDefaults_;
 
@@ -107,5 +109,32 @@ describe('Directive: openlayers center', function() {
         expect(mapCenter[0]).toBeCloseTo(2.0304);
         expect(mapCenter[1]).toBeCloseTo(4.0366);
         expect(map.getView().getZoom()).toEqual(8);
+    });
+
+    fit('should constrain max/min zoom if specified', function() {
+        scope.center = {
+            lat: 0.96658,
+            lon: 2.02,
+            zoom: 8,
+            centerUrlHash: true
+        };
+
+        scope.defaults = {
+            view: {
+                maxZoom: 6,
+                minZoom: 3
+            }
+        };
+
+        var element = angular.element('<openlayers ol-center="center" ol-defaults="defaults"></openlayers>');
+        element = $compile(element)(scope);
+
+        var map;
+        olData.getMap().then(function(olMap) {
+            map = olMap;
+        });
+
+        scope.$digest();
+        expect(map.getView().getZoom()).toEqual(6);
     });
 });
