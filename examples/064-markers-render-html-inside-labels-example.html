@@ -28,11 +28,6 @@
                     lon: 2.294694,
                     zoom: 11
                 },
-                defaults: {
-                    interactions: {
-                      mouseWheelZoom: false
-                    }
-                },
                 eiffel: {
                     lat: 48.858093,
                     lon: 2.294694,
@@ -75,7 +70,7 @@
     </script>
   </head>
   <body ng-controller="DemoController">
-      <openlayers ol-center="center" ol-defaults="defaults" height="400px" width="100%">
+      <openlayers ol-center="center" height="400px" width="100%">
           <ol-marker ol-marker-properties="eiffel" ></ol-marker>
           <ol-marker ol-marker-properties="notredame" ></ol-marker>
           <ol-marker ol-marker-properties="versailles" ></ol-marker>

@@ -10,12 +10,11 @@
     <script>
         var app = angular.module("demoapp", ["openlayers-directive"]);
         app.controller("DemoController", [ '$scope', function($scope) {
-
             angular.extend($scope, {
                 center: {
-                    lat: 41.02,
-                    lon: 29.08,
-                    zoom: 11
+                    lat: -34.60,
+                    lon: -58.38,
+                    zoom: 10
                 }
             });
         } ]);
@@ -24,10 +23,10 @@
   </head>
   <body ng-controller="DemoController">
       <openlayers ol-center="center" height="400px" width="100%">
-          <ol-marker name="Istanbul"  lat="41.01" lon="28.96" message="Here is Istanbul. Oh my god, such a great city!"></ol-marker>
+          <ol-path message="This is a path" coord="[[[-58.38,-34.60], [-59.38,-35.60]]]"></ol-path>
       </openlayers>
-      <h1>Markers label example</h1>
-      <p>You can show a label on the marker adding a simple property to it, and it will be shown when you mouseover the marker. The style of the markers is the same used in <a href="https://github.com/Leaflet/Leaflet.label">Leaflet label</a>, and you can personalize it with CSS.</p>
+      <h1>Adding a geometry object to the map</h1>
+      <p>You can add a marker to the map easily with the <strong>ol-marker</strong> sub-directive.</p>
       <pre ng-bind="markers | json"></pre>
   </body>
 </html>

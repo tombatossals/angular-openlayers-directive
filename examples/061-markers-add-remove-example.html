@@ -34,11 +34,6 @@
                     lon: -0.09,
                     zoom: 7
                 },
-                defaults: {
-                    interactions: {
-                      mouseWheelZoom: false
-                    }
-                },
                 markers: markers
             });
 
@@ -54,7 +49,7 @@
     </script>
   </head>
   <body ng-controller="DemoController">
-      <openlayers ol-center="center" ol-markers="markers" ol-defaults="defaults" height="400px" width="100%">
+      <openlayers ol-center="center" ol-markers="markers" height="400px" width="100%">
           <ol-marker ng-repeat="marker in markers" lat="marker.lat" lon="marker.lon"></ol-marker>
       </openlayers>
       <h1>Markers simple example</h1>

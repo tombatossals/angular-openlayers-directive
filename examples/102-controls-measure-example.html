@@ -6,41 +6,14 @@
     <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
     <script src="../dist/angular-openlayers-directive.js"></script>
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
-    <style>
-        .angular-openlayers-map:-moz-full-screen {
-            height: 100%;
-        }
-        .angular-openlayers-map:-webkit-full-screen {
-            height: 100%;
-        }
-        .angular-openlayers-map:full-screen {
-            height: 100%;
-        }
-
-        .angular-openlayers-map:not(-moz-full-screen) {
-            height: 400px;
-        }
-
-        .angular-openlayers-map:not(-webkit-full-screen) {
-            height: 400px;
-        }
-
-        .angular-openlayers-map:not(full-screen) {
-            height: 400px;
-        }
-
-    </style>
     <script>
       var app = angular.module("demoapp", ["openlayers-directive"]);
-      app.controller("ControlFullscreenController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
+      app.controller("ControlMeasureController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
         angular.extend($scope, {
             center: {
                 lat: 43.88,
                 lon: 7.57,
                 zoom: 4
-            },
-            view: {
-                rotation: -1
             },
             layers: {
                 main: {
@@ -52,9 +25,7 @@
                 }
             },
             controls: {
-                zoom: true,
-                fullscreen: true,
-                rotate: false
+                measure: true
             }
         });
 
