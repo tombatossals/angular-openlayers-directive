@@ -1435,7 +1435,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     console.log(data.coord);
                     break;
                 default:
-                    if (isDefined(data.lat) && isDefined(data.long) && isDefined(data.projection)) {
+                    if (isDefined(data.lat) && isDefined(data.lon) && isDefined(data.projection)) {
                         geometry = new ol.geom.Point([data.lon, data.lat]);
                     } else {
                         geometry = new ol.geom.Point(data.coord);
