@@ -2,7 +2,7 @@
 
     var app = angular.module('webapp');
 
-    app.controller('MainController', function($scope, $http, $q) {
+    app.controller('MainController', function($scope, $http, $q, $timeout) {
 
         var examples = $q.defer();
 
@@ -10,8 +10,14 @@
             var url = route.params.example;
             $scope.section = route.params.section;
 
-            Prism.highlightAll();
-            console.log(url);
+            var getSource = function(example) {
+                $http.get(example.extUrl).success(function(data) {
+                    example.source = data;
+                    $timeout(function() {
+                        Prism.highlightAll();
+                    }, 200);
+                });
+            };
 
             examples.promise.then(function(examples) {
                 var sectionExamples = examples[$scope.section];
@@ -19,6 +25,7 @@
                     var example = sectionExamples[i];
                     if (example.url === url) {
                         $scope.activeExample = example;
+                        getSource(example);
                     }
                 }
             });
