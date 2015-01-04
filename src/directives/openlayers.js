@@ -9,7 +9,6 @@ angular.module('openlayers-directive', ['ngSanitize'])
             defaults: '=olDefaults',
             layers: '=olLayers',
             view: '=olView',
-            controls: '=olControls',
             events: '=olEvents'
         },
         template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',

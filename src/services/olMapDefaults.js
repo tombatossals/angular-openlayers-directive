@@ -29,9 +29,9 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                 map: ['click']
             },
             controls: {
-                attribution: true,
+                attribution: false,
                 rotate: false,
-                zoom: true
+                zoom: false
             },
             interactions: {
                 mouseWheelZoom: false

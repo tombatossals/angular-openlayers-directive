@@ -1,0 +1,25 @@
+.angular-openlayers-map:-moz-full-screen {
+    height: 100%;
+}
+.angular-openlayers-map:-webkit-full-screen {
+    height: 100%;
+}
+.angular-openlayers-map:full-screen {
+    height: 100%;
+}
+
+.angular-openlayers-map:not(-moz-full-screen) {
+    height: 400px;
+}
+
+.angular-openlayers-map:not(-webkit-full-screen) {
+    height: 400px;
+}
+
+.angular-openlayers-map:not(full-screen) {
+    height: 400px;
+}
+.ol-full-screen {
+    position: absolute;
+    top: 50%;
+}
