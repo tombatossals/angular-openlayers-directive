@@ -50,6 +50,18 @@ angular.module('openlayers-directive', ['ngSanitize'])
                 }
             }
 
+            if (isDefined(attrs.lat)) {
+                defaults.center.lat = parseFloat(attrs.lat);
+            }
+
+            if (isDefined(attrs.lon)) {
+                defaults.center.lon = parseFloat(attrs.lon);
+            }
+
+            if (isDefined(attrs.zoom)) {
+                defaults.center.zoom = parseFloat(attrs.zoom);
+            }
+
             var controls = ol.control.defaults(defaults.controls);
             var interactions = ol.interaction.defaults(defaults.interactions);
             var view = createView(defaults.view);
@@ -77,7 +89,9 @@ angular.module('openlayers-directive', ['ngSanitize'])
             }
 
             if (!isDefined(attrs.olCenter)) {
-                view.setCenter([defaults.center.lon, defaults.center.lat]);
+                var c = ol.proj.transform([defaults.center.lon, defaults.center.lat],
+                                                defaults.center.projection, view.getProjection());
+                view.setCenter(c);
                 view.setZoom(defaults.center.zoom);
             }
 
