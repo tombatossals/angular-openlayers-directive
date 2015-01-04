@@ -54,6 +54,18 @@ angular.module('openlayers-directive', ['ngSanitize'])
                 }
             }
 
+            if (isDefined(attrs.lat)) {
+                defaults.center.lat = parseFloat(attrs.lat);
+            }
+
+            if (isDefined(attrs.lon)) {
+                defaults.center.lon = parseFloat(attrs.lon);
+            }
+
+            if (isDefined(attrs.zoom)) {
+                defaults.center.zoom = parseFloat(attrs.zoom);
+            }
+
             var controls = ol.control.defaults(defaults.controls);
             var interactions = ol.interaction.defaults(defaults.interactions);
             var view = createView(defaults.view);
@@ -81,7 +93,9 @@ angular.module('openlayers-directive', ['ngSanitize'])
             }
 
             if (!isDefined(attrs.olCenter)) {
-                view.setCenter([defaults.center.lon, defaults.center.lat]);
+                var c = ol.proj.transform([defaults.center.lon, defaults.center.lat],
+                                                defaults.center.projection, view.getProjection());
+                view.setCenter(c);
                 view.setZoom(defaults.center.zoom);
             }
 
@@ -459,6 +473,71 @@ angular.module('openlayers-directive').directive('olEvents', ["$log", "$q", "olD
 }]);
 
 angular.module('openlayers-directive')
+        .directive('olPath', ["$log", "$q", "olMapDefaults", "olHelpers", function($log, $q, olMapDefaults, olHelpers) {
+
+    return {
+        restrict: 'E',
+        scope: {
+            properties: '=olGeomProperties'
+        },
+        require: ['^openlayers', '?^olLayers'],
+        replace: true,
+        template: '<div class="popup-label path" ng-bind-html="message"></div>',
+
+        link: function(scope, element, attrs, controllers) {
+            var isDefined = olHelpers.isDefined;
+            var olMapController = controllers[0];
+            var createFeature = olHelpers.createFeature;
+            var createOverlay = olHelpers.createOverlay;
+            var createVectorLayer = olHelpers.createVectorLayer;
+            var olScope = olMapController.getOpenlayersScope();
+
+            var getLayers;
+            // If the layers attribute is used, we must wait until the layers are created
+            if (isDefined(controllers[1]) && controllers[1] !== null) {
+                getLayers = controllers[1].getLayers;
+            } else {
+                getLayers = function() {
+                    var deferred = $q.defer();
+                    deferred.resolve();
+                    return deferred.promise;
+                };
+            }
+
+            olScope.getMap().then(function(map) {
+                var mapDefaults = olMapDefaults.getDefaults(olScope);
+                var viewProjection = mapDefaults.view.projection;
+
+                getLayers().then(function() {
+                    var layer = createVectorLayer();
+                    map.addLayer(layer);
+                    if (isDefined(attrs.coord)) {
+                        var proj = attrs.proj || 'EPSG:4326';
+                        var coord = JSON.parse(attrs.coord);
+                        var data = {
+                            type: 'Polygon',
+                            coord: coord,
+                            projection: proj
+                        };
+                        console.log(data);
+                        var feature = createFeature(data, viewProjection);
+                        layer.getSource().addFeature(feature);
+
+                        if (attrs.message) {
+                            scope.message = attrs.message;
+                            var pos = ol.proj.transform(coord, proj, viewProjection);
+                            var label = createOverlay(element, pos);
+                            map.addOverlay(label);
+                        }
+                        return;
+                    }
+                });
+            });
+        }
+    };
+}]);
+
+angular.module('openlayers-directive')
        .directive('olView', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
     return {
         restrict: 'A',
@@ -628,8 +707,8 @@ angular.module('openlayers-directive')
             var isDefined = olHelpers.isDefined;
             var olMapController = controllers[0];
             var olScope = olMapController.getOpenlayersScope();
-            var createMarkerLayer = olHelpers.createMarkerLayer;
-            var createMarker = olHelpers.createMarker;
+            var createVectorLayer = olHelpers.createVectorLayer;
+            var createFeature = olHelpers.createFeature;
             var createOverlay = olHelpers.createOverlay;
 
             var getLayers;
@@ -647,7 +726,7 @@ angular.module('openlayers-directive')
             olScope.getMap().then(function(map) {
                 getLayers().then(function() {
                     // Create the markers layer and add it to the map
-                    var markerLayer = createMarkerLayer();
+                    var markerLayer = createVectorLayer();
                     map.addLayer(markerLayer);
 
                     var data = getMarkerDefaults();
@@ -667,7 +746,7 @@ angular.module('openlayers-directive')
                         data.lon = scope.lon ? scope.lon : data.lon;
                         data.message = attrs.message;
 
-                        marker = createMarker(data, viewProjection);
+                        marker = createFeature(data, viewProjection);
                         if (!isDefined(marker)) {
                             $log.error('[AngularJS - Openlayers] Received invalid data on ' +
                                        'the marker.');
@@ -690,7 +769,7 @@ angular.module('openlayers-directive')
                             data.lat = properties.lat ? properties.lat : data.lat;
                             data.lon = properties.lon ? properties.lon : data.lon;
 
-                            marker = createMarker(data, viewProjection);
+                            marker = createFeature(data, viewProjection);
                             if (!isDefined(marker)) {
                                 $log.error('[AngularJS - Openlayers] Received invalid data on ' +
                                            'the marker.');
@@ -1315,7 +1394,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             return oLayer;
         },
 
-        createMarkerLayer: function() {
+        createVectorLayer: function() {
             return new ol.layer.Vector({
                 source: new ol.source.Vector()
             });
@@ -1347,20 +1426,35 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             return actualControls;
         },
 
-        createMarker: function(data, viewProjection) {
+        createFeature: function(data, viewProjection) {
             var geometry;
-            if (viewProjection === 'pixel') {
-                geometry = new ol.geom.Point(data.coord);
-            } else {
-                geometry = new ol.geom.Point([data.lon, data.lat])
-                                          .transform(data.projection, viewProjection);
+
+            switch (data.type) {
+                case 'Polygon':
+                    geometry = new ol.geom.Polygon(data.coord);
+                    console.log(data.coord);
+                    break;
+                default:
+                    if (isDefined(data.lat) && isDefined(data.long) && isDefined(data.projection)) {
+                        geometry = new ol.geom.Point([data.lon, data.lat]);
+                    } else {
+                        geometry = new ol.geom.Point(data.coord);
+                    }
+                    break;
             }
 
-            var marker = new ol.Feature({
+            if (isDefined(data.projection)) {
+                geometry = geometry.transform(data.projection, viewProjection);
+            }
+
+            var feature = new ol.Feature({
                 geometry: geometry
             });
-            marker.setStyle(data.style);
-            return marker;
+
+            if (isDefined(data.style)) {
+                feature.setStyle(data.style);
+            }
+            return feature;
         },
 
         createOverlay: function(element, pos) {
@@ -1409,6 +1503,9 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                 attribution: true,
                 rotate: false,
                 zoom: true
+            },
+            interactions: {
+                mouseWheelZoom: false
             },
             renderer: 'canvas'
         };

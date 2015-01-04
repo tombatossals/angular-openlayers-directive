@@ -16,11 +16,6 @@
                 lon: -1.27,
                 zoom: 5
             },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
-            },
             layers: {
                 main: {
                     source: {
@@ -51,7 +46,7 @@
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers ol-center="europe" ol-layers="layers" ol-defaults="defaults" height="400px"></openlayers>
+     <openlayers ol-center="europe" ol-layers="layers" height="400px"></openlayers>
      <h1>Layers GeoJSON change style with a function</h1>
      <p>Move the map to change the vector layer style.</p>
   </body>

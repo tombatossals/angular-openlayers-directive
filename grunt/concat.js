@@ -12,6 +12,7 @@ module.exports = function (grunt, options) {
                 'src/directives/center.js',
                 'src/directives/layers.js',
                 'src/directives/events.js',
+                'src/directives/path.js',
                 'src/directives/view.js',
                 'src/directives/controls.js',
                 'src/directives/marker.js',

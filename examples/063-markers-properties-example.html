@@ -17,11 +17,6 @@
                     lon: -8.6619,
                     zoom: 9
                 },
-                defaults: {
-                    interactions: {
-                      mouseWheelZoom: false
-                    }
-                },
                 finisterre: {
                     lat: 42.907800500000000000,
                     lon: -9.265031499999964000,
@@ -46,7 +41,7 @@
     </script>
   </head>
   <body ng-controller="DemoController">
-      <openlayers ol-center="center" ol-defaults="defaults" height="400px" width="100%">
+      <openlayers ol-center="center" height="400px" width="100%">
           <ol-marker ol-marker-properties="santiago" ></ol-marker>
           <ol-marker ol-marker-properties="finisterre" ></ol-marker>
       </openlayers>

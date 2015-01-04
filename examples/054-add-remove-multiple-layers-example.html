@@ -15,11 +15,6 @@
                 lon: 7.57,
                 zoom: 3
             },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
-            },
             layers: {
                 mapbox_geographyclass: {
                     visible: true,
@@ -60,7 +55,7 @@
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers ol-center="europe" ol-layers="layers" ol-defaults="defaults" height="400px"></openlayers>
+     <openlayers ol-center="europe" ol-layers="layers" height="400px"></openlayers>
      <h1>Layers TopoJSON example</h1>
 
     <form>

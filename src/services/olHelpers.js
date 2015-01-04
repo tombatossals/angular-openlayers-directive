@@ -460,7 +460,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             return oLayer;
         },
 
-        createMarkerLayer: function() {
+        createVectorLayer: function() {
             return new ol.layer.Vector({
                 source: new ol.source.Vector()
             });
@@ -492,20 +492,35 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             return actualControls;
         },
 
-        createMarker: function(data, viewProjection) {
+        createFeature: function(data, viewProjection) {
             var geometry;
-            if (viewProjection === 'pixel') {
-                geometry = new ol.geom.Point(data.coord);
-            } else {
-                geometry = new ol.geom.Point([data.lon, data.lat])
-                                          .transform(data.projection, viewProjection);
+
+            switch (data.type) {
+                case 'Polygon':
+                    geometry = new ol.geom.Polygon(data.coord);
+                    console.log(data.coord);
+                    break;
+                default:
+                    if (isDefined(data.lat) && isDefined(data.long) && isDefined(data.projection)) {
+                        geometry = new ol.geom.Point([data.lon, data.lat]);
+                    } else {
+                        geometry = new ol.geom.Point(data.coord);
+                    }
+                    break;
             }
 
-            var marker = new ol.Feature({
+            if (isDefined(data.projection)) {
+                geometry = geometry.transform(data.projection, viewProjection);
+            }
+
+            var feature = new ol.Feature({
                 geometry: geometry
             });
-            marker.setStyle(data.style);
-            return marker;
+
+            if (isDefined(data.style)) {
+                feature.setStyle(data.style);
+            }
+            return feature;
         },
 
         createOverlay: function(element, pos) {

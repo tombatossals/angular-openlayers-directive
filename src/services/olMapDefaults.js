@@ -33,6 +33,9 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                 rotate: false,
                 zoom: true
             },
+            interactions: {
+                mouseWheelZoom: false
+            },
             renderer: 'canvas'
         };
     };

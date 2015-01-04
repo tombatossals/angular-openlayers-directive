@@ -67,8 +67,8 @@ angular.module('openlayers-directive')
             var isDefined = olHelpers.isDefined;
             var olMapController = controllers[0];
             var olScope = olMapController.getOpenlayersScope();
-            var createMarkerLayer = olHelpers.createMarkerLayer;
-            var createMarker = olHelpers.createMarker;
+            var createVectorLayer = olHelpers.createVectorLayer;
+            var createFeature = olHelpers.createFeature;
             var createOverlay = olHelpers.createOverlay;
 
             var getLayers;
@@ -86,7 +86,7 @@ angular.module('openlayers-directive')
             olScope.getMap().then(function(map) {
                 getLayers().then(function() {
                     // Create the markers layer and add it to the map
-                    var markerLayer = createMarkerLayer();
+                    var markerLayer = createVectorLayer();
                     map.addLayer(markerLayer);
 
                     var data = getMarkerDefaults();
@@ -106,7 +106,7 @@ angular.module('openlayers-directive')
                         data.lon = scope.lon ? scope.lon : data.lon;
                         data.message = attrs.message;
 
-                        marker = createMarker(data, viewProjection);
+                        marker = createFeature(data, viewProjection);
                         if (!isDefined(marker)) {
                             $log.error('[AngularJS - Openlayers] Received invalid data on ' +
                                        'the marker.');
@@ -129,7 +129,7 @@ angular.module('openlayers-directive')
                             data.lat = properties.lat ? properties.lat : data.lat;
                             data.lon = properties.lon ? properties.lon : data.lon;
 
-                            marker = createMarker(data, viewProjection);
+                            marker = createFeature(data, viewProjection);
                             if (!isDefined(marker)) {
                                 $log.error('[AngularJS - Openlayers] Received invalid data on ' +
                                            'the marker.');
