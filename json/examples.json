@@ -10,10 +10,17 @@
             },
             {
                 "date": "Jan 01, 2015",
+                "url": "center-no-javascript",
+                "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/026-center-no-javascript-example.html",
+                "title": "Center With No Javascript Example",
+                "description": "Positioning the map in a specific location with no-javascript code."
+            },
+            {
+                "date": "Jan 01, 2015",
                 "url": "center",
                 "extUrl": "http://tombatossals.github.io/angular-openlayers-directive/examples/020-center-example.html",
                 "title": "Center  Example",
-                "description": "Positioning the map in a specific location."
+                "description": "Positioning the map in a specific location with bi-directional update."
             },
             {
                 "date": "Jan 01, 2015",

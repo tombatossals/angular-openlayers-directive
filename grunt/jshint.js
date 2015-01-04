@@ -22,6 +22,7 @@ module.exports = function (grunt, options) {
             globals: {
                 angular: false,
                 ol: false,
+                Prism: false,
                 $: false,
                 lvector: false,
                 cartodb: false,

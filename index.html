@@ -12,12 +12,14 @@
 
     <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Open+Sans:300italic,400,300,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="bower_components/semantic-ui/dist/semantic.min.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/prismjs/prism.css">
     <link rel="stylesheet" type="text/css" href="bower_components/openlayers3/build/ol.css">
     <link rel="stylesheet" type="text/css" href="dist/angular-openlayers-directive.css">
     <link rel="stylesheet" type="text/css" href="http://cloud.github.com/downloads/lafeber/world-flags-sprite/flags32.css" />
     <link rel="stylesheet" type="text/css" href="dist/app.css">
 
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/prismjs/prism.js"></script>
     <script src="bower_components/semantic-ui/dist/semantic.min.js"></script>
     <script src="bower_components/angular/angular.min.js"></script>
     <script src="bower_components/angular-sanitize/angular-sanitize.min.js"></script>
@@ -46,7 +48,7 @@
                 <a class="item" ng-class="{ active: section === 'more' }" ng-click="section='more'">More...</a>
             </div>
             <div class="ui selection list">
-                <a class="item" ng-class="{ active: activeExample === example.url }" ng-href="#/{{ section }}/{{ example.url }}" ng-repeat="example in examples[section]">
+                <a class="item" ng-class="{ active: activeExample.url === example.url }" ng-href="#/{{ section }}/{{ example.url }}" ng-repeat="example in examples[section]">
                     <i class="map marker icon"></i>
                     <div class="content">
                         <div ng-bind="($index +1) + '.' + example.title"></div>
