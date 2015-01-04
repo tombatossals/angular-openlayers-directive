@@ -22,11 +22,6 @@
                         params: { LAYERS: 'topp:states' }
                     }
                 }
-            },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
             }
         });
     });

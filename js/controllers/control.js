@@ -9,11 +9,6 @@
                 lon: 7.57,
                 zoom: 4
             },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
-            },
             view: {
                 rotation: -1
             },

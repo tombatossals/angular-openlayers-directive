@@ -42,11 +42,6 @@
                 lon: 2.294694,
                 zoom: 11
             },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
-            },
             markers: markers
         });
 

@@ -16,11 +16,6 @@
                         layer: 'sat'
                     }
                 }
-            },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
             }
         });
     });

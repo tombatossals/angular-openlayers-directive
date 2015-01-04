@@ -9,11 +9,6 @@
                 lon: 31.2586,
                 zoom: 10,
                 bounds: []
-            },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
             }
         });
     });

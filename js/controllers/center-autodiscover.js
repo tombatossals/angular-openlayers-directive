@@ -7,11 +7,6 @@
                 lat: 0,
                 lon: 0,
                 autodiscover: false
-            },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
             }
         });
     });

@@ -14,11 +14,6 @@
                         type: 'OSM'
                     }
                 }
-            },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
             }
         });
 

@@ -16,11 +16,6 @@
                         layer: 'terrain'
                     }
                 }
-            },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
             }
         });
     });

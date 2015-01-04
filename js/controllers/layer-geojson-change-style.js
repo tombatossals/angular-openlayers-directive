@@ -9,11 +9,6 @@
                 lon: -1.27,
                 zoom: 5
             },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
-            },
             layers: {
                 main: {
                     source: {

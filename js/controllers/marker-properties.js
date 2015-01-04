@@ -19,11 +19,6 @@
             changeShowLabelOnMouseOver: function(marker) {
                 marker.label.showOnMouseOver = !marker.label.showOnMouseOver;
             },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
-            },
             markers: {
                 finisterre: {
                     name: 'Finisterre',

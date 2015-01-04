@@ -9,11 +9,6 @@
                 lon: -0.09,
                 zoom: 7
             },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
-            },
             markers: [
                 {
                     name: 'London',

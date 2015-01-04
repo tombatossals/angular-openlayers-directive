@@ -34,11 +34,6 @@
                 main: {
                     source: $scope.sources.mapboxGeographyclass
                 }
-            },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
             }
         });
     });

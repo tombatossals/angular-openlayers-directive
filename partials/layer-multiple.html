@@ -1,5 +1,5 @@
 <div class="ui" ng-controller="LayerMultipleController">
-    <openlayers ol-center="europe" ol-layers="layers" ol-defaults="defaults" height="400px"></openlayers>
+    <openlayers ol-center="europe" ol-layers="layers" height="400px"></openlayers>
     <br />
     <div class="3 ui fluid buttons">
         <div class="ui button" ng-repeat="layer in layers" ng-click="layer.visible=!layer.visible" ng-class="{ active: layer.visible===true }" ng-bind="layer.name"></div>

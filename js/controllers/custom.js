@@ -19,7 +19,7 @@
                     }
                 },
                 interactions: {
-                    mouseWheelZoom: false
+                    mouseWheelZoom: true
                 },
                 controls: {
                     zoom: false,

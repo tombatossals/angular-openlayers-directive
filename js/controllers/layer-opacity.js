@@ -17,11 +17,6 @@
                         url: 'https://api.tiles.mapbox.com/v3/examples.map-i86nkdio.jsonp'
                     }
                 }
-            },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
             }
         });
     });

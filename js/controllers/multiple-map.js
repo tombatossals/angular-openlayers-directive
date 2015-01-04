@@ -13,9 +13,6 @@
                 view: {
                     maxZoom: 11,
                     minZoom: 3
-                },
-                interactions: {
-                    mouseWheelZoom: false
                 }
             },
             layers1: {

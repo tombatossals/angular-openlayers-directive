@@ -8,11 +8,6 @@
                 lat: 51.505,
                 lon: -0.09,
                 zoom: 6
-            },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
             }
         });
     });

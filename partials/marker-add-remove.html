@@ -1,5 +1,5 @@
 <div class="ui" ng-controller="MarkerAddRemoveController">
-    <openlayers ol-center="center" ol-defaults="defaults" height="400px">
+    <openlayers ol-center="center" height="400px">
         <ol-marker ng-repeat="marker in markers | filter: {active: true}" lat="marker.lat" lon="marker.lon"></ol-marker>
     </openlayers>
     <br />

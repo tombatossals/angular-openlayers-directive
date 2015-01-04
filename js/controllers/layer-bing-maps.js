@@ -18,11 +18,6 @@
                         imagerySet: 'Road'
                     }
                 }
-            },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
             }
         });
     });

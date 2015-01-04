@@ -1,5 +1,5 @@
 <div class="ui" ng-controller="LayerStamenMapsController">
-    <openlayers ol-center="newyork" ol-layers="layers" ol-defaults="defaults" height="400px"></openlayers>
+    <openlayers ol-center="newyork" ol-layers="layers" height="400px"></openlayers>
     <br />
     <div class="3 ui fluid buttons">
         <div class="ui button" ng-repeat="layer in [ 'watercolor', 'terrain', 'toner' ]" ng-click="layers.main.source.layer=layer" ng-class="{ active: layers.main.source.layer === layer }" ng-bind="layer"></div>
