@@ -52,8 +52,8 @@ describe('Directive: openlayers', function() {
 
         scope.$digest();
         expect(map.getView().getZoom()).toEqual(defaults.center.zoom);
-        expect(map.getView().getCenter()[0]).toEqual(defaults.center.lon);
-        expect(map.getView().getCenter()[1]).toEqual(defaults.center.lat);
+        expect(map.getView().getCenter()[0]).toBeCloseTo(defaults.center.lon);
+        expect(map.getView().getCenter()[1]).toBeCloseTo(defaults.center.lat);
     });
 
     it('should set default layer if not layers are provided', function() {

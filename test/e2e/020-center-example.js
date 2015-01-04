@@ -2,8 +2,6 @@
 
 describe('Loading 020-center-example.html', function() {
 
-    var ptor;
-    var driver;
     beforeEach(function() {
         browser.get('/examples/020-center-example.html');
     }, 30000);

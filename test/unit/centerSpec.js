@@ -111,7 +111,7 @@ describe('Directive: openlayers center', function() {
         expect(map.getView().getZoom()).toEqual(8);
     });
 
-    fit('should constrain max/min zoom if specified', function() {
+    it('should constrain max/min zoom if specified', function() {
         scope.center = {
             lat: 0.96658,
             lon: 2.02,

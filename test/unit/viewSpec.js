@@ -38,7 +38,7 @@ describe('Directive: openlayers', function() {
         expect(map).toBeDefined();
     });
 
-    it('should set default center if not center is provided', function() {
+    it('should set default center if no center is provided', function() {
         var element = angular.element('<openlayers></openlayers>');
         element = $compile(element)(scope);
         var map;
@@ -47,8 +47,8 @@ describe('Directive: openlayers', function() {
         });
         $rootScope.$digest();
         expect(map.getView().getZoom()).toEqual(1);
-        expect(map.getView().getCenter()[0]).toEqual(0);
-        expect(map.getView().getCenter()[1]).toEqual(0);
+        expect(map.getView().getCenter()[0]).toBeCloseTo(0);
+        expect(map.getView().getCenter()[1]).toBeCloseTo(0);
     });
 
 });
