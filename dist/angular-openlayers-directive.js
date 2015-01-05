@@ -13,7 +13,6 @@ angular.module('openlayers-directive', ['ngSanitize'])
             defaults: '=olDefaults',
             layers: '=olLayers',
             view: '=olView',
-            controls: '=olControls',
             events: '=olEvents'
         },
         template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',
@@ -591,48 +590,28 @@ angular.module('openlayers-directive')
 }]);
 
 angular.module('openlayers-directive')
-       .directive('olControls', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
+       .directive('olControl', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
 
     return {
-        restrict: 'A',
+        restrict: 'E',
         scope: false,
         replace: false,
-        require: 'openlayers',
+        require: '^openlayers',
         link: function(scope, element, attrs, controller) {
             var olScope   = controller.getOpenlayersScope();
+            var control;
 
             olScope.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(olScope);
-                var detectControls = olHelpers.detectControls;
                 var getControlClasses = olHelpers.getControlClasses;
-                var controls = olScope.controls;
-
-                for (var control in defaults.controls) {
-                    if (!controls.hasOwnProperty(control)) {
-                        controls[control] = defaults.controls[control];
-                    }
+                var controlClasses = getControlClasses();
+                if (attrs.name) {
+                    control = new controlClasses[attrs.name]();
+                    map.addControl(control);
                 }
 
-                olScope.$watch('controls', function(controls) {
-                    var actualControls = detectControls(map.getControls());
-                    var controlClasses = getControlClasses();
-                    var c;
-
-                    // Delete the controls removed
-                    for (c in actualControls) {
-                        if (!controls.hasOwnProperty(c) || controls[c] === false) {
-                            map.removeControl(actualControls[c]);
-                            delete actualControls[c];
-                        }
-                    }
-
-                    for (c in controls) {
-                        if ((controls[c] === true || angular.isObject(controls[c])) &&
-                            !actualControls.hasOwnProperty(c)) {
-                            map.addControl(new controlClasses[c]());
-                        }
-                    }
-                }, true);
+                scope.$on('$destroy', function() {
+                    map.removeControl(control);
+                });
             });
         }
     };
@@ -1435,7 +1414,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     console.log(data.coord);
                     break;
                 default:
-                    if (isDefined(data.lat) && isDefined(data.long) && isDefined(data.projection)) {
+                    if (isDefined(data.lat) && isDefined(data.lon) && isDefined(data.projection)) {
                         geometry = new ol.geom.Point([data.lon, data.lat]);
                     } else {
                         geometry = new ol.geom.Point(data.coord);
@@ -1500,9 +1479,9 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                 map: ['click']
             },
             controls: {
-                attribution: true,
+                attribution: false,
                 rotate: false,
-                zoom: true
+                zoom: false
             },
             interactions: {
                 mouseWheelZoom: false
