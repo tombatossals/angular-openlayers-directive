@@ -7,7 +7,6 @@ angular.module('openlayers-directive', ['ngSanitize'])
         scope: {
             center: '=olCenter',
             defaults: '=olDefaults',
-            layers: '=olLayers',
             view: '=olView',
             events: '=olEvents'
         },
@@ -80,11 +79,17 @@ angular.module('openlayers-directive', ['ngSanitize'])
             }
 
             // If no layer is defined, set the default tileLayer
-            if (!isDefined(attrs.olLayers)) {
-                var layer = createLayer(defaults.layers.main);
+            if (!attrs.customLayers) {
+                console.log('hola');
+                var l = {
+                    type: 'Tile',
+                    source: {
+                        type: 'OSM'
+                    }
+                };
+
+                var layer = createLayer(l);
                 map.addLayer(layer);
-                var olLayers = map.getLayers();
-                olData.setLayers(olLayers, attrs.id);
             }
 
             if (!isDefined(attrs.olCenter)) {

@@ -11,7 +11,6 @@ angular.module('openlayers-directive', ['ngSanitize'])
         scope: {
             center: '=olCenter',
             defaults: '=olDefaults',
-            layers: '=olLayers',
             view: '=olView',
             events: '=olEvents'
         },
@@ -84,11 +83,17 @@ angular.module('openlayers-directive', ['ngSanitize'])
             }
 
             // If no layer is defined, set the default tileLayer
-            if (!isDefined(attrs.olLayers)) {
-                var layer = createLayer(defaults.layers.main);
+            if (!attrs.customLayers) {
+                console.log('hola');
+                var l = {
+                    type: 'Tile',
+                    source: {
+                        type: 'OSM'
+                    }
+                };
+
+                var layer = createLayer(l);
                 map.addLayer(layer);
-                var olLayers = map.getLayers();
-                olData.setLayers(olLayers, attrs.id);
             }
 
             if (!isDefined(attrs.olCenter)) {
@@ -288,20 +293,15 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
     };
 }]);
 
-angular.module('openlayers-directive').directive('olLayers', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
-    var _olLayers;
+angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
 
     return {
-        restrict: 'A',
-        scope: false,
-        replace: false,
-        require: 'openlayers',
-        controller: function() {
-            _olLayers = $q.defer();
-            this.getLayers = function() {
-                return _olLayers.promise;
-            };
+        restrict: 'E',
+        scope: {
+            properties: '=olLayerProperties'
         },
+        replace: false,
+        require: '^openlayers',
         link: function(scope, element, attrs, controller) {
             var isDefined   = olHelpers.isDefined;
             var equals      = olHelpers.equals;
@@ -310,127 +310,96 @@ angular.module('openlayers-directive').directive('olLayers', ["$log", "$q", "olD
             var createLayer = olHelpers.createLayer;
             var createStyle = olHelpers.createStyle;
             var isBoolean   = olHelpers.isBoolean;
+            var isNumber    = olHelpers.isNumber;
 
             olScope.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(olScope);
                 var projection = map.getView().getProjection();
+                var olLayer;
 
-                olScope.$watch('layers', function(layers, oldLayers) {
-                    if (!isDefined(layers)) {
-                        $log.warn('[AngularJS - OpenLayers] At least one layer has to be defined.');
-                        layers = angular.copy(defaults.layers);
-                    }
+                console.log(scope.properties);
 
-                    var layer = layers[Object.keys(layers)[0]];
-                    var name;
-                    if (!isDefined(layer) || !isDefined(layer.source) || !isDefined(layer.source.type)) {
-                        $log.warn('[AngularJS - OpenLayers] At least one layer has to be defined.');
-                        layers = angular.copy(defaults.layers);
-                    }
+                if (!isDefined(scope.properties) ||
+                    !isDefined(scope.properties.source) ||
+                    !isDefined(scope.properties.source.type)) {
+                    $log.warn('[AngularJS - OpenLayers] Layer definition is not valid.');
+                    return;
+                }
 
-                    var removeLayerFromMap = function(layer, map) {
-                        var activeLayers = map.getLayers();
-                        activeLayers.forEach(function(l) {
-                            if (l === layer) {
-                                map.removeLayer(layer);
+                scope.$on('$destroy', function() {
+                    map.removeLayer(olLayer);
+                });
+
+                if (!isDefined(scope.properties.visible)) {
+                    scope.properties.visible = true;
+                }
+
+                if (!isDefined(scope.properties.opacity)) {
+                    scope.properties.opacity = 1;
+                }
+
+                scope.$watch('properties', function(properties, oldProperties) {
+
+                    var olLayer;
+                    var style;
+
+                    if (!isDefined(olLayer)) {
+                        olLayer = createLayer(properties, projection);
+                        map.addLayer(olLayer);
+
+                        if (isBoolean(properties.visible)) {
+                            olLayer.setVisible(properties.visible);
+                        }
+
+                        if (properties.opacity) {
+                            olLayer.setOpacity(properties.opacity);
+                        }
+
+                        if (properties.style) {
+                            if (!angular.isFunction(properties.style)) {
+                                style = createStyle(properties.style);
+                            } else {
+                                style = properties.style;
                             }
-                        });
-                    };
-
-                    // Delete non existent layers from the map
-                    for (name in olLayers) {
-                        layer = olLayers[name];
-                        if (!layers.hasOwnProperty(name)) {
-                            // Remove from the map if it's on it
-                            removeLayerFromMap(layer, map);
-
-                            delete olLayers[name];
-                        }
-                    }
-
-                    // add new layers
-                    for (name in layers) {
-                        layer = layers[name];
-                        var olLayer;
-                        var style;
-
-                        if (!isDefined(layer.visible)) {
-                            layer.visible = true;
+                            olLayer.setStyle(properties);
                         }
 
-                        if (!isDefined(layer.opacity)) {
-                            layer.opacity = 1;
-                        }
+                    } else {
+                        if (isDefined(oldProperties) && !equals(properties, oldProperties)) {
+                            if (!equals(properties.source, oldProperties.source)) {
+                                var layerCollection = map.getLayers();
 
-                        if (!olLayers.hasOwnProperty(name)) {
-                            olLayer = createLayer(layers[name], projection);
-                            if (isDefined(olLayer)) {
-                                olLayers[name] = olLayer;
-                                map.addLayer(olLayer);
-
-                                if (isBoolean(layer.visible)) {
-                                    olLayer.setVisible(layer.visible);
-                                }
-
-                                if (layer.opacity) {
-                                    olLayer.setOpacity(layer.opacity);
-                                }
-
-                                if (layer.style) {
-                                    if (!angular.isFunction(layer.style)) {
-                                        style = createStyle(layer.style);
-                                    } else {
-                                        style = layer.style;
-                                    }
-                                    olLayer.setStyle(style);
-                                }
-                            }
-                        } else {
-                            layer = layers[name];
-                            var oldLayer = oldLayers[name];
-                            olLayer = olLayers[name];
-                            if (isDefined(oldLayer) && !equals(layer, oldLayer)) {
-                                if (!equals(layer.source, oldLayer.source)) {
-
-                                    var layerCollection = map.getLayers();
-
-                                    for (var j = 0; j < layerCollection.getLength(); j++) {
-                                        var l = layerCollection.item(j);
-                                        if (l === olLayer) {
-                                            layerCollection.removeAt(j);
-                                            olLayer = createLayer(layer, projection);
-                                            if (isDefined(olLayer)) {
-                                                olLayers[name] = olLayer;
-                                                layerCollection.insertAt(j, olLayer);
-                                            }
+                                for (var j = 0; j < layerCollection.getLength(); j++) {
+                                    var l = layerCollection.item(j);
+                                    if (l === olLayer) {
+                                        layerCollection.removeAt(j);
+                                        olLayer = createLayer(properties, projection);
+                                        if (isDefined(olLayer)) {
+                                            olLayers[name] = olLayer;
+                                            layerCollection.insertAt(j, olLayer);
                                         }
                                     }
                                 }
+                            }
 
-                                if (isBoolean(layer.visible) && layer.visible !== oldLayer.visible) {
-                                    olLayer.setVisible(layer.visible);
-                                }
+                            if (isBoolean(properties.visible) && properties.visible !== oldProperties.visible) {
+                                olLayer.setVisible(properties.visible);
+                            }
 
-                                if (layer.opacity && layer.opacity !== oldLayer.opacity) {
-                                    olLayer.setOpacity(layer.opacity);
-                                }
+                            if (isNumber(properties.opacity) && properties.opacity !== oldProperties.opacity) {
+                                olLayer.setOpacity(properties.opacity);
+                            }
 
-                                if (layer.style && !equals(layer.style, oldLayer.style)) {
-                                    if (!angular.isFunction(layer.style)) {
-                                        style = createStyle(layer.style);
-                                    } else {
-                                        style = layer.style;
-                                    }
-                                    olLayer.setStyle(style);
+                            if (isDefined(properties.style) && !equals(properties.style, oldProperties.style)) {
+                                if (!angular.isFunction(properties.style)) {
+                                    style = createStyle(properties.style);
+                                } else {
+                                    style = properties.style;
                                 }
+                                olLayer.setStyle(properties);
                             }
                         }
                     }
-                    // We can resolve the layer promises
-                    _olLayers.resolve(olLayers);
-                    olData.setLayers(olLayers, attrs.id);
                 }, true);
-
             });
         }
     };
@@ -1457,14 +1426,6 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                 maxZoom: undefined,
                 rotation: 0,
                 extent: undefined
-            },
-            layers: {
-                main: {
-                    type: 'Tile',
-                    source: {
-                        type: 'OSM'
-                    }
-                }
             },
             center: {
                 lat: 0,

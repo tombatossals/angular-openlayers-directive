@@ -8,14 +8,6 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                 rotation: 0,
                 extent: undefined
             },
-            layers: {
-                main: {
-                    type: 'Tile',
-                    source: {
-                        type: 'OSM'
-                    }
-                }
-            },
             center: {
                 lat: 0,
                 lon: 0,
