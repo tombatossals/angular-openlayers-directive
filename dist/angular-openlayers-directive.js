@@ -194,7 +194,7 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
                 }
 
                 var geolocation;
-                olScope.$watch('center', function(center) {
+                olScope.$watchCollection('center', function(center) {
 
                     if (!center) {
                         return;
@@ -247,7 +247,7 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
                     if (view.getZoom() !== center.zoom) {
                         setZoom(view, center.zoom, map);
                     }
-                }, true);
+                });
 
                 map.on('moveend', function() {
                     safeApply(olScope, function(scope) {
@@ -572,11 +572,11 @@ angular.module('openlayers-directive')
                 var mapView = createView(view);
                 map.setView(mapView);
 
-                olScope.$watch('view', function(view) {
+                olScope.$watchCollection('view', function(view) {
                     if (isNumber(view.rotation)) {
                         mapView.setRotation(view.rotation);
                     }
-                }, true);
+                });
 
                 mapView.on('change:rotation', function() {
                     safeApply(olScope, function(scope) {
