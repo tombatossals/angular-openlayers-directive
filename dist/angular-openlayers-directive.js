@@ -325,17 +325,18 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olDa
                     map.removeLayer(olLayer);
                 });
 
-                if (!isDefined(scope.properties.visible)) {
-                    scope.properties.visible = true;
-                }
-
-                if (!isDefined(scope.properties.opacity)) {
-                    scope.properties.opacity = 1;
-                }
-
                 scope.$watch('properties', function(properties, oldProperties) {
 
                     var style;
+
+                    if (!isDefined(properties.visible)) {
+                        properties.visible = true;
+                    }
+
+                    if (!isDefined(properties.opacity)) {
+                        properties.opacity = 1;
+                    }
+
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
                         map.addLayer(olLayer);
@@ -1376,18 +1377,17 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             switch (data.type) {
                 case 'Polygon':
                     geometry = new ol.geom.Polygon(data.coord);
-                    console.log(data.coord);
                     break;
                 default:
-                    if (isDefined(data.lat) && isDefined(data.lon) && isDefined(data.projection)) {
-                        geometry = new ol.geom.Point([data.lon, data.lat]);
-                    } else {
+                    if (isDefined(data.coord) && data.projection === 'pixel') {
                         geometry = new ol.geom.Point(data.coord);
+                    } else {
+                        geometry = new ol.geom.Point([data.lon, data.lat]);
                     }
                     break;
             }
 
-            if (isDefined(data.projection)) {
+            if (isDefined(data.projection) && data.projection !== 'pixel') {
                 geometry = geometry.transform(data.projection, viewProjection);
             }
 
