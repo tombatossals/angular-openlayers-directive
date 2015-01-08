@@ -1411,18 +1411,17 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
             switch (data.type) {
                 case 'Polygon':
                     geometry = new ol.geom.Polygon(data.coord);
-                    console.log(data.coord);
                     break;
                 default:
-                    if (isDefined(data.lat) && isDefined(data.lon) && isDefined(data.projection)) {
-                        geometry = new ol.geom.Point([data.lon, data.lat]);
-                    } else {
+                    if (isDefined(data.coord) && data.projection === 'pixel') {
                         geometry = new ol.geom.Point(data.coord);
+                    } else {
+                        geometry = new ol.geom.Point([data.lon, data.lat]);
                     }
                     break;
             }
 
-            if (isDefined(data.projection)) {
+            if (isDefined(data.projection) && data.projection !== 'pixel') {
                 geometry = geometry.transform(data.projection, viewProjection);
             }
 
