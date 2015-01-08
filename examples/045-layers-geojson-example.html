@@ -15,12 +15,7 @@
                 lon: 7.57,
                 zoom: 5
             },
-            layers: {
-                main: {
-                    source: {
-                        type: "OSM"
-                    }
-                },
+            geojson: {
                 ita: {
                     source: {
                         type: 'GeoJSON',
@@ -87,7 +82,9 @@
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers ol-center="europe" ol-layers="layers" height="400px"></openlayers>
+     <openlayers ol-center="europe" height="400px">
+         <ol-layer ol-layer-properties="layer" ng-repeat="layer in geojson"></ol-layer>
+     </openlayers>
      <h1>Layers GeoJSON example</h1>
      <p>You can load GeoJSON as new layers easily, look at the source of the <strong>layers</strong> attribute:</p>
      <pre ng-bind="layers | json"></pre>

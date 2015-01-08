@@ -144,11 +144,12 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                 break;
             case 'OSM':
                 if (source.attribution) {
+                    var attributions = [];
+                    if (isDefined(source.attribution)) {
+                        attributions.unshift(new ol.Attribution({ html: source.attribution }));
+                    }
                     oSource = new ol.source.OSM({
-                        attributions: [
-                          new ol.Attribution({ html: source.attribution }),
-                          ol.source.OSM.DATA_ATTRIBUTION
-                        ]
+                        attributions: attributions
                     });
                 } else {
                     oSource = new ol.source.OSM();

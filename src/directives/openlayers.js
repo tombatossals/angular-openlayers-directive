@@ -80,7 +80,6 @@ angular.module('openlayers-directive', ['ngSanitize'])
 
             // If no layer is defined, set the default tileLayer
             if (!attrs.customLayers) {
-                console.log('hola');
                 var l = {
                     type: 'Tile',
                     source: {

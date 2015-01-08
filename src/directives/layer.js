@@ -10,7 +10,6 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
         link: function(scope, element, attrs, controller) {
             var isDefined   = olHelpers.isDefined;
             var equals      = olHelpers.equals;
-            var olLayers    = {};
             var olScope     = controller.getOpenlayersScope();
             var createLayer = olHelpers.createLayer;
             var createStyle = olHelpers.createStyle;
@@ -20,8 +19,6 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
             olScope.getMap().then(function(map) {
                 var projection = map.getView().getProjection();
                 var olLayer;
-
-                console.log(scope.properties);
 
                 if (!isDefined(scope.properties) ||
                     !isDefined(scope.properties.source) ||
@@ -44,9 +41,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
 
                 scope.$watch('properties', function(properties, oldProperties) {
 
-                    var olLayer;
                     var style;
-
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
                         map.addLayer(olLayer);
@@ -79,7 +74,6 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                                         layerCollection.removeAt(j);
                                         olLayer = createLayer(properties, projection);
                                         if (isDefined(olLayer)) {
-                                            olLayers[name] = olLayer;
                                             layerCollection.insertAt(j, olLayer);
                                         }
                                     }
@@ -90,8 +84,10 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                                 olLayer.setVisible(properties.visible);
                             }
 
-                            if (isNumber(properties.opacity) && properties.opacity !== oldProperties.opacity) {
-                                olLayer.setOpacity(properties.opacity);
+                            if (properties.opacity !== oldProperties.opacity) {
+                                if (isNumber(properties.opacity) || isNumber(parseFloat(properties.opacity))) {
+                                    olLayer.setOpacity(properties.opacity);
+                                }
                             }
 
                             if (isDefined(properties.style) && !equals(properties.style, oldProperties.style)) {
