@@ -31,17 +31,18 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                     map.removeLayer(olLayer);
                 });
 
-                if (!isDefined(scope.properties.visible)) {
-                    scope.properties.visible = true;
-                }
-
-                if (!isDefined(scope.properties.opacity)) {
-                    scope.properties.opacity = 1;
-                }
-
                 scope.$watch('properties', function(properties, oldProperties) {
 
                     var style;
+
+                    if (!isDefined(properties.visible)) {
+                        properties.visible = true;
+                    }
+
+                    if (!isDefined(properties.opacity)) {
+                        properties.opacity = 1;
+                    }
+
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
                         map.addLayer(olLayer);
