@@ -90,7 +90,7 @@ angular.module('openlayers-directive', ['ngSanitize'])
                         type: 'OSM'
                     }
                 };
-                var layer = createLayer(l);
+                var layer = createLayer(l, view.getProjection());
                 map.addLayer(layer);
             }
 
@@ -332,24 +332,22 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olDa
                     return;
                 }
 
-                if (!isDefined(scope.properties) || !isDefined(scope.properties.source) ||
-                    !isDefined(scope.properties.source.type)) {
-                    $log.warn('[AngularJS - OpenLayers] Layer definition is not valid.');
-                    return;
-                }
-
                 scope.$watch('properties', function(properties, oldProperties) {
-
-                    var style;
+                    if (!isDefined(properties.source) || !isDefined(properties.source.type)) {
+                        return;
+                    }
 
                     if (!isDefined(properties.visible)) {
                         properties.visible = true;
+                        return;
                     }
 
                     if (!isDefined(properties.opacity)) {
                         properties.opacity = 1;
+                        return;
                     }
 
+                    var style;
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
                         map.addLayer(olLayer);
@@ -368,7 +366,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olDa
                             } else {
                                 style = properties.style;
                             }
-                            olLayer.setStyle(properties);
+                            olLayer.setStyle(style);
                         }
 
                     } else {
@@ -404,7 +402,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olDa
                                 } else {
                                     style = properties.style;
                                 }
-                                olLayer.setStyle(properties);
+                                olLayer.setStyle(style);
                             }
                         }
                     }
@@ -1333,22 +1331,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     oLayer = new ol.layer.Heatmap({ source: oSource });
                     break;
                 case 'Vector':
-                    var style;
-                    if (layer.style) {
-                        if (angular.isFunction(layer.style)) {
-                            style = layer.style;
-                        } else {
-                            style = createStyle(layer.style);
-                        }
-                    }
-
-                    oLayer = new ol.layer.Vector({ source: oSource, style: style });
+                    oLayer = new ol.layer.Vector({ source: oSource });
                     break;
             }
 
-            if (angular.isNumber(layer.opacity)) {
-                oLayer.setOpacity(layer.opacity);
-            }
             return oLayer;
         },
 

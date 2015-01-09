@@ -442,22 +442,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     oLayer = new ol.layer.Heatmap({ source: oSource });
                     break;
                 case 'Vector':
-                    var style;
-                    if (layer.style) {
-                        if (angular.isFunction(layer.style)) {
-                            style = layer.style;
-                        } else {
-                            style = createStyle(layer.style);
-                        }
-                    }
-
-                    oLayer = new ol.layer.Vector({ source: oSource, style: style });
+                    oLayer = new ol.layer.Vector({ source: oSource });
                     break;
             }
 
-            if (angular.isNumber(layer.opacity)) {
-                oLayer.setOpacity(layer.opacity);
-            }
             return oLayer;
         },
 

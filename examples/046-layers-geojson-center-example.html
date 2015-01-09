@@ -15,17 +15,10 @@
                 lon: 78.86,
                 zoom: 3
             },
-            layers: {
-                main: {
-                    source: {
-                        type: "OSM"
-                    }
-                },
-                geojson: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'json/JPN.geo.json'
-                    }
+            geojson: {
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/JPN.geo.json'
                 }
             }
         });
@@ -43,7 +36,9 @@
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers ol-center="japan" ol-layers="layers" height="400px"></openlayers>
+     <openlayers ol-center="japan" height="400px">
+         <ol-layer ol-layer-properties="geojson"></ol-layer>
+     </openlayers>
      <h1>Layers center to GeoJSON example</h1>
      <p>Click the button to center the map to the extent of the Japan GeoJSON Vector Layer.</p>
      <input type="button" value="Center to Japan" ng-click="centerJSON()" />

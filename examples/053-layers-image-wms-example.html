@@ -15,18 +15,11 @@
                     lon: -96.67,
                     zoom: 5
                 },
-                layers: {
-                    main: {
-                        source: {
-                            type: 'OSM'
-                        }
-                    },
-                    wms: {
-                        source: {
-                            type: 'ImageWMS',
-                            url: 'http://demo.opengeo.org/geoserver/wms',
-                            params: { LAYERS: 'topp:states' }
-                        }
+                wms: {
+                    source: {
+                        type: 'ImageWMS',
+                        url: 'http://demo.opengeo.org/geoserver/wms',
+                        params: { LAYERS: 'topp:states' }
                     }
                 }
             });
@@ -34,7 +27,9 @@
     </script>
   </head>
   <body ng-controller="DemoController">
-    <openlayers ol-center="usa" ol-layers="layers" height="400px"></openlayers>
+    <openlayers ol-center="usa" height="400px">
+        <ol-layer ol-layer-properties="wms"></ol-layer>
+    </openlayers>
 
     <h1>WMS Image Layer</h1>
     <p>This map uses a WMS image layer from a geoserver.</p>

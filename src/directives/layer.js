@@ -39,24 +39,22 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                     return;
                 }
 
-                if (!isDefined(scope.properties) || !isDefined(scope.properties.source) ||
-                    !isDefined(scope.properties.source.type)) {
-                    $log.warn('[AngularJS - OpenLayers] Layer definition is not valid.');
-                    return;
-                }
-
                 scope.$watch('properties', function(properties, oldProperties) {
-
-                    var style;
+                    if (!isDefined(properties.source) || !isDefined(properties.source.type)) {
+                        return;
+                    }
 
                     if (!isDefined(properties.visible)) {
                         properties.visible = true;
+                        return;
                     }
 
                     if (!isDefined(properties.opacity)) {
                         properties.opacity = 1;
+                        return;
                     }
 
+                    var style;
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
                         map.addLayer(olLayer);
@@ -75,7 +73,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                             } else {
                                 style = properties.style;
                             }
-                            olLayer.setStyle(properties);
+                            olLayer.setStyle(style);
                         }
 
                     } else {
@@ -111,7 +109,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                                 } else {
                                     style = properties.style;
                                 }
-                                olLayer.setStyle(properties);
+                                olLayer.setStyle(style);
                             }
                         }
                     }
