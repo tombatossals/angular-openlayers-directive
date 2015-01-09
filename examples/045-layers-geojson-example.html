@@ -15,68 +15,70 @@
                 lon: 7.57,
                 zoom: 5
             },
-            geojson: {
-                ita: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'json/ITA.geo.json'
-                    },
-                    style: {
-                        fill: {
-                            color: 'rgba(255, 0, 255, 0.6)'
-                        },
-                        stroke: {
-                            color: 'white',
-                            width: 3
-                        }
-                    }
+            geojson: [ {
+                name: 'Italy',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/ITA.geo.json'
                 },
-                fra: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'json/FRA.geo.json'
+                style: {
+                    fill: {
+                        color: 'rgba(255, 0, 255, 0.6)'
                     },
-                    style: {
-                        fill: {
-                            color: 'rgba(0, 255, 0, 0.6)'
-                        },
-                        stroke: {
-                            color: 'white',
-                            width: 3
-                        }
-                    }
-                },
-                esp: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'json/ESP.geo.json'
-                    },
-                    style: {
-                        fill: {
-                            color: 'rgba(255, 0, 0, 0.6)'
-                        },
-                        stroke: {
-                            color: 'white',
-                            width: 3
-                        }
-                    }
-                },
-                prt: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'json/PRT.geo.json'
-                    },
-                    style: {
-                        fill: {
-                            color: 'rgba(0, 0, 255, 0.6)'
-                        },
-                        stroke: {
-                            color: 'white',
-                            width: 3
-                        }
+                    stroke: {
+                        color: 'white',
+                        width: 3
                     }
                 }
-            }
+            },
+            {
+                name: 'France',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/FRA.geo.json'
+                },
+                style: {
+                    fill: {
+                        color: 'rgba(0, 255, 0, 0.6)'
+                    },
+                    stroke: {
+                        color: 'white',
+                        width: 3
+                    }
+                }
+            },
+            {
+                name: 'Spain',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/ESP.geo.json'
+                },
+                style: {
+                    fill: {
+                        color: 'rgba(255, 0, 0, 0.6)'
+                    },
+                    stroke: {
+                        color: 'white',
+                        width: 3
+                    }
+                }
+            },
+            {
+                name: 'Portugal',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/PRT.geo.json'
+                },
+                style: {
+                    fill: {
+                        color: 'rgba(0, 0, 255, 0.6)'
+                    },
+                    stroke: {
+                        color: 'white',
+                        width: 3
+                    }
+                }
+            }]
         });
       } ]);
       </script>

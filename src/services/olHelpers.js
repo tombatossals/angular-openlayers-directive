@@ -192,7 +192,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     return;
                 }
 
-                if (source.url) {
+                if (isDefined(source.url)) {
                     oSource = new ol.source.GeoJSON({
                         projection: projection,
                         url: source.url

@@ -90,7 +90,6 @@ angular.module('openlayers-directive', ['ngSanitize'])
                         type: 'OSM'
                     }
                 };
-
                 var layer = createLayer(l);
                 map.addLayer(layer);
             }
@@ -314,16 +313,30 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olDa
                 var projection = map.getView().getProjection();
                 var olLayer;
 
-                if (!isDefined(scope.properties) ||
-                    !isDefined(scope.properties.source) ||
+                scope.$on('$destroy', function() {
+                    map.removeLayer(olLayer);
+                });
+
+                if (!isDefined(scope.properties)) {
+                    if (isDefined(attrs.sourceType) && isDefined(attrs.sourceUrl)) {
+                        var l = {
+                            source: {
+                                url: attrs.sourceUrl,
+                                type: attrs.sourceType
+                            }
+                        };
+
+                        olLayer = createLayer(l, projection);
+                        map.addLayer(olLayer);
+                    }
+                    return;
+                }
+
+                if (!isDefined(scope.properties) || !isDefined(scope.properties.source) ||
                     !isDefined(scope.properties.source.type)) {
                     $log.warn('[AngularJS - OpenLayers] Layer definition is not valid.');
                     return;
                 }
-
-                scope.$on('$destroy', function() {
-                    map.removeLayer(olLayer);
-                });
 
                 scope.$watch('properties', function(properties, oldProperties) {
 
@@ -1070,7 +1083,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     return;
                 }
 
-                if (source.url) {
+                if (isDefined(source.url)) {
                     oSource = new ol.source.GeoJSON({
                         projection: projection,
                         url: source.url
@@ -1110,7 +1123,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     url: source.url,
                     projection: source.projection,
                     radius: source.radius,
-                    extractStyles: false,
+                    extractStyles: false
                 });
                 break;
             case 'Stamen':

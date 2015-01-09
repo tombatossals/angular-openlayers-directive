@@ -20,16 +20,30 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                 var projection = map.getView().getProjection();
                 var olLayer;
 
-                if (!isDefined(scope.properties) ||
-                    !isDefined(scope.properties.source) ||
+                scope.$on('$destroy', function() {
+                    map.removeLayer(olLayer);
+                });
+
+                if (!isDefined(scope.properties)) {
+                    if (isDefined(attrs.sourceType) && isDefined(attrs.sourceUrl)) {
+                        var l = {
+                            source: {
+                                url: attrs.sourceUrl,
+                                type: attrs.sourceType
+                            }
+                        };
+
+                        olLayer = createLayer(l, projection);
+                        map.addLayer(olLayer);
+                    }
+                    return;
+                }
+
+                if (!isDefined(scope.properties) || !isDefined(scope.properties.source) ||
                     !isDefined(scope.properties.source.type)) {
                     $log.warn('[AngularJS - OpenLayers] Layer definition is not valid.');
                     return;
                 }
-
-                scope.$on('$destroy', function() {
-                    map.removeLayer(olLayer);
-                });
 
                 scope.$watch('properties', function(properties, oldProperties) {
 
