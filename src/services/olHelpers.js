@@ -232,7 +232,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     url: source.url,
                     projection: source.projection,
                     radius: source.radius,
-                    extractStyles: false,
+                    extractStyles: false
                 });
                 break;
             case 'Stamen':
