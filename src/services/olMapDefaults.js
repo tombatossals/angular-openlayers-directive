@@ -8,14 +8,6 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                 rotation: 0,
                 extent: undefined
             },
-            layers: {
-                main: {
-                    type: 'Tile',
-                    source: {
-                        type: 'OSM'
-                    }
-                }
-            },
             center: {
                 lat: 0,
                 lon: 0,
@@ -29,9 +21,9 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                 map: ['click']
             },
             controls: {
-                attribution: false,
+                attribution: true,
                 rotate: false,
-                zoom: false
+                zoom: true
             },
             interactions: {
                 mouseWheelZoom: false

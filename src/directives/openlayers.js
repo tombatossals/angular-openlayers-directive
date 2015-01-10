@@ -7,11 +7,10 @@ angular.module('openlayers-directive', ['ngSanitize'])
         scope: {
             center: '=olCenter',
             defaults: '=olDefaults',
-            layers: '=olLayers',
             view: '=olView',
             events: '=olEvents'
         },
-        template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',
+        template: '<div class="angular-openlayers-map" ng-transclude></div>',
         controller: function($scope) {
             var _map = $q.defer();
             $scope.getMap = function() {
@@ -80,11 +79,18 @@ angular.module('openlayers-directive', ['ngSanitize'])
             }
 
             // If no layer is defined, set the default tileLayer
-            if (!isDefined(attrs.olLayers)) {
-                var layer = createLayer(defaults.layers.main);
+            if (!attrs.customLayers) {
+                var l = {
+                    type: 'Tile',
+                    source: {
+                        type: 'OSM'
+                    }
+                };
+                var layer = createLayer(l, view.getProjection());
                 map.addLayer(layer);
-                var olLayers = map.getLayers();
-                olData.setLayers(olLayers, attrs.id);
+                olData.setLayers({ osm: layer}, attrs.id);
+            } else {
+                olData.setLayers({}, attrs.id);
             }
 
             if (!isDefined(attrs.olCenter)) {

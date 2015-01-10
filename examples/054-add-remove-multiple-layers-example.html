@@ -15,25 +15,29 @@
                 lon: 7.57,
                 zoom: 3
             },
-            layers: {
-                mapbox_geographyclass: {
-                    visible: true,
+            layers: [
+                {
+                    name: 'Mapbox',
+                    active: true,
                     opacity: 0.5,
                     source: {
                         type: 'TileJSON',
                         url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
                     }
                 },
-
-                bing: {
+                {
+                    name: 'Bing',
+                    active: true,
+                    opacity: 0.5,
                     source: {
                         type: 'BingMaps',
                         key: 'Aj6XtE1Q1rIvehmjn2Rh1LR2qvMGZ-8vPS9Hn3jCeUiToM77JFnf-kFRzyMELDol',
                         imagerySet: 'Road'
                     }
                 },
-
-                topojson: {
+                {
+                    name: 'TopoJSON',
+                    active: false,
                     source: {
                         type: 'TopoJSON',
                         url: 'json/world.topo.json'
@@ -48,20 +52,22 @@
                         }
                     }
                 }
-            }
+            ]
         });
 
       } ]);
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers ol-center="europe" ol-layers="layers" height="400px"></openlayers>
-     <h1>Layers TopoJSON example</h1>
+     <openlayers ol-center="europe" custom-layers="true" height="400px">
+         <ol-layer ol-layer-properties="layer" ng-repeat="layer in layers|filter:{active:true}"></ol-layer>
+     </openlayers>
+     <h1>Adding/removing layers example</h1>
 
     <form>
-        <div ng-repeat="(key, layer) in layers">
-            <input type="checkbox" ng-model="layer.visible" />
-            {{ key }}
+        <div ng-repeat="layer in layers">
+            <input type="checkbox" ng-model="layer.active" />
+            {{ layer.name }}
             <input type="range" min="0" max="1" step="0.01" ng-model="layer.opacity">
             <input type="button" ng-if="layer.source.type === 'BingMaps'" value="Road Map" ng-click="layer.source.imagerySet='Road'" />
             <input type="button" ng-if="layer.source.type === 'BingMaps'" value="Aerial Map" ng-click="layer.source.imagerySet='Aerial'" />

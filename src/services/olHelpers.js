@@ -144,11 +144,12 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                 break;
             case 'OSM':
                 if (source.attribution) {
+                    var attributions = [];
+                    if (isDefined(source.attribution)) {
+                        attributions.unshift(new ol.Attribution({ html: source.attribution }));
+                    }
                     oSource = new ol.source.OSM({
-                        attributions: [
-                          new ol.Attribution({ html: source.attribution }),
-                          ol.source.OSM.DATA_ATTRIBUTION
-                        ]
+                        attributions: attributions
                     });
                 } else {
                     oSource = new ol.source.OSM();
@@ -191,7 +192,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     return;
                 }
 
-                if (source.url) {
+                if (isDefined(source.url)) {
                     oSource = new ol.source.GeoJSON({
                         projection: projection,
                         url: source.url
@@ -441,22 +442,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     oLayer = new ol.layer.Heatmap({ source: oSource });
                     break;
                 case 'Vector':
-                    var style;
-                    if (layer.style) {
-                        if (angular.isFunction(layer.style)) {
-                            style = layer.style;
-                        } else {
-                            style = createStyle(layer.style);
-                        }
-                    }
-
-                    oLayer = new ol.layer.Vector({ source: oSource, style: style });
+                    oLayer = new ol.layer.Vector({ source: oSource });
                     break;
             }
 
-            if (angular.isNumber(layer.opacity)) {
-                oLayer.setOpacity(layer.opacity);
-            }
             return oLayer;
         },
 

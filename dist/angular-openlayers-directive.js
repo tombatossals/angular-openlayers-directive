@@ -11,11 +11,10 @@ angular.module('openlayers-directive', ['ngSanitize'])
         scope: {
             center: '=olCenter',
             defaults: '=olDefaults',
-            layers: '=olLayers',
             view: '=olView',
             events: '=olEvents'
         },
-        template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',
+        template: '<div class="angular-openlayers-map" ng-transclude></div>',
         controller: ["$scope", function($scope) {
             var _map = $q.defer();
             $scope.getMap = function() {
@@ -84,11 +83,18 @@ angular.module('openlayers-directive', ['ngSanitize'])
             }
 
             // If no layer is defined, set the default tileLayer
-            if (!isDefined(attrs.olLayers)) {
-                var layer = createLayer(defaults.layers.main);
+            if (!attrs.customLayers) {
+                var l = {
+                    type: 'Tile',
+                    source: {
+                        type: 'OSM'
+                    }
+                };
+                var layer = createLayer(l, view.getProjection());
                 map.addLayer(layer);
-                var olLayers = map.getLayers();
-                olData.setLayers(olLayers, attrs.id);
+                olData.setLayers({ osm: layer}, attrs.id);
+            } else {
+                olData.setLayers({}, attrs.id);
             }
 
             if (!isDefined(attrs.olCenter)) {
@@ -288,149 +294,135 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
     };
 }]);
 
-angular.module('openlayers-directive').directive('olLayers', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
-    var _olLayers;
+angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
 
     return {
-        restrict: 'A',
-        scope: false,
-        replace: false,
-        require: 'openlayers',
-        controller: function() {
-            _olLayers = $q.defer();
-            this.getLayers = function() {
-                return _olLayers.promise;
-            };
+        restrict: 'E',
+        scope: {
+            properties: '=olLayerProperties'
         },
+        replace: false,
+        require: '^openlayers',
         link: function(scope, element, attrs, controller) {
             var isDefined   = olHelpers.isDefined;
             var equals      = olHelpers.equals;
-            var olLayers    = {};
             var olScope     = controller.getOpenlayersScope();
             var createLayer = olHelpers.createLayer;
             var createStyle = olHelpers.createStyle;
             var isBoolean   = olHelpers.isBoolean;
+            var isNumber    = olHelpers.isNumber;
 
             olScope.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(olScope);
                 var projection = map.getView().getProjection();
+                var olLayer;
 
-                olScope.$watch('layers', function(layers, oldLayers) {
-                    if (!isDefined(layers)) {
-                        $log.warn('[AngularJS - OpenLayers] At least one layer has to be defined.');
-                        layers = angular.copy(defaults.layers);
-                    }
+                scope.$on('$destroy', function() {
+                    map.removeLayer(olLayer);
+                });
 
-                    var layer = layers[Object.keys(layers)[0]];
-                    var name;
-                    if (!isDefined(layer) || !isDefined(layer.source) || !isDefined(layer.source.type)) {
-                        $log.warn('[AngularJS - OpenLayers] At least one layer has to be defined.');
-                        layers = angular.copy(defaults.layers);
-                    }
+                if (!isDefined(scope.properties)) {
+                    if (isDefined(attrs.sourceType) && isDefined(attrs.sourceUrl)) {
+                        var l = {
+                            source: {
+                                url: attrs.sourceUrl,
+                                type: attrs.sourceType
+                            }
+                        };
 
-                    var removeLayerFromMap = function(layer, map) {
-                        var activeLayers = map.getLayers();
-                        activeLayers.forEach(function(l) {
-                            if (l === layer) {
-                                map.removeLayer(layer);
+                        olLayer = createLayer(l, projection);
+                        map.addLayer(olLayer);
+                        olData.getLayers().then(function(layers) {
+                            if (isDefined(attrs.name)) {
+                                layers[attrs.name] = olLayer;
                             }
                         });
-                    };
+                    }
+                    return;
+                }
 
-                    // Delete non existent layers from the map
-                    for (name in olLayers) {
-                        layer = olLayers[name];
-                        if (!layers.hasOwnProperty(name)) {
-                            // Remove from the map if it's on it
-                            removeLayerFromMap(layer, map);
-
-                            delete olLayers[name];
-                        }
+                scope.$watch('properties', function(properties, oldProperties) {
+                    if (!isDefined(properties.source) || !isDefined(properties.source.type)) {
+                        return;
                     }
 
-                    // add new layers
-                    for (name in layers) {
-                        layer = layers[name];
-                        var olLayer;
-                        var style;
+                    if (!isDefined(properties.visible)) {
+                        properties.visible = true;
+                        return;
+                    }
 
-                        if (!isDefined(layer.visible)) {
-                            layer.visible = true;
-                        }
+                    if (!isDefined(properties.opacity)) {
+                        properties.opacity = 1;
+                        return;
+                    }
 
-                        if (!isDefined(layer.opacity)) {
-                            layer.opacity = 1;
-                        }
+                    var style;
+                    if (!isDefined(olLayer)) {
+                        olLayer = createLayer(properties, projection);
+                        map.addLayer(olLayer);
 
-                        if (!olLayers.hasOwnProperty(name)) {
-                            olLayer = createLayer(layers[name], projection);
-                            if (isDefined(olLayer)) {
-                                olLayers[name] = olLayer;
-                                map.addLayer(olLayer);
-
-                                if (isBoolean(layer.visible)) {
-                                    olLayer.setVisible(layer.visible);
-                                }
-
-                                if (layer.opacity) {
-                                    olLayer.setOpacity(layer.opacity);
-                                }
-
-                                if (layer.style) {
-                                    if (!angular.isFunction(layer.style)) {
-                                        style = createStyle(layer.style);
-                                    } else {
-                                        style = layer.style;
-                                    }
-                                    olLayer.setStyle(style);
-                                }
+                        olData.getLayers().then(function(layers) {
+                            if (properties.name) {
+                                layers[properties.name] = olLayer;
+                            } else {
+                                layers[attrs.olLayerProperties] = olLayer;
                             }
-                        } else {
-                            layer = layers[name];
-                            var oldLayer = oldLayers[name];
-                            olLayer = olLayers[name];
-                            if (isDefined(oldLayer) && !equals(layer, oldLayer)) {
-                                if (!equals(layer.source, oldLayer.source)) {
+                        });
 
-                                    var layerCollection = map.getLayers();
+                        if (isBoolean(properties.visible)) {
+                            olLayer.setVisible(properties.visible);
+                        }
 
-                                    for (var j = 0; j < layerCollection.getLength(); j++) {
-                                        var l = layerCollection.item(j);
-                                        if (l === olLayer) {
-                                            layerCollection.removeAt(j);
-                                            olLayer = createLayer(layer, projection);
-                                            if (isDefined(olLayer)) {
-                                                olLayers[name] = olLayer;
-                                                layerCollection.insertAt(j, olLayer);
-                                            }
+                        if (properties.opacity) {
+                            olLayer.setOpacity(properties.opacity);
+                        }
+
+                        if (properties.style) {
+                            if (!angular.isFunction(properties.style)) {
+                                style = createStyle(properties.style);
+                            } else {
+                                style = properties.style;
+                            }
+                            olLayer.setStyle(style);
+                        }
+
+                    } else {
+                        if (isDefined(oldProperties) && !equals(properties, oldProperties)) {
+                            if (!equals(properties.source, oldProperties.source)) {
+                                var layerCollection = map.getLayers();
+
+                                for (var j = 0; j < layerCollection.getLength(); j++) {
+                                    var l = layerCollection.item(j);
+                                    if (l === olLayer) {
+                                        layerCollection.removeAt(j);
+                                        olLayer = createLayer(properties, projection);
+                                        if (isDefined(olLayer)) {
+                                            layerCollection.insertAt(j, olLayer);
                                         }
                                     }
                                 }
+                            }
 
-                                if (isBoolean(layer.visible) && layer.visible !== oldLayer.visible) {
-                                    olLayer.setVisible(layer.visible);
-                                }
+                            if (isBoolean(properties.visible) && properties.visible !== oldProperties.visible) {
+                                olLayer.setVisible(properties.visible);
+                            }
 
-                                if (layer.opacity && layer.opacity !== oldLayer.opacity) {
-                                    olLayer.setOpacity(layer.opacity);
+                            if (properties.opacity !== oldProperties.opacity) {
+                                if (isNumber(properties.opacity) || isNumber(parseFloat(properties.opacity))) {
+                                    olLayer.setOpacity(properties.opacity);
                                 }
+                            }
 
-                                if (layer.style && !equals(layer.style, oldLayer.style)) {
-                                    if (!angular.isFunction(layer.style)) {
-                                        style = createStyle(layer.style);
-                                    } else {
-                                        style = layer.style;
-                                    }
-                                    olLayer.setStyle(style);
+                            if (isDefined(properties.style) && !equals(properties.style, oldProperties.style)) {
+                                if (!angular.isFunction(properties.style)) {
+                                    style = createStyle(properties.style);
+                                } else {
+                                    style = properties.style;
                                 }
+                                olLayer.setStyle(style);
                             }
                         }
                     }
-                    // We can resolve the layer promises
-                    _olLayers.resolve(olLayers);
-                    olData.setLayers(olLayers, attrs.id);
                 }, true);
-
             });
         }
     };
@@ -1057,11 +1049,12 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                 break;
             case 'OSM':
                 if (source.attribution) {
+                    var attributions = [];
+                    if (isDefined(source.attribution)) {
+                        attributions.unshift(new ol.Attribution({ html: source.attribution }));
+                    }
                     oSource = new ol.source.OSM({
-                        attributions: [
-                          new ol.Attribution({ html: source.attribution }),
-                          ol.source.OSM.DATA_ATTRIBUTION
-                        ]
+                        attributions: attributions
                     });
                 } else {
                     oSource = new ol.source.OSM();
@@ -1104,7 +1097,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     return;
                 }
 
-                if (source.url) {
+                if (isDefined(source.url)) {
                     oSource = new ol.source.GeoJSON({
                         projection: projection,
                         url: source.url
@@ -1144,7 +1137,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     url: source.url,
                     projection: source.projection,
                     radius: source.radius,
-                    extractStyles: false,
+                    extractStyles: false
                 });
                 break;
             case 'Stamen':
@@ -1354,22 +1347,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     oLayer = new ol.layer.Heatmap({ source: oSource });
                     break;
                 case 'Vector':
-                    var style;
-                    if (layer.style) {
-                        if (angular.isFunction(layer.style)) {
-                            style = layer.style;
-                        } else {
-                            style = createStyle(layer.style);
-                        }
-                    }
-
-                    oLayer = new ol.layer.Vector({ source: oSource, style: style });
+                    oLayer = new ol.layer.Vector({ source: oSource });
                     break;
             }
 
-            if (angular.isNumber(layer.opacity)) {
-                oLayer.setOpacity(layer.opacity);
-            }
             return oLayer;
         },
 
@@ -1457,14 +1438,6 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                 rotation: 0,
                 extent: undefined
             },
-            layers: {
-                main: {
-                    type: 'Tile',
-                    source: {
-                        type: 'OSM'
-                    }
-                }
-            },
             center: {
                 lat: 0,
                 lon: 0,
@@ -1478,9 +1451,9 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                 map: ['click']
             },
             controls: {
-                attribution: false,
+                attribution: true,
                 rotate: false,
-                zoom: false
+                zoom: true
             },
             interactions: {
                 mouseWheelZoom: false
