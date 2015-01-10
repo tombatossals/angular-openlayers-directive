@@ -14,7 +14,7 @@ angular.module('openlayers-directive', ['ngSanitize'])
             view: '=olView',
             events: '=olEvents'
         },
-        template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',
+        template: '<div class="angular-openlayers-map" ng-transclude></div>',
         controller: ["$scope", function($scope) {
             var _map = $q.defer();
             $scope.getMap = function() {
@@ -92,6 +92,9 @@ angular.module('openlayers-directive', ['ngSanitize'])
                 };
                 var layer = createLayer(l, view.getProjection());
                 map.addLayer(layer);
+                olData.setLayers({ osm: layer}, attrs.id);
+            } else {
+                olData.setLayers({}, attrs.id);
             }
 
             if (!isDefined(attrs.olCenter)) {
@@ -328,6 +331,11 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olDa
 
                         olLayer = createLayer(l, projection);
                         map.addLayer(olLayer);
+                        olData.getLayers().then(function(layers) {
+                            if (isDefined(attrs.name)) {
+                                layers[attrs.name] = olLayer;
+                            }
+                        });
                     }
                     return;
                 }
@@ -351,6 +359,14 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olDa
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
                         map.addLayer(olLayer);
+
+                        olData.getLayers().then(function(layers) {
+                            if (properties.name) {
+                                layers[properties.name] = olLayer;
+                            } else {
+                                layers[attrs.olLayerProperties] = olLayer;
+                            }
+                        });
 
                         if (isBoolean(properties.visible)) {
                             olLayer.setVisible(properties.visible);

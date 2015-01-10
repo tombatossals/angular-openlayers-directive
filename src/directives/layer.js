@@ -35,6 +35,11 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
 
                         olLayer = createLayer(l, projection);
                         map.addLayer(olLayer);
+                        olData.getLayers().then(function(layers) {
+                            if (isDefined(attrs.name)) {
+                                layers[attrs.name] = olLayer;
+                            }
+                        });
                     }
                     return;
                 }
@@ -58,6 +63,14 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
                         map.addLayer(olLayer);
+
+                        olData.getLayers().then(function(layers) {
+                            if (properties.name) {
+                                layers[properties.name] = olLayer;
+                            } else {
+                                layers[attrs.olLayerProperties] = olLayer;
+                            }
+                        });
 
                         if (isBoolean(properties.visible)) {
                             olLayer.setVisible(properties.visible);
