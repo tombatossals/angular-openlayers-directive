@@ -28,6 +28,7 @@ angular.module('openlayers-directive', ['ngSanitize'])
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined;
             var createLayer = olHelpers.createLayer;
+            var setMapEvents = olHelpers.setMapEvents;
             var createView = olHelpers.createView;
             var defaults = olMapDefaults.setDefaults(scope);
 
@@ -99,6 +100,9 @@ angular.module('openlayers-directive', ['ngSanitize'])
                 view.setCenter(c);
                 view.setZoom(defaults.center.zoom);
             }
+
+            // Set the Default events for the map
+            setMapEvents(defaults.events, map, scope);
 
             // Resolve the map object to the promises
             scope.setMap(map);

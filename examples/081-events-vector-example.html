@@ -15,20 +15,20 @@
                 lon: 0,
                 zoom: 2
             },
-            layers: {
-                main: {
+            layers: [
+                {
                     source: {
                         type: 'TileJSON',
                         url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
                     }
                 },
-                geojson: {
+                {
                     source: {
                         type: 'GeoJSON',
                         url: 'json/countries.geo.json'
                     }
                 }
-            },
+            ],
             events: {
                 layers: {
                     vector: [ 'mousemove', 'click' ]
@@ -65,7 +65,9 @@
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers ol-center="center" ol-layers="layers" ol-events="events" height="400px"></openlayers>
+     <openlayers ol-center="center" ol-events="events" custom-layers="true" height="400px">
+         <ol-layer ol-layer-properties="layer" ng-repeat="layer in layers"></ol-layer>
+     </openlayers>
      <h1>Layers GeoJSON events example</h1>
      <p>Mouse over this country: {{ mouseMoveCountry }}</p>
      <p>Mouse clicked this country: {{ mouseClickCountry }}</p>

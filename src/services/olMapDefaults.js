@@ -18,7 +18,9 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                 projection: 'EPSG:4326'
             },
             events: {
-                map: ['click']
+                map: [],
+                markers: [],
+                layers: []
             },
             controls: {
                 attribution: true,
@@ -59,6 +61,10 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
 
                 if (isDefined(userDefaults.controls)) {
                     newDefaults.controls = angular.copy(userDefaults.controls);
+                }
+
+                if (isDefined(userDefaults.events)) {
+                    newDefaults.events = angular.copy(userDefaults.events);
                 }
 
                 if (isDefined(userDefaults.interactions)) {

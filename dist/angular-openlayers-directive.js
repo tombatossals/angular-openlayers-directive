@@ -32,6 +32,7 @@ angular.module('openlayers-directive', ['ngSanitize'])
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined;
             var createLayer = olHelpers.createLayer;
+            var setMapEvents = olHelpers.setMapEvents;
             var createView = olHelpers.createView;
             var defaults = olMapDefaults.setDefaults(scope);
 
@@ -103,6 +104,9 @@ angular.module('openlayers-directive', ['ngSanitize'])
                 view.setCenter(c);
                 view.setZoom(defaults.center.zoom);
             }
+
+            // Set the Default events for the map
+            setMapEvents(defaults.events, map, scope);
 
             // Resolve the map object to the promises
             scope.setMap(map);
@@ -423,41 +427,6 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olDa
                         }
                     }
                 }, true);
-            });
-        }
-    };
-}]);
-
-angular.module('openlayers-directive').directive('olEvents', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
-    return {
-        restrict: 'A',
-        scope: false,
-        replace: false,
-        require: ['openlayers', '?olLayers'],
-        link: function(scope, element, attrs, controller) {
-            var setEvents     = olHelpers.setEvents;
-            var isDefined     = olHelpers.isDefined;
-            var mapController = controller[0];
-            var olScope       = mapController.getOpenlayersScope();
-
-            olScope.getMap().then(function(map) {
-
-                var getLayers;
-                if (isDefined(controller[1]) && controller[1] !== null) {
-                    getLayers = controller[1].getLayers;
-                } else {
-                    getLayers = function() {
-                        var deferred = $q.defer();
-                        deferred.resolve();
-                        return deferred.promise;
-                    };
-                }
-
-                getLayers().then(function(layers) {
-                    olScope.$watch('events', function(events) {
-                        setEvents(events, map, olScope, layers);
-                    });
-                });
             });
         }
     };
@@ -1300,29 +1269,26 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
 
         createStyle: createStyle,
 
-        setEvents: function(events, map, scope, layers) {
-            if (isDefined(events)) {
-
-                if (angular.isArray(events.map)) {
-                    for (var i in events.map) {
-                        var event = events.map[i];
-                        setEvent(map, event, scope);
-                    }
+        setMapEvents: function(events, map, scope) {
+            if (isDefined(events) && angular.isArray(events.map)) {
+                for (var i in events.map) {
+                    var event = events.map[i];
+                    setEvent(map, event, scope);
                 }
+            }
+        },
 
-                if (isDefined(layers)) {
-                    if (isDefined(events.layers) && angular.isArray(events.layers.vector)) {
-                        angular.forEach(events.layers.vector, function(eventType) {
-                            angular.element(map.getViewport()).on(eventType, function(evt) {
-                                var pixel = map.getEventPixel(evt);
-                                var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
-                                    return feature;
-                                });
-                                scope.$emit('openlayers.geojson.' + eventType, feature, evt);
-                            });
+        setVectorLayerEvents: function(events, map, scope, layerName) {
+            if (isDefined(events) && isDefined(events.layers) && angular.isArray(events.layers.vector)) {
+                angular.forEach(events.layers.vector, function(eventType) {
+                    angular.element(map.getViewport()).on(eventType, function(evt) {
+                        var pixel = map.getEventPixel(evt);
+                        var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+                            return feature;
                         });
-                    }
-                }
+                        scope.$emit('openlayers.layers.' + layerName + '.' + eventType, feature, evt);
+                    });
+                });
             }
         },
 
@@ -1448,7 +1414,9 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                 projection: 'EPSG:4326'
             },
             events: {
-                map: ['click']
+                map: [],
+                markers: [],
+                layers: []
             },
             controls: {
                 attribution: true,
@@ -1489,6 +1457,10 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
 
                 if (isDefined(userDefaults.controls)) {
                     newDefaults.controls = angular.copy(userDefaults.controls);
+                }
+
+                if (isDefined(userDefaults.events)) {
+                    newDefaults.events = angular.copy(userDefaults.events);
                 }
 
                 if (isDefined(userDefaults.interactions)) {

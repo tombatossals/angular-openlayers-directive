@@ -395,29 +395,26 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
 
         createStyle: createStyle,
 
-        setEvents: function(events, map, scope, layers) {
-            if (isDefined(events)) {
-
-                if (angular.isArray(events.map)) {
-                    for (var i in events.map) {
-                        var event = events.map[i];
-                        setEvent(map, event, scope);
-                    }
+        setMapEvents: function(events, map, scope) {
+            if (isDefined(events) && angular.isArray(events.map)) {
+                for (var i in events.map) {
+                    var event = events.map[i];
+                    setEvent(map, event, scope);
                 }
+            }
+        },
 
-                if (isDefined(layers)) {
-                    if (isDefined(events.layers) && angular.isArray(events.layers.vector)) {
-                        angular.forEach(events.layers.vector, function(eventType) {
-                            angular.element(map.getViewport()).on(eventType, function(evt) {
-                                var pixel = map.getEventPixel(evt);
-                                var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
-                                    return feature;
-                                });
-                                scope.$emit('openlayers.geojson.' + eventType, feature, evt);
-                            });
+        setVectorLayerEvents: function(events, map, scope, layerName) {
+            if (isDefined(events) && isDefined(events.layers) && angular.isArray(events.layers.vector)) {
+                angular.forEach(events.layers.vector, function(eventType) {
+                    angular.element(map.getViewport()).on(eventType, function(evt) {
+                        var pixel = map.getEventPixel(evt);
+                        var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+                            return feature;
                         });
-                    }
-                }
+                        scope.$emit('openlayers.layers.' + layerName + '.' + eventType, feature, evt);
+                    });
+                });
             }
         },
 
