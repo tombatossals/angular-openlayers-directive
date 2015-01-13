@@ -405,14 +405,16 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         },
 
         setVectorLayerEvents: function(events, map, scope, layerName) {
-            if (isDefined(events) && isDefined(events.layers) && angular.isArray(events.layers.vector)) {
-                angular.forEach(events.layers.vector, function(eventType) {
+            if (isDefined(events) && angular.isArray(events.layers)) {
+                angular.forEach(events.layers, function(eventType) {
                     angular.element(map.getViewport()).on(eventType, function(evt) {
                         var pixel = map.getEventPixel(evt);
                         var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
                             return feature;
                         });
-                        scope.$emit('openlayers.layers.' + layerName + '.' + eventType, feature, evt);
+                        if (isDefined(feature)) {
+                            scope.$emit('openlayers.layers.' + layerName + '.' + eventType, feature, evt);
+                        }
                     });
                 });
             }

@@ -12,12 +12,15 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
             var equals      = olHelpers.equals;
             var olScope     = controller.getOpenlayersScope();
             var createLayer = olHelpers.createLayer;
+            var setVectorLayerEvents = olHelpers.setVectorLayerEvents;
+            var detectLayerType = olHelpers.detectLayerType;
             var createStyle = olHelpers.createStyle;
             var isBoolean   = olHelpers.isBoolean;
             var isNumber    = olHelpers.isNumber;
 
             olScope.getMap().then(function(map) {
                 var projection = map.getView().getProjection();
+                var defaults = olMapDefaults.setDefaults(olScope);
                 var olLayer;
 
                 scope.$on('$destroy', function() {
@@ -34,6 +37,9 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                         };
 
                         olLayer = createLayer(l, projection);
+                        if (detectLayerType(l) === 'Vector') {
+                            setVectorLayerEvents(defaults.events, map, scope, attrs.name);
+                        }
                         map.addLayer(olLayer);
                         olData.getLayers().then(function(layers) {
                             if (isDefined(attrs.name)) {
@@ -63,6 +69,10 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
                         map.addLayer(olLayer);
+
+                        if (detectLayerType(properties) === 'Vector') {
+                            setVectorLayerEvents(defaults.events, map, scope, properties.name);
+                        }
 
                         olData.getLayers().then(function(layers) {
                             if (properties.name) {
@@ -101,6 +111,10 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                                         olLayer = createLayer(properties, projection);
                                         if (isDefined(olLayer)) {
                                             layerCollection.insertAt(j, olLayer);
+
+                                            if (detectLayerType(properties) === 'Vector') {
+                                                setVectorLayerEvents(defaults.events, map, scope, properties.name);
+                                            }
                                         }
                                     }
                                 }
