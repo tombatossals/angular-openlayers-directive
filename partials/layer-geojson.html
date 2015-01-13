@@ -1,9 +1,11 @@
 <div class="ui" ng-controller="LayerGeoJSONController">
-    <openlayers ol-center="europe" ol-layers="layers" height="400px"></openlayers>
+    <openlayers ol-center="europe" ol-layers="layers" height="400px">
+        <ol-layer ol-layer-properties="layer" ng-repeat="layer in geojson"></ol-layer>
+    </openlayers>
     <h2 class="ui header">GeoJSON Layer example</h2>
     <p>You can load and style GeoJSON objects easily with Openlayers.</p>
-    <h3>Current <strong>layers</strong> object:</h3>
-    <pre>{{ layers | json }}</pre>
+    <h3>Current <strong>geojson</strong> object:</h3>
+    <pre>{{ geojson | json }}</pre>
     <h3>Source code of this example</h3>
     <pre class="language-markup"><code ng-bind="activeExample.source"></code></pre>
     <p><a ng-href="{{ activeExample.extUrl }}">View stand-alone example</a></p>

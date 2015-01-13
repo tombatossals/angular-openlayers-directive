@@ -11,23 +11,31 @@
             layers: [
                 {
                     name: 'OpenStreetMap',
-                    type: 'OSM'
+                    source: {
+                        type: 'OSM'
+                    }
                 },
                 {
                     active: true,
                     name: 'MapBox Terrain',
-                    type: 'TileJSON',
-                    url: 'https://api.tiles.mapbox.com/v3/examples.map-i86nkdio.jsonp'
+                    source: {
+                        type: 'TileJSON',
+                        url: 'https://api.tiles.mapbox.com/v3/examples.map-i86nkdio.jsonp'
+                    }
                 },
                 {
                     name: 'MapBox Night',
-                    type: 'TileJSON',
-                    url: 'https://api.tiles.mapbox.com/v3/examples.map-0l53fhk2.jsonp'
+                    source: {
+                        type: 'TileJSON',
+                        url: 'https://api.tiles.mapbox.com/v3/examples.map-0l53fhk2.jsonp'
+                    }
                 },
                 {
                     name: 'Mapbox Geography',
-                    type: 'TileJSON',
-                    url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
+                    source: {
+                        type: 'TileJSON',
+                        url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
+                    }
                 }
             ],
             changeLayer: function(layer) {

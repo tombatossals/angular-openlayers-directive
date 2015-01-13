@@ -9,13 +9,9 @@
                 lon: 7.57,
                 zoom: 5
             },
-            layers: {
-                main: {
-                    source: {
-                        type: 'OSM'
-                    }
-                },
-                ita: {
+            geojson: [
+                {
+                    name: 'Italy',
                     source: {
                         type: 'GeoJSON',
                         url: 'examples/json/ITA.geo.json'
@@ -30,7 +26,8 @@
                         }
                     }
                 },
-                fra: {
+                {
+                    name: 'France',
                     source: {
                         type: 'GeoJSON',
                         url: 'examples/json/FRA.geo.json'
@@ -45,7 +42,8 @@
                         }
                     }
                 },
-                esp: {
+                {
+                    name: 'Spain',
                     source: {
                         type: 'GeoJSON',
                         url: 'examples/json/ESP.geo.json'
@@ -60,7 +58,8 @@
                         }
                     }
                 },
-                prt: {
+                {
+                    name: 'Portugal',
                     source: {
                         type: 'GeoJSON',
                         url: 'examples/json/PRT.geo.json'
@@ -74,9 +73,9 @@
                             width: 3
                         }
                     }
-                }
+                }]
             }
-        });
+        );
     });
 
 })();

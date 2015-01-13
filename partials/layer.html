@@ -9,7 +9,7 @@
         <div class="ui button" ng-class="{ active: layer.active }" ng-repeat="layer in layers" ng-click="changeLayer(layer)" ng-bind="layer.name"></div>
     </div>
     <br />
-    <p>On each button click we're simply setting the <strong>layers</strong> object to a new value.</p>
+    <p>On each button click we're simply adding a new <strong>&lt;ol-layer></strong> object inside the <strong>&lt;openlayers></strong> tag.</p>
     <h3>Current <strong>layers</strong> object:</h3>
     <pre>{{ layers | json }}</pre>
     <h3>Source code of this example</h3>
