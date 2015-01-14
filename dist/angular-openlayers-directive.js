@@ -1399,6 +1399,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         },
 
         createOverlay: function(element, pos) {
+            element.css('display', 'block');
             var ov = new ol.Overlay({
                 position: pos,
                 element: element,

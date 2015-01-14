@@ -13,6 +13,7 @@
   	white-space: nowrap;
   	top: -35px;
   	left: 20px;
+    display: none;
 }
 
 .popup-label img {
