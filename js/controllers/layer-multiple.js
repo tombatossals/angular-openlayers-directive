@@ -9,19 +9,18 @@
                 lon: 7.57,
                 zoom: 3
             },
-            layers: {
-                geographyclass: {
+            layers: [
+                {
                     name: 'Mapbox Geography Class',
-                    visible: false,
+                    active: false,
                     opacity: 1,
                     source: {
                         type: 'TileJSON',
                         url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
                     }
                 },
-
-                bing: {
-                    visible: true,
+                {
+                    active: true,
                     name: 'Bing Maps',
                     opacity: 0.8,
                     source: {
@@ -30,9 +29,8 @@
                         imagerySet: 'Road'
                     }
                 },
-
-                topojson: {
-                    visible: true,
+                {
+                    active: true,
                     name: 'TopoJSON of Europe',
                     opacity: 0.3,
                     source: {
@@ -49,7 +47,7 @@
                         }
                     }
                 }
-            }
+            ]
         });
     });
 

@@ -1,9 +1,11 @@
 <div class="ui" ng-controller="MultipleMapController">
-    <openlayers id="map1" ol-layers="layers1" ol-defaults="defaults" ol-center="center" width="100%" height="240px">
+    <openlayers id="map1" ol-defaults="defaults" ol-center="center" width="100%" height="240px">
+        <ol-layer ol-layer-properties="geojson1"></ol-layer>
         <ol-marker ng-repeat="marker in markers1" ol-marker-properties="marker"></ol-marker>
     </openlayers>
     <br />
-    <openlayers id="map2" ol-layers="layers2" ol-defaults="defaults" ol-center="center" width="100%" height="240px">
+    <openlayers id="map2" ol-defaults="defaults" ol-center="center" width="100%" height="240px">
+        <ol-layer ol-layer-properties="geojson2"></ol-layer>
         <ol-marker ng-repeat="marker in markers2" ol-marker-properties="marker"></ol-marker>
     </openlayers>
     <h2 class="ui header">Multiple Maps Example</h2>

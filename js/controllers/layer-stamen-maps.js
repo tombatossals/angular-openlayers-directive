@@ -9,12 +9,10 @@
                 lon: -73.97,
                 zoom: 12
             },
-            layers: {
-                main: {
-                    source: {
-                        type: 'Stamen',
-                        layer: 'terrain'
-                    }
+            stamen: {
+                source: {
+                    type: 'Stamen',
+                    layer: 'terrain'
                 }
             }
         });

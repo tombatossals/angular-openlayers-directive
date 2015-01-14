@@ -1,9 +1,11 @@
 <div class="ui" ng-controller="LayerGeoJSONInlineController">
-    <openlayers ol-center="europe" ol-layers="layers" height="400px"></openlayers>
+    <openlayers ol-center="europe" height="400px">
+        <ol-layer ol-layer-properties="ita"></ol-layer>
+    </openlayers>
     <h2 class="ui header">GeoJSON Inline example</h2>
     <p>This example adds the GeoJSON structure inline inside the layer object, instead of loading the GeoJSON from OpenLayers library.</p>
-    <h3>Current <strong>layers</strong> object:</h3>
-    <pre>{{ layers | json }}</pre>
+    <h3>Current <strong>Italy GeoJSON</strong> object:</h3>
+    <pre>{{ ita | json }}</pre>
     <h3>Source code of this example</h3>
     <pre class="language-markup"><code ng-bind="activeExample.source"></code></pre>
     <p><a ng-href="{{ activeExample.extUrl }}">View stand-alone example</a></p>

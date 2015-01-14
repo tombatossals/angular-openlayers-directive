@@ -1,12 +1,14 @@
 <div class="ui" ng-controller="LayerMultipleController">
-    <openlayers ol-center="europe" ol-layers="layers" height="400px"></openlayers>
+    <openlayers ol-center="europe" custom-layers="true" height="400px">
+        <ol-layer ol-layer-properties="layer" ng-repeat="layer in layers|filter:{active:true}"></ol-layer>
+    </openlayers>
     <br />
     <div class="3 ui fluid buttons">
-        <div class="ui button" ng-repeat="layer in layers" ng-click="layer.visible=!layer.visible" ng-class="{ active: layer.visible===true }" ng-bind="layer.name"></div>
+        <div class="ui button" ng-repeat="layer in layers" ng-click="layer.active=!layer.active" ng-class="{ active: layer.active===true }" ng-bind="layer.name"></div>
     </div>
     <br />
     <div class="ui form">
-        <div class="field" ng-repeat="layer in layers" ng-if="layer.visible === true">
+        <div class="field" ng-repeat="layer in layers" ng-if="layer.active === true">
             <label ng-bind="layer.name + ' Layer Opacity'"></label>
             <input type="range" min="0" max="1" step="0.01" ng-model="layer.opacity" />
         </div>

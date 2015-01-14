@@ -1,22 +1,24 @@
 <div class="ui" ng-controller="LayerGeoJSONChangeStyleController">
-    <openlayers ol-center="europe" ol-layers="layers" height="400px"></openlayers>
+    <openlayers ol-center="europe" height="400px">
+        <ol-layer ol-layer-properties="spain"></ol-layer>
+    </openlayers>
     <h2 class="ui header">Change style of GeoJSON vectorial shape</h2>
     <p>You can change dinamically the GeoJSON properties and it will be reflected on the map rendered.</p>
     <div class="ui form">
         <div class="field">
             <label>Fill color</label>
             <div class="3 ui fluid buttons">
-                <div class="ui button" ng-repeat="color in [ 'red', 'green', 'blue' ]" ng-click="layers.esp.style.fill.color=color" ng-class="{ active: layers.esp.style.fill.color === color }" ng-bind="color"></div>
+                <div class="ui button" ng-repeat="color in [ 'red', 'green', 'blue' ]" ng-click="spain.style.fill.color=color" ng-class="{ active: spain.style.fill.color === color }" ng-bind="color"></div>
             </div>
         </div>
         <br />
         <div class="field">
             <label>Stroke width</label>
-            <input type="range" min="0" max="20" value="5" ng-model="layers.esp.style.stroke.width" />
+            <input type="range" min="0" max="20" value="5" ng-model="spain.style.stroke.width" />
         </div>
     </div>
-    <h3>Current <strong>layers</strong> object:</h3>
-    <pre>{{ layers | json }}</pre>
+    <h3>Current <strong>Spain geojson layer</strong> object:</h3>
+    <pre>{{ spain | json }}</pre>
     <h3>Source code of this example</h3>
     <pre class="language-markup"><code ng-bind="activeExample.source"></code></pre>
     <p><a ng-href="{{ activeExample.extUrl }}">View stand-alone example</a></p>

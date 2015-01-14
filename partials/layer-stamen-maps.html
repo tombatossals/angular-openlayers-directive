@@ -1,13 +1,15 @@
 <div class="ui" ng-controller="LayerStamenMapsController">
-    <openlayers ol-center="newyork" ol-layers="layers" height="400px"></openlayers>
+    <openlayers ol-center="newyork" custom-layers="true" height="400px">
+        <ol-layer ol-layer-properties="stamen"></ol-layer>
+    </openlayers>
     <br />
     <div class="3 ui fluid buttons">
-        <div class="ui button" ng-repeat="layer in [ 'watercolor', 'terrain', 'toner' ]" ng-click="layers.main.source.layer=layer" ng-class="{ active: layers.main.source.layer === layer }" ng-bind="layer"></div>
+        <div class="ui button" ng-repeat="layer in [ 'watercolor', 'terrain', 'toner' ]" ng-click="stamen.source.layer=layer" ng-class="{ active: stamen.source.layer === layer }" ng-bind="layer"></div>
     </div>
-    <h2 class="ui header">Bing Maps example</h2>
-    <p>You can use easily the Microsoft Bing Maps tiles with OpenLayers. But first of all, you must request an API key to use these maps <a href="http://www.bingmapsportal.com">here</a>.</p>
-    <h3>Current <strong>layers</strong> object:</h3>
-    <pre>{{ layers | json }}</pre>
+    <h2 class="ui header">Stamen Maps example</h2>
+    <p>You can add an <a href="http://maps.stamen.com/">Stamen Maps</a> layer easily too.</p>
+    <h3>Current <strong>stamen layer</strong> object:</h3>
+    <pre>{{ stamen | json }}</pre>
     <h3>Source code of this example</h3>
     <pre class="language-markup"><code ng-bind="activeExample.source"></code></pre>
     <p><a ng-href="{{ activeExample.extUrl }}">View stand-alone example</a></p>

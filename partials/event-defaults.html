@@ -1,5 +1,5 @@
 <div class="ui" ng-controller="EventDefaultsController">
-    <openlayers ol-center="london" ol-events="events" height="400"></openlayers>
+    <openlayers ol-center="london" ol-defaults="defaults" height="400"></openlayers>
     <h2 class="ui header">Event Defaults Example</h2>
     <h3>Map <strong>defaults</strong> object:</h3>
     <p>You can propagate some map events so you can react based on this events on your application. Take a look at the <strong>events</strong> object.</p>
@@ -11,8 +11,8 @@
     <pre ng-bind="mouseposition | json"></pre>
     <h3>Mouse click position in map</h3>
     <pre ng-bind="mouseclickposition | json"></pre>
-    <h3>Events object</h3>
-    <pre>{{ events | json }}</pre>
+    <h3>Defaults object</h3>
+    <pre>{{ defaults | json }}</pre>
     <h3>Source code of this example</h3>
     <pre class="language-markup"><code ng-bind="activeExample.source"></code></pre>
     <p><a ng-href="{{ activeExample.extUrl }}">View stand-alone example</a></p>

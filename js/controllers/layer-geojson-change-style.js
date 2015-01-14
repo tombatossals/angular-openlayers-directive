@@ -9,25 +9,18 @@
                 lon: -1.27,
                 zoom: 5
             },
-            layers: {
-                main: {
-                    source: {
-                        type: 'OSM'
-                    }
+            spain: {
+                source: {
+                    type: 'GeoJSON',
+                    url: 'examples/json/ESP.geo.json'
                 },
-                esp: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'examples/json/ESP.geo.json'
+                style: {
+                    fill: {
+                        color: 'red'
                     },
-                    style: {
-                        fill: {
-                            color: 'red'
-                        },
-                        stroke: {
-                            color: 'white',
-                            width: 3
-                        }
+                    stroke: {
+                        color: 'white',
+                        width: 3
                     }
                 }
             }

@@ -1,9 +1,11 @@
 <div class="ui" ng-controller="LayerWMSController">
-    <openlayers ol-center="usa" ol-layers="layers" height="400px"></openlayers>
+    <openlayers ol-center="usa" height="400px">
+        <ol-layer ol-layer-properties="wms"></ol-layer>
+    </openlayers>
     <h2 class="ui header">WMS Layer example</h2>
     <p>You can load a WMS Layer from a GeoServer source.</p>
     <h3>Current <strong>layers</strong> object:</h3>
-    <pre>{{ layers | json }}</pre>
+    <pre>{{ wms | json }}</pre>
     <h3>Source code of this example</h3>
     <pre class="language-markup"><code ng-bind="activeExample.source"></code></pre>
     <p><a ng-href="{{ activeExample.extUrl }}">View stand-alone example</a></p>

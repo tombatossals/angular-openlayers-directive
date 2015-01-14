@@ -5,7 +5,7 @@
     app.controller('LayerGeoJSONInlineController', function($scope, $http) {
         $http.get('examples/json/ITA.geo.json').success(function(data) {
             var italy = data;
-            $scope.layers.ita = {
+            $scope.ita = {
                 source: {
                     type: 'GeoJSON',
                     geojson: {
@@ -31,15 +31,7 @@
                 lon: 7.57,
                 zoom: 5
             },
-            layers: {
-                main: {
-                    source: {
-                        type: 'OSM'
-                    }
-                }
-            }
+            ita: {}
         });
-
     });
-
 })();

@@ -9,18 +9,11 @@
                 lon: -96.67,
                 zoom: 4
             },
-            layers: {
-                main: {
-                    source: {
-                        type: 'OSM'
-                    }
-                },
-                wms: {
-                    source: {
-                        type: 'ImageWMS',
-                        url: 'http://demo.opengeo.org/geoserver/wms',
-                        params: { LAYERS: 'topp:states' }
-                    }
+            wms: {
+                source: {
+                    type: 'ImageWMS',
+                    url: 'http://demo.opengeo.org/geoserver/wms',
+                    params: { LAYERS: 'topp:states' }
                 }
             }
         });

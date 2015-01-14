@@ -92,6 +92,7 @@ input[type=range] {
 }
 
 .render-html .popup-label {
+    position: absolute;
     padding: 1px;
     margin: 0;
 }

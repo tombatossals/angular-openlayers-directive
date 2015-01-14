@@ -1,5 +1,7 @@
 <div class="ui" ng-controller="ControlController">
-    <openlayers ol-center="center" ol-controls="controls" ol-view="view"></openlayers>
+    <openlayers ol-center="center" custom-controls="true" ol-view="view">
+        <ol-control name="{{ control.name }}" ng-repeat="control in controls|filter: {active: true}"></ol-control>
+    </openlayers>
     <h2 class="ui header">Controls Example</h2>
     <p>Maybe you need to change the default parameters before creating the map, for example, setting the default controls, interactions, or layer tiles.</p>
     <h3>Map <strong>controls</strong> object:</h3>

@@ -9,18 +9,18 @@
                 lon: 0,
                 zoom: 2
             },
-            layers: {
-                main: {
-                    source: {
-                        type: 'TileJSON',
-                        url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
-                    }
-                },
-                geojson: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'examples/json/countries.geo.json'
-                    }
+            mapbox: {
+                name: 'mapbox',
+                source: {
+                    type: 'TileJSON',
+                    url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
+                }
+            },
+            geojson: {
+                nam: 'geojson',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'examples/json/countries.geo.json'
                 }
             },
             events: {
@@ -30,7 +30,7 @@
             }
         });
 
-        $scope.$on('openlayers.geojson.mousemove', function(event, feature) {
+        $scope.$on('openlayers.layers.geojson.mousemove', function(event, feature) {
             $scope.$apply(function(scope) {
                 if (feature && $scope.countries[feature.getId()]) {
                     scope.mouseMoveCountry = feature ? scope.countries[feature.getId()].name : '';
@@ -38,7 +38,7 @@
             });
         });
 
-        $scope.$on('openlayers.geojson.click', function(event, feature) {
+        $scope.$on('openlayers.layers.geojson.click', function(event, feature) {
             $scope.$apply(function(scope) {
                 if (feature) {
                     scope.mouseClickCountry = feature ? scope.countries[feature.getId()].name : '';
