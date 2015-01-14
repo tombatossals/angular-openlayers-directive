@@ -74,11 +74,6 @@ angular.module('openlayers-directive', ['ngSanitize'])
                 view: view
             });
 
-            // If we don't have to sync controls, set the controls in olData
-            if (!isDefined(attrs.olControls)) {
-                olData.setControls(map.getControls());
-            }
-
             // If no layer is defined, set the default tileLayer
             if (!attrs.customLayers) {
                 var l = {
@@ -89,9 +84,7 @@ angular.module('openlayers-directive', ['ngSanitize'])
                 };
                 var layer = createLayer(l, view.getProjection());
                 map.addLayer(layer);
-                olData.setLayers({ osm: layer}, attrs.id);
-            } else {
-                olData.setLayers({}, attrs.id);
+                map.set('default', true);
             }
 
             if (!isDefined(attrs.olCenter)) {

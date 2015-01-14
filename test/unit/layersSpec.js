@@ -41,14 +41,14 @@ describe('Directive: openlayers layers', function() {
         element = $compile(element)(scope);
 
         var layers;
-        olData.getLayers().then(function(olLayers) {
-            layers = olLayers;
+        olData.getMap().then(function(olMap) {
+            layers = olMap.getLayers();
         });
 
         scope.$digest();
-        expect(layers.osm.getSource() instanceof ol.source.OSM).toBe(true);
-        expect(Object.keys(layers).length).toBe(2);
-        expect(layers.mapbox.getSource() instanceof ol.source.TileJSON).toBe(true);
+        expect(layers.item(0).getSource() instanceof ol.source.OSM).toBe(true);
+        expect(layers.getLength()).toBe(2);
+        expect(layers.item(1).getSource() instanceof ol.source.TileJSON).toBe(true);
     });
 
     it('should have one layer if custom-layers is used', function() {
@@ -65,13 +65,13 @@ describe('Directive: openlayers layers', function() {
         element = $compile(element)(scope);
 
         var layers;
-        olData.getLayers().then(function(olLayers) {
-            layers = olLayers;
+        olData.getMap().then(function(olMap) {
+            layers = olMap.getLayers();
         });
 
         scope.$digest();
-        expect(Object.keys(layers).length).toBe(1);
-        expect(layers.mapbox.getSource() instanceof ol.source.TileJSON).toBe(true);
+        expect(layers.getLength()).toBe(1);
+        expect(layers.item(0).getSource() instanceof ol.source.TileJSON).toBe(true);
     });
 
     it('should add no layers if no ol-layer is defined', function() {
@@ -90,17 +90,12 @@ describe('Directive: openlayers layers', function() {
                                       '</openlayers>');
         $compile(element)(scope);
 
-        var map;
-        olData.getMap().then(function(olMap) {
-            map = olMap;
-        });
-
         var olLayers;
-        olData.getLayers().then(function(l) {
-            olLayers = l;
+        olData.getMap().then(function(olMap) {
+            olLayers = olMap.getLayers();
         });
-        scope.$digest();
 
-        expect(Object.keys(olLayers).length).toBe(0);
+        scope.$digest();
+        expect(olLayers.getLength()).toBe(0);
     });
 });

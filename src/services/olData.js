@@ -2,9 +2,6 @@ angular.module('openlayers-directive').service('olData', function($log, $q, olHe
     var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
 
     var maps = {};
-    var layers = {};
-    var markers = {};
-    var controls = {};
 
     var setResolvedDefer = function(d, mapId) {
         var id = obtainEffectiveMapId(d, mapId);
@@ -48,39 +45,6 @@ angular.module('openlayers-directive').service('olData', function($log, $q, olHe
     this.getMap = function(scopeId) {
         var defer = getDefer(maps, scopeId);
         return defer.promise;
-    };
-
-    this.getLayers = function(scopeId) {
-        var defer = getDefer(layers, scopeId);
-        return defer.promise;
-    };
-
-    this.setLayers = function(olLayers, scopeId) {
-        var defer = getUnresolvedDefer(layers, scopeId);
-        defer.resolve(olLayers);
-        setResolvedDefer(layers, scopeId);
-    };
-
-    this.getMarkers = function(scopeId) {
-        var defer = getDefer(markers, scopeId);
-        return defer.promise;
-    };
-
-    this.setMarkers = function(olMarkers, scopeId) {
-        var defer = getUnresolvedDefer(markers, scopeId);
-        defer.resolve(olMarkers);
-        setResolvedDefer(markers, scopeId);
-    };
-
-    this.getControls = function(scopeId) {
-        var defer = getDefer(controls, scopeId);
-        return defer.promise;
-    };
-
-    this.setControls = function(olControls, scopeId) {
-        var defer = getUnresolvedDefer(controls, scopeId);
-        defer.resolve(olControls);
-        setResolvedDefer(controls, scopeId);
     };
 
 });

@@ -1,4 +1,4 @@
-angular.module('openlayers-directive').directive('olLayer', function($log, $q, olData, olMapDefaults, olHelpers) {
+angular.module('openlayers-directive').directive('olLayer', function($log, $q, olMapDefaults, olHelpers) {
 
     return {
         restrict: 'E',
@@ -16,6 +16,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
             var detectLayerType = olHelpers.detectLayerType;
             var createStyle = olHelpers.createStyle;
             var isBoolean   = olHelpers.isBoolean;
+            var addLayerBeforeMarkers = olHelpers.addLayerBeforeMarkers;
             var isNumber    = olHelpers.isNumber;
 
             olScope.getMap().then(function(map) {
@@ -40,12 +41,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                         if (detectLayerType(l) === 'Vector') {
                             setVectorLayerEvents(defaults.events, map, scope, attrs.name);
                         }
-                        map.addLayer(olLayer);
-                        olData.getLayers().then(function(layers) {
-                            if (isDefined(attrs.name)) {
-                                layers[attrs.name] = olLayer;
-                            }
-                        });
+                        addLayerBeforeMarkers(map.getLayers(), olLayer);
                     }
                     return;
                 }
@@ -68,19 +64,11 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                     var style;
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
-                        map.addLayer(olLayer);
+                        addLayerBeforeMarkers(map.getLayers(), olLayer);
 
                         if (detectLayerType(properties) === 'Vector') {
                             setVectorLayerEvents(defaults.events, map, scope, properties.name);
                         }
-
-                        olData.getLayers().then(function(layers) {
-                            if (properties.name) {
-                                layers[properties.name] = olLayer;
-                            } else {
-                                layers[attrs.olLayerProperties] = olLayer;
-                            }
-                        });
 
                         if (isBoolean(properties.visible)) {
                             olLayer.setVisible(properties.visible);

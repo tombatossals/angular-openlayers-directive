@@ -509,6 +509,26 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             }
             return feature;
         },
+        addLayerBeforeMarkers: function(layers, layer) {
+            var markersIndex;
+            for (var i = 0; i < layers.getLength(); i++) {
+                var l = layers.item(i);
+
+                if (l.get('markers')) {
+                    markersIndex = i;
+                    break;
+                }
+            }
+
+            if (isDefined(markersIndex)) {
+                var markers = layers.item(markersIndex);
+                layers.setAt(markersIndex, layer);
+                layers.push(markers);
+            } else {
+                layers.push(layer);
+            }
+
+        },
 
         createOverlay: function(element, pos) {
             element.css('display', 'block');
