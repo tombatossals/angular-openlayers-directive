@@ -57,23 +57,17 @@
                 lon: 0,
                 zoom: 2
             },
-            layers: {
-                main: {
-                    source: {
-                        type: 'OSM'
-                    }
+            geojson: {
+                name: 'geojson',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'examples/json/countries.geo.json'
                 },
-                geojson: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'examples/json/countries.geo.json'
-                    },
-                    style: getStyle
-                }
+                style: getStyle
             },
-            events: {
-                layers: {
-                    vector: ['mousemove', 'click']
+            defaults: {
+                events: {
+                    layers: ['mousemove']
                 }
             }
         });
@@ -96,26 +90,20 @@
                 offset: [-25, 59],
                 position: [0, 0]
             });
-            var overlayHidden = true;
+            map.addOverlay(overlay);
 
             // Mouse over function, called from the Leaflet Map Events
-            $scope.$on('openlayers.geojson.mousemove', function(event, feature, olEvent) {
+            $scope.$on('openlayers.layers.geojson.mousemove', function(event, feature, olEvent) {
+                console.log(feature.getId());
+                if (!feature) {
+                    return;
+                }
+
                 $scope.$apply(function(scope) {
                     scope.selectedCountry = feature ? $scope.countries[feature.getId()] : '';
                 });
 
-                if (!feature) {
-                    map.removeOverlay(overlay);
-                    overlayHidden = true;
-                    return;
-                } else if (overlayHidden) {
-                    map.addOverlay(overlay);
-                    overlayHidden = false;
-                }
-
-                console.log(olEvent, map.getEventCoordinate(olEvent));
                 overlay.setPosition(map.getEventCoordinate(olEvent));
-
                 if (feature) {
                     feature.setStyle(olHelpers.createStyle({
                         fill: {
@@ -126,7 +114,6 @@
                     if (previousFeature && feature !== previousFeature) {
                         previousFeature.setStyle(getStyle(previousFeature));
                     }
-
                     previousFeature = feature;
                 }
             });

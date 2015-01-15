@@ -1,5 +1,7 @@
 <div class="ui" ng-controller="FrontPageController">
-    <openlayers ol-center="center" ol-layers="layers" ol-events="events" height="620"></openlayers>
+    <openlayers ol-center="center" ol-defaults="defaults" height="620">
+        <ol-layer ol-layer-properties="geojson"></ol-layer>
+    </openlayers>
     <div id="countrybox" class="info country f32">
         <div ng-show="selectedCountry" class="flag" ng-class="selectedCountry['alpha-2']|lowercase"></div>
         {{ selectedCountry.name || 'No country'}}

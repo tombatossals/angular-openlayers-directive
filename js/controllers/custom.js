@@ -12,11 +12,6 @@
             defaults: {
                 interactions: {
                     mouseWheelZoom: true
-                },
-                controls: {
-                    zoom: false,
-                    rotate: false,
-                    attribution: false
                 }
             }
         });

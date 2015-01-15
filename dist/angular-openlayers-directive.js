@@ -11,8 +11,7 @@ angular.module('openlayers-directive', ['ngSanitize'])
         scope: {
             center: '=olCenter',
             defaults: '=olDefaults',
-            view: '=olView',
-            events: '=olEvents'
+            view: '=olView'
         },
         template: '<div class="angular-openlayers-map" ng-transclude></div>',
         controller: ["$scope", function($scope) {
@@ -331,6 +330,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                         };
 
                         olLayer = createLayer(l, projection);
+                        console.log('hola');
                         if (detectLayerType(l) === 'Vector') {
                             setVectorLayerEvents(defaults.events, map, scope, attrs.name);
                         }

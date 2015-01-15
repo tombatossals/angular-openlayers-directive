@@ -17,20 +17,21 @@
                 }
             },
             geojson: {
-                nam: 'geojson',
+                name: 'geojson',
                 source: {
                     type: 'GeoJSON',
                     url: 'examples/json/countries.geo.json'
                 }
             },
-            events: {
-                layers: {
-                    vector: ['mousemove', 'click']
+            defaults: {
+                events: {
+                    layers: ['mousemove', 'click']
                 }
             }
         });
 
         $scope.$on('openlayers.layers.geojson.mousemove', function(event, feature) {
+            console.log('hola');
             $scope.$apply(function(scope) {
                 if (feature && $scope.countries[feature.getId()]) {
                     scope.mouseMoveCountry = feature ? scope.countries[feature.getId()].name : '';
