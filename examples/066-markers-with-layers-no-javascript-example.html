@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <link rel="stylesheet" href="../dist/angular-openlayers-directive.css" />
+    <script>
+        var app = angular.module('demoapp', ['openlayers-directive']);
+    </script>
+  </head>
+  <body>
+    <openlayers lat="39.92" lon="116.38" zoom="10" height="400" custom-layers="true">
+        <ol-layer source-type="TileJSON" source-url="https://api.tiles.mapbox.com/v3/examples.map-i86nkdio.jsonp"></ol-layer>
+        <ol-marker lat="39.92" lon="116.38" message="Here is Beijing. Dreamful place."></ol-marker>
+    </openlayers>
+    <h1>Adding a layer with markers with no javascript example</h1>
+  </body>
+</html>
