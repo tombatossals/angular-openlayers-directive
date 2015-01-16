@@ -60,6 +60,14 @@
         ],
         "layers": [
             {
+                "date": "Jan 16, 2015",
+                "url": "layer-no-javascript",
+                "extUrl": "examples/056-layers-no-javascript-example.html",
+                "title": "Custom layer with no javascript Example",
+                "description": "We can show a map with a custom layer with no need of javascript."
+
+            },
+            {
                 "date": "Jan 01, 2015",
                 "url": "layer",
                 "extUrl": "examples/040-layers-change-tiles-example.html",
@@ -167,6 +175,14 @@
             }
         ],
         "markers": [
+            {
+                "date": "Jan 16, 2015",
+                "url": "marker-no-javascript",
+                "extUrl": "examples/066-markers-with-layers-no-javascript-example.html",
+                "title": "Marker and custom layer with no javascript Example",
+                "description": "We can show a map with markers and custom layer with no need of javascript."
+
+            },
             {
                 "date": "Jan 01, 2015",
                 "url": "marker",
