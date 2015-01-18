@@ -51,6 +51,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
     var createStyle = function(style) {
         var fill;
         var stroke;
+        var image;
+
         if (style.fill) {
             fill = new ol.style.Fill({
                 color: style.fill.color
@@ -63,9 +65,15 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                 width: style.stroke.width
             });
         }
+
+        if (style.image) {
+            image = style.image;
+        }
+
         return new ol.style.Style({
             fill: fill,
-            stroke: stroke
+            stroke: stroke,
+            image: image
         });
     };
 
@@ -485,7 +493,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
 
             switch (data.type) {
                 case 'Polygon':
-                    geometry = new ol.geom.Polygon(data.coord);
+                    geometry = new ol.geom.Polygon(data.coords);
                     break;
                 default:
                     if (isDefined(data.coord) && data.projection === 'pixel') {
@@ -505,7 +513,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             });
 
             if (isDefined(data.style)) {
-                feature.setStyle(data.style);
+                var style = createStyle(data.style);
+                feature.setStyle(style);
             }
             return feature;
         },

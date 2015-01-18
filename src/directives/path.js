@@ -23,21 +23,22 @@ angular.module('openlayers-directive')
 
                 var layer = createVectorLayer();
                 map.addLayer(layer);
-                if (isDefined(attrs.coord)) {
+                if (isDefined(attrs.coords)) {
                     var proj = attrs.proj || 'EPSG:4326';
-                    var coord = JSON.parse(attrs.coord);
+                    var coords = JSON.parse(attrs.coords);
                     var data = {
                         type: 'Polygon',
-                        coord: coord,
-                        projection: proj
+                        coords: coords,
+                        projection: proj,
+                        style: mapDefaults.styles.path
                     };
                     var feature = createFeature(data, viewProjection);
                     layer.getSource().addFeature(feature);
 
                     if (attrs.message) {
                         scope.message = attrs.message;
-                        var pos = ol.proj.transform(coord, proj, viewProjection);
-                        var label = createOverlay(element, pos);
+                        var extent = feature.getGeometry().getExtent();
+                        var label = createOverlay(element, extent);
                         map.addOverlay(label);
                     }
                     return;
