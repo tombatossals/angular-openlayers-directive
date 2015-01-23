@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <link rel="stylesheet" href="../dist/angular-openlayers-directive.css" />
+    <script>
+        var app = angular.module("demoapp", ["openlayers-directive"]);
+        app.controller("DemoController", [ '$scope', function($scope) {} ]);
+    </script>
+  </head>
+  <body ng-controller="DemoController">
+      <openlayers lat="-34.60" lon="-58.38" zoom="10" height="400px" width="100%">
+          <ol-path message="This is a path" coords="[[[-58.38,-34.60], [-58.58,-34.60]]]"></ol-path>
+          <ol-path message="And this is another path" coords="[[[-58.38,-34.70], [-58.38,-34.80]]]"></ol-path>
+          <ol-path message="Hello there" coords="[[[-58.48,-34.40], [-58.58,-34.50]]]"></ol-path>
+      </openlayers>
+      <h1>Adding a path to the map</h1>
+      <p>You can add a path to the map easily with the <strong>ol-path</strong> sub-directive.</p>
+  </body>
+</html>

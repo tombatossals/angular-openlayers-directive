@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html ng-app="demoapp">
   <head>
-    <script src="../bower_components/angular/angular.min.js"></script>
     <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
     <script src="../dist/angular-openlayers-directive.min.js"></script>
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <script>
@@ -14,17 +15,15 @@
                     lon: -0.09,
                     zoom: 10
                 },
-                layers: {
-                    main: {
-                        source: {
-                            type: "OSM"
-                        }
+                OSMLayer: {
+                    source: {
+                        type: "OSM"
                     }
                 }
             });
 
             $scope.$watch("london.zoom", function(zoom) {
-                $scope.layers.main.source.url = (zoom > 12)
+                $scope.OSMLayer.source.url = (zoom > 12)
                         ? "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         : "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
             });
@@ -32,10 +31,12 @@
     </script>
   </head>
   <body ng-controller="DemoZoomLevelController">
-      <openlayers ol-center="london" ol-layers="layers" height="400px"></openlayers>
+      <openlayers ol-center="london" custom-layers="true" height="400px">
+          <ol-layer ol-layer-properties="OSMLayer"></ol-layer>
+      </openlayers>
       <h1>Tiles zoom changer example</h1>
       <p>This is a map with dynamic tile change depending on zoom level</p>
-      <p>Current TileLayer Url: <pre>{{ tiles | json }}</pre></p>
+      <p>Current TileLayer Url: <pre>{{ OSMLayer.source.url | json }}</pre></p>
       <p>Current Zoom Level: {{ london.zoom }}</p>
   </body>
 </html>

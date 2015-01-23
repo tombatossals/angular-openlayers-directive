@@ -4,22 +4,18 @@
 module.exports = function (grunt, options) {
     return {
         unit: {
-            configFile: 'test/karma-unit.conf.js',
-            autoWatch: false,
-            singleRun: true
-        },
-        unit_coverage: {
-            configFile: 'test/karma-unit.conf.js',
-            autoWatch: false,
+            frameworks: ['jasmine'],
+            browsers: ['PhantomJS'],
             singleRun: true,
-            //logLevel: 'DEBUG',
-            reporters: ['progress', 'coverage'],
-            preprocessors: {
-                'dist/angular-openlayers-directive.js': ['coverage']
-            },
-            coverageReporter: {
-                type : 'lcov',
-                dir : 'coverage/'
+            options: {
+                files: [
+                    'bower_components/openlayers3/build/ol-debug.js',
+                    'bower_components/angular/angular.js',
+                    'bower_components/angular-sanitize/angular-sanitize.js',
+                    'bower_components/angular-mocks/angular-mocks.js',
+                    'dist/angular-openlayers-directive.js',
+                    'test/unit/*.js'
+                ]
             }
         }
     };

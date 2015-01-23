@@ -16,8 +16,8 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
             var setZoom           = olHelpers.setZoom;
             var olScope           = controller.getOpenlayersScope();
 
-            controller.getMap().then(function(map) {
-                var defaults = olMapDefaults.getDefaults(attrs.id);
+            olScope.getMap().then(function(map) {
+                var defaults = olMapDefaults.getDefaults(olScope);
                 var view = map.getView();
                 var center = olScope.center;
 
@@ -87,7 +87,7 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                 }
 
                 var geolocation;
-                olScope.$watch('center', function(center) {
+                olScope.$watchCollection('center', function(center) {
 
                     if (!center) {
                         return;
@@ -140,7 +140,7 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                     if (view.getZoom() !== center.zoom) {
                         setZoom(view, center.zoom, map);
                     }
-                }, true);
+                });
 
                 map.on('moveend', function() {
                     safeApply(olScope, function(scope) {

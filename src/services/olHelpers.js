@@ -51,6 +51,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
     var createStyle = function(style) {
         var fill;
         var stroke;
+        var image;
+
         if (style.fill) {
             fill = new ol.style.Fill({
                 color: style.fill.color
@@ -63,9 +65,15 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                 width: style.stroke.width
             });
         }
+
+        if (style.image) {
+            image = style.image;
+        }
+
         return new ol.style.Style({
             fill: fill,
-            stroke: stroke
+            stroke: stroke,
+            image: image
         });
     };
 
@@ -144,11 +152,12 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                 break;
             case 'OSM':
                 if (source.attribution) {
+                    var attributions = [];
+                    if (isDefined(source.attribution)) {
+                        attributions.unshift(new ol.Attribution({ html: source.attribution }));
+                    }
                     oSource = new ol.source.OSM({
-                        attributions: [
-                          new ol.Attribution({ html: source.attribution }),
-                          ol.source.OSM.DATA_ATTRIBUTION
-                        ]
+                        attributions: attributions
                     });
                 } else {
                     oSource = new ol.source.OSM();
@@ -191,7 +200,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     return;
                 }
 
-                if (source.url) {
+                if (isDefined(source.url)) {
                     oSource = new ol.source.GeoJSON({
                         projection: projection,
                         url: source.url
@@ -231,7 +240,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     url: source.url,
                     projection: source.projection,
                     radius: source.radius,
-                    extractStyles: false,
+                    extractStyles: false
                 });
                 break;
             case 'Stamen':
@@ -307,7 +316,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
 
         isValidCenter: function(center) {
             return angular.isDefined(center) &&
-                   (angular.isNumber(center.lat) && angular.isNumber(center.lon) ||
+                   (typeof center.autodiscover === 'boolean' ||
+                    angular.isNumber(center.lat) && angular.isNumber(center.lon) ||
                    (angular.isArray(center.coord) && center.coord.length === 2 &&
                     angular.isNumber(center.coord[0]) && angular.isNumber(center.coord[1])) ||
                    (angular.isArray(center.bounds) && center.bounds.length === 4 &&
@@ -325,10 +335,13 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
         },
 
         isSameCenterOnMap: function(center, map) {
-            var mapCenter = map.getView().getCenter();
+            var urlProj = center.projection || 'EPSG:4326';
+            var urlCenter = [center.lon, center.lat];
+            var mapProj = map.getView().getProjection();
+            var mapCenter = ol.proj.transform(map.getView().getCenter(), mapProj, urlProj);
             var zoom = map.getView().getZoom();
-            if (mapCenter[1].toFixed(4) === center.lat.toFixed(4) &&
-                mapCenter[1].toFixed(4) === center.lon.toFixed(4) &&
+            if (mapCenter[1].toFixed(4) === urlCenter[1].toFixed(4) &&
+                mapCenter[0].toFixed(4) === urlCenter[0].toFixed(4) &&
                 zoom === center.zoom) {
                 return true;
             }
@@ -388,39 +401,30 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             return id;
         },
 
-        generateUniqueUID: function() {
-            function s4() {
-                return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-            }
-
-            return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-        },
-
         createStyle: createStyle,
 
-        setEvents: function(events, map, scope, layers) {
-            if (isDefined(events)) {
-
-                if (angular.isArray(events.map)) {
-                    for (var i in events.map) {
-                        var event = events.map[i];
-                        setEvent(map, event, scope);
-                    }
+        setMapEvents: function(events, map, scope) {
+            if (isDefined(events) && angular.isArray(events.map)) {
+                for (var i in events.map) {
+                    var event = events.map[i];
+                    setEvent(map, event, scope);
                 }
+            }
+        },
 
-                if (isDefined(layers)) {
-                    if (isDefined(events.layers) && angular.isArray(events.layers.vector)) {
-                        angular.forEach(events.layers.vector, function(eventType) {
-                            angular.element(map.getViewport()).on(eventType, function(evt) {
-                                var pixel = map.getEventPixel(evt);
-                                var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
-                                    return feature;
-                                });
-                                scope.$emit('openlayers.geojson.' + eventType, feature, evt);
-                            });
+        setVectorLayerEvents: function(events, map, scope, layerName) {
+            if (isDefined(events) && angular.isArray(events.layers)) {
+                angular.forEach(events.layers, function(eventType) {
+                    angular.element(map.getViewport()).on(eventType, function(evt) {
+                        var pixel = map.getEventPixel(evt);
+                        var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+                            return feature;
                         });
-                    }
-                }
+                        if (isDefined(feature)) {
+                            scope.$emit('openlayers.layers.' + layerName + '.' + eventType, feature, evt);
+                        }
+                    });
+                });
             }
         },
 
@@ -445,26 +449,14 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     oLayer = new ol.layer.Heatmap({ source: oSource });
                     break;
                 case 'Vector':
-                    var style;
-                    if (layer.style) {
-                        if (angular.isFunction(layer.style)) {
-                            style = layer.style;
-                        } else {
-                            style = createStyle(layer.style);
-                        }
-                    }
-
-                    oLayer = new ol.layer.Vector({ source: oSource, style: style });
+                    oLayer = new ol.layer.Vector({ source: oSource });
                     break;
             }
 
-            if (angular.isNumber(layer.opacity)) {
-                oLayer.setOpacity(layer.opacity);
-            }
             return oLayer;
         },
 
-        createMarkerLayer: function() {
+        createVectorLayer: function() {
             return new ol.layer.Vector({
                 source: new ol.source.Vector()
             });
@@ -496,23 +488,59 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
             return actualControls;
         },
 
-        createMarker: function(data, viewProjection) {
+        createFeature: function(data, viewProjection) {
             var geometry;
-            if (viewProjection === 'pixel') {
-                geometry = new ol.geom.Point(data.coord);
-            } else {
-                geometry = new ol.geom.Point([data.lon, data.lat])
-                                          .transform(data.projection, viewProjection);
+
+            switch (data.type) {
+                case 'Polygon':
+                    geometry = new ol.geom.Polygon(data.coords);
+                    break;
+                default:
+                    if (isDefined(data.coord) && data.projection === 'pixel') {
+                        geometry = new ol.geom.Point(data.coord);
+                    } else {
+                        geometry = new ol.geom.Point([data.lon, data.lat]);
+                    }
+                    break;
             }
 
-            var marker = new ol.Feature({
+            if (isDefined(data.projection) && data.projection !== 'pixel') {
+                geometry = geometry.transform(data.projection, viewProjection);
+            }
+
+            var feature = new ol.Feature({
                 geometry: geometry
             });
-            marker.setStyle(data.style);
-            return marker;
+
+            if (isDefined(data.style)) {
+                var style = createStyle(data.style);
+                feature.setStyle(style);
+            }
+            return feature;
+        },
+        addLayerBeforeMarkers: function(layers, layer) {
+            var markersIndex;
+            for (var i = 0; i < layers.getLength(); i++) {
+                var l = layers.item(i);
+
+                if (l.get('markers')) {
+                    markersIndex = i;
+                    break;
+                }
+            }
+
+            if (isDefined(markersIndex)) {
+                var markers = layers.item(markersIndex);
+                layers.setAt(markersIndex, layer);
+                layers.push(markers);
+            } else {
+                layers.push(layer);
+            }
+
         },
 
         createOverlay: function(element, pos) {
+            element.css('display', 'block');
             var ov = new ol.Overlay({
                 position: pos,
                 element: element,

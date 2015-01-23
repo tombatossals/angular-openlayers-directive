@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html ng-app="demoapp">
   <head>
-<script src="../bower_components/angular/angular.min.js"></script>
-<script src="../bower_components/openlayers3/build/ol.js"></script>
-<script src="../dist/angular-openlayers-directive.js"></script>
-<link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <script>
       var app = angular.module("demoapp", ["openlayers-directive"]);
 
@@ -15,24 +16,12 @@
                 lon: -1.27,
                 zoom: 5
             },
-            defaults: {
-                interactions: {
-                    mouseWheelZoom: false
-                }
-            },
-            layers: {
-                main: {
-                    source: {
-                        type: "OSM"
-                    }
+            spain: {
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/ESP.geo.json'
                 },
-                esp: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'json/ESP.geo.json'
-                    },
-                    style: styleFunc
-                }
+                style: styleFunc
             }
         });
 
@@ -50,7 +39,9 @@
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers ol-center="europe" ol-layers="layers" ol-defaults="defaults" height="400px"></openlayers>
+     <openlayers ol-center="europe" height="400px">
+         <ol-layer ol-layer-properties="spain"></ol-layer>
+     </openlayers>
      <h1>Layers GeoJSON change style with a function</h1>
      <p>Move the map to change the vector layer style.</p>
   </body>

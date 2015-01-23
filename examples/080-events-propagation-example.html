@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html ng-app="demoapp">
   <head>
-    <script src="../bower_components/angular/angular.min.js"></script>
     <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
     <script src="../dist/angular-openlayers-directive.js"></script>
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <script>
@@ -14,8 +15,10 @@
                     lon: -0.09,
                     zoom: 4
                 },
-                events: {
-                    map: [ 'singleclick', 'pointermove' ]
+                defaults: {
+                    events: {
+                        map: [ 'singleclick', 'pointermove' ]
+                    }
                 },
                 mouseposition: {},
                 mouseclickposition: {},
@@ -56,7 +59,7 @@
     </script>
   </head>
   <body ng-controller="DemoController">
-    <openlayers ol-center="london" ol-events="events" height="400"></openlayers>
+    <openlayers ol-center="london" ol-defaults="defaults" height="400"></openlayers>
     <h1>Events defaults example</h1>
     <p>In this example we propagate two events in our map, the mouse position and the mouse click.</p>
     <p>Set desired projection:

@@ -8,13 +8,13 @@ module.exports = function (grunt, options) {
                 footer: '\n}());'
             },
             src: [
-                'bower_components/angular-sanitize/angular-sanitize.js',
                 'src/directives/openlayers.js',
                 'src/directives/center.js',
-                'src/directives/layers.js',
+                'src/directives/layer.js',
                 'src/directives/events.js',
+                'src/directives/path.js',
                 'src/directives/view.js',
-                'src/directives/controls.js',
+                'src/directives/control.js',
                 'src/directives/marker.js',
                 'src/services/olData.js',
                 'src/services/olHelpers.js',
@@ -24,7 +24,8 @@ module.exports = function (grunt, options) {
         },
         css: {
             src: [
-                'css/markers.css'
+                'css/markers.css',
+                'css/openlayers.css'
             ],
             dest: 'dist/angular-openlayers-directive.css'
         },

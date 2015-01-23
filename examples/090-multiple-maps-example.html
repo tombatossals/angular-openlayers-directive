@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html ng-app="demoapp">
   <head>
-    <script src="../bower_components/angular/angular.min.js"></script>
     <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
     <script src="../dist/angular-openlayers-directive.js"></script>
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <style>
@@ -30,9 +31,6 @@
                     view: {
                         maxZoom: 11,
                         minZoom: 3
-                    },
-                    interactions: {
-                      mouseWheelZoom: false
                     }
                 },
                 defaults2: {
@@ -98,10 +96,14 @@
   </head>
   <body ng-controller="DemoController">
     <div class="half">
-        <openlayers id="map1" ol-layers="layers1" ol-defaults="defaults" ol-center="center" ol-markers="markers1" width="100%" height="480px"></openlayers>
+        <openlayers id="map1" ol-layers="layers1" ol-defaults="defaults" ol-center="center" ol-markers="markers1" width="100%" height="480px">
+            <ol-marker ng-repeat="marker in markers1" ol-marker-properties="marker"></ol-marker>
+        </openlayers>
     </div>
     <div class="half">
-        <openlayers id="map2" ol-layers="layers2" ol-defaults="defaults2" ol-center="center" ol-markers="markers2" width="100%" height="480px"></openlayers>
+        <openlayers id="map2" ol-layers="layers2" ol-defaults="defaults" ol-center="center" ol-markers="markers2" width="100%" height="480px">
+            <ol-marker ng-repeat="marker in markers2" ol-marker-properties="marker"></ol-marker>
+        </openlayers>
     </div>
     <h1>Two maps sharing center example</h1>
     <p>Drag the center in any of the maps</p>

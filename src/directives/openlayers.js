@@ -1,6 +1,5 @@
 angular.module('openlayers-directive', ['ngSanitize'])
        .directive('openlayers', function($log, $q, $compile, olHelpers, olMapDefaults, olData) {
-    var _olMap;
     return {
         restrict: 'EA',
         transclude: true,
@@ -8,28 +7,30 @@ angular.module('openlayers-directive', ['ngSanitize'])
         scope: {
             center: '=olCenter',
             defaults: '=olDefaults',
-            layers: '=olLayers',
             view: '=olView',
-            controls: '=olControls',
             events: '=olEvents'
         },
-        template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',
+        template: '<div class="angular-openlayers-map" ng-transclude></div>',
         controller: function($scope) {
-            _olMap = $q.defer();
-            this.getMap = function() {
-                return _olMap.promise;
+            var _map = $q.defer();
+            $scope.getMap = function() {
+                return _map.promise;
+            };
+
+            $scope.setMap = function(map) {
+                _map.resolve(map);
             };
 
             this.getOpenlayersScope = function() {
                 return $scope;
             };
         },
-
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined;
             var createLayer = olHelpers.createLayer;
+            var setMapEvents = olHelpers.setMapEvents;
             var createView = olHelpers.createView;
-            var defaults = olMapDefaults.setDefaults(scope.defaults, attrs.id);
+            var defaults = olMapDefaults.setDefaults(scope);
 
             // Set width and height if they are defined
             if (isDefined(attrs.width)) {
@@ -48,6 +49,18 @@ angular.module('openlayers-directive', ['ngSanitize'])
                 }
             }
 
+            if (isDefined(attrs.lat)) {
+                defaults.center.lat = parseFloat(attrs.lat);
+            }
+
+            if (isDefined(attrs.lon)) {
+                defaults.center.lon = parseFloat(attrs.lon);
+            }
+
+            if (isDefined(attrs.zoom)) {
+                defaults.center.zoom = parseFloat(attrs.zoom);
+            }
+
             var controls = ol.control.defaults(defaults.controls);
             var interactions = ol.interaction.defaults(defaults.interactions);
             var view = createView(defaults.view);
@@ -61,27 +74,32 @@ angular.module('openlayers-directive', ['ngSanitize'])
                 view: view
             });
 
-            // If we don't have to sync controls, set the controls in olData
-            if (!isDefined(attrs.olControls)) {
-                olData.setControls(map.getControls());
-            }
-
             // If no layer is defined, set the default tileLayer
-            if (!isDefined(attrs.olLayers)) {
-                var layer = createLayer(defaults.layers.main);
+            if (!attrs.customLayers) {
+                var l = {
+                    type: 'Tile',
+                    source: {
+                        type: 'OSM'
+                    }
+                };
+                var layer = createLayer(l, view.getProjection());
                 map.addLayer(layer);
-                var olLayers = map.getLayers();
-                olData.setLayers(olLayers, attrs.id);
+                map.set('default', true);
             }
 
             if (!isDefined(attrs.olCenter)) {
-                view.setCenter([defaults.center.lon, defaults.center.lat]);
+                var c = ol.proj.transform([defaults.center.lon, defaults.center.lat],
+                                                defaults.center.projection, view.getProjection());
+                view.setCenter(c);
                 view.setZoom(defaults.center.zoom);
             }
 
+            // Set the Default events for the map
+            setMapEvents(defaults.events, map, scope);
+
             // Resolve the map object to the promises
+            scope.setMap(map);
             olData.setMap(map, attrs.id);
-            _olMap.resolve(map);
         }
     };
 });

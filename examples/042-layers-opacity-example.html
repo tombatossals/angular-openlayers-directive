@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html ng-app="demoapp">
   <head>
-    <script src="../bower_components/angular/angular.min.js"></script>
     <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
     <script src="../dist/angular-openlayers-directive.js"></script>
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <script>
@@ -14,21 +15,19 @@
                     lon: -0.09,
                     zoom: 3
                 },
-                layers: {
-                    openstreetmap: {
-                        visible: true,
-                        opacity: 0.5,
-                        source: {
-                            type: 'OSM'
-                        }
-                    },
-                    mapbox_geographyclass: {
-                        visible: true,
-                        opacity: 0.5,
-                        source: {
-                            type: 'TileJSON',
-                            url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
-                        }
+                osm: {
+                    visible: true,
+                    opacity: 0.5,
+                    source: {
+                        type: 'OSM'
+                    }
+                },
+                mapbox: {
+                    visible: true,
+                    opacity: 0.5,
+                    source: {
+                        type: 'TileJSON',
+                        url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
                     }
                 }
             });
@@ -38,16 +37,22 @@
   <body>
   <div class="container">
       <div ng-controller="DemoController">
-        <openlayers ol-center="london" ol-layers="layers" height="400px"></openlayers>
+        <openlayers ol-center="london" custom-layers="true" height="400px">
+            <ol-layer ol-layer-properties="mapbox"></ol-layer>
+            <ol-layer ol-layer-properties="osm"></ol-layer>
+        </openlayers>
 
         <h1>Layers opacity example</h1>
         <p>This is a map that can change the tiles of the main layer by demand</p>
 
         <form>
-            <div ng-repeat="(key, layer) in layers">
-                <input type="checkbox" ng-model="layer.visible" />
-                {{ key }}
-                <input type="range" min="0" max="1" step="0.01" ng-model="layer.opacity">
+            <div>
+                <input type="checkbox" ng-model="osm.visible" /> OSM
+                <input type="range" min="0" max="1" step="0.01" ng-model="osm.opacity">
+            </div>
+            <div>
+                <input type="checkbox" ng-model="mapbox.visible" /> Mapbox
+                <input type="range" min="0" max="1" step="0.01" ng-model="mapbox.opacity">
             </div>
         </form>
       </div>

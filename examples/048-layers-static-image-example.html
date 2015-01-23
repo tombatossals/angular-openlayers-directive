@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html ng-app="demoapp">
   <head>
-<script src="../bower_components/angular/angular.min.js"></script>
-<script src="../bower_components/openlayers3/build/ol.js"></script>
-<script src="../dist/angular-openlayers-directive.js"></script>
-<link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
     <script>
       var app = angular.module("demoapp", ["openlayers-directive"]);
       app.controller("StaticImageController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
@@ -19,13 +20,11 @@
                     extent: [ 0, 0, 1800, 1200 ]
                 }
             },
-            layers: {
-                main: {
-                    source: {
-                        type: "ImageStatic",
-                        url: "http://blog.wallpops.com/wp-content/upLoads/2013/05/WPE0624.jpg",
-                        imageSize: [ 1800, 1200 ]
-                    }
+            static: {
+                source: {
+                    type: "ImageStatic",
+                    url: "http://blog.wallpops.com/wp-content/upLoads/2013/05/WPE0624.jpg",
+                    imageSize: [ 1800, 1200 ]
                 }
             }
         });
@@ -34,10 +33,12 @@
       </script>
   </head>
   <body ng-controller="StaticImageController">
-     <openlayers ol-layers="layers" ol-center="center" ol-defaults="defaults" height="600px"></openlayers>
+     <openlayers ol-center="center" ol-defaults="defaults" custom-layers="true" height="600px">
+         <ol-layer ol-layer-properties="static"></ol-layer>
+     </openlayers>
      <h1>Static Image Layer example</h1>
-     <p>You can load an static image (no tiles) easily, look at the source of the <strong>layers</strong> attribute:</p>
-     <pre ng-bind="layers | json"></pre>
+     <p>You can load an static image (no tiles) easily, look at the source of the <strong>layer</strong> object:</p>
+     <pre ng-bind="static | json"></pre>
      <pre ng-bind="center | json"></pre>
   </body>
 </html>
