@@ -999,6 +999,53 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                     crossOrigin: 'anonymous'
                 });
                 break;
+
+            case 'TileTMS':
+                if (!source.url || !source.tileGrid) {
+                    $log.error('[AngularJS - Openlayers] - TileTMS Layer needs valid url and tileGrid properties');
+                }
+                oSource = new ol.source.TileImage({
+                    url: source.url,
+                    maxExtent: source.maxExtent,
+                    tileGrid: new ol.tilegrid.TileGrid({
+                        origin: source.tileGrid.origin,
+                        resolutions: source.tileGrid.resolutions
+                    }),
+                    tileUrlFunction: function(tileCoord) {
+
+                        var z = tileCoord[0];
+                        var x = tileCoord[1];
+                        var y = tileCoord[2]; //(1 << z) - tileCoord[2] - 1;
+
+                        if (x < 0 || y < 0) {
+                            return '';
+                        }
+
+                        var url = source.url + z + '/' + x + '/' + y + '.png';
+
+                        return url;
+                    }
+                });
+                break;
+            case 'TileImage':
+                oSource = new ol.source.TileImage({
+                    url: source.url,
+                    tileGrid: new ol.tilegrid.TileGrid({
+                        origin: source.tileGrid.origin, // top left corner of the pixel projection's extent
+                        resolutions: source.tileGrid.resolutions
+                    }),
+                  tileUrlFunction: function(tileCoord/*, pixelRatio, projection*/) {
+                        var z = tileCoord[0];
+                        var x = tileCoord[1];
+                        var y = -tileCoord[2] - 1;
+                        var url = source.url
+                            .replace('{z}', z.toString())
+                            .replace('{x}', x.toString())
+                            .replace('{y}', y.toString());
+                        return url;
+                    }
+                });
+                break;
             case 'KML':
                 oSource = new ol.source.KML({
                     url: source.url,
