@@ -12,7 +12,7 @@
 
         $http.get('json/ITA.geo.json').success(function(data) {
             var italy = data;
-            $scope.layers['ita'] = {
+            $scope.ita = {
                 source: {
                     type: 'GeoJSON',
                     geojson: {
@@ -38,21 +38,17 @@
                 lon: 7.57,
                 zoom: 5
             },
-            layers: {
-                main: {
-                    source: {
-                        type: "OSM"
-                    }
-                }
-            }
+            ita: {}
         });
       } ]);
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers ol-center="europe" ol-layers="layers" height="400px"></openlayers>
+     <openlayers ol-center="europe" height="400px">
+         <ol-layer ol-layer-properties="ita"></ol-layer>
+     </openlayers>
      <h1>Layers inline GeoJSON example</h1>
      <p>You can load inline GeoJSON as new layer easily, look at the source of the <strong>layers</strong> attribute:</p>
-     <pre ng-bind="layers | json"></pre>
+     <pre ng-bind="ita | json"></pre>
   </body>
 </html>

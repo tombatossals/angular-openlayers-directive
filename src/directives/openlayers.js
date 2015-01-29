@@ -7,11 +7,10 @@ angular.module('openlayers-directive', ['ngSanitize'])
         scope: {
             center: '=olCenter',
             defaults: '=olDefaults',
-            layers: '=olLayers',
             view: '=olView',
             events: '=olEvents'
         },
-        template: '<div class="angular-openlayers-map"><div style="display: none;" ng-transclude></div></div>',
+        template: '<div class="angular-openlayers-map" ng-transclude></div>',
         controller: function($scope) {
             var _map = $q.defer();
             $scope.getMap = function() {
@@ -29,6 +28,7 @@ angular.module('openlayers-directive', ['ngSanitize'])
         link: function(scope, element, attrs) {
             var isDefined = olHelpers.isDefined;
             var createLayer = olHelpers.createLayer;
+            var setMapEvents = olHelpers.setMapEvents;
             var createView = olHelpers.createView;
             var defaults = olMapDefaults.setDefaults(scope);
 
@@ -74,17 +74,17 @@ angular.module('openlayers-directive', ['ngSanitize'])
                 view: view
             });
 
-            // If we don't have to sync controls, set the controls in olData
-            if (!isDefined(attrs.olControls)) {
-                olData.setControls(map.getControls());
-            }
-
             // If no layer is defined, set the default tileLayer
-            if (!isDefined(attrs.olLayers)) {
-                var layer = createLayer(defaults.layers.main);
+            if (!attrs.customLayers) {
+                var l = {
+                    type: 'Tile',
+                    source: {
+                        type: 'OSM'
+                    }
+                };
+                var layer = createLayer(l, view.getProjection());
                 map.addLayer(layer);
-                var olLayers = map.getLayers();
-                olData.setLayers(olLayers, attrs.id);
+                map.set('default', true);
             }
 
             if (!isDefined(attrs.olCenter)) {
@@ -93,6 +93,9 @@ angular.module('openlayers-directive', ['ngSanitize'])
                 view.setCenter(c);
                 view.setZoom(defaults.center.zoom);
             }
+
+            // Set the Default events for the map
+            setMapEvents(defaults.events, map, scope);
 
             // Resolve the map object to the promises
             scope.setMap(map);

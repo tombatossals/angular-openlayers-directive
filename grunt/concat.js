@@ -10,7 +10,7 @@ module.exports = function (grunt, options) {
             src: [
                 'src/directives/openlayers.js',
                 'src/directives/center.js',
-                'src/directives/layers.js',
+                'src/directives/layer.js',
                 'src/directives/events.js',
                 'src/directives/path.js',
                 'src/directives/view.js',

@@ -59,15 +59,16 @@ describe('Directive: openlayers', function() {
     it('should set default layer if not layers are provided', function() {
         var element = angular.element('<openlayers></openlayers>');
         element = $compile(element)(scope);
-        var olLayers;
-        olData.getLayers().then(function(layers) {
-            olLayers = layers;
+        var map;
+        olData.getMap().then(function(olMap) {
+            map = olMap;
         });
         scope.$digest();
+        var olLayers = map.getLayers();
         expect(olLayers.getLength()).toEqual(1);
         var layer = olLayers.item(0);
         expect(layer instanceof ol.layer.Tile).toBe(true);
-        var olSource = olLayers.item(0).getSource();
+        var olSource = layer.getSource();
         expect(olSource instanceof ol.source.OSM).toBe(true);
     });
 
@@ -93,8 +94,8 @@ describe('Directive: openlayers', function() {
         var defaults = olMapDefaults.getDefaults();
         var controls;
 
-        olData.getControls().then(function(olControls) {
-            controls = olControls;
+        olData.getMap().then(function(olMap) {
+            controls = olMap.getControls();
         });
 
         scope.$digest();

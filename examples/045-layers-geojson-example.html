@@ -15,79 +15,78 @@
                 lon: 7.57,
                 zoom: 5
             },
-            layers: {
-                main: {
-                    source: {
-                        type: "OSM"
-                    }
+            geojson: [ {
+                name: 'Italy',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/ITA.geo.json'
                 },
-                ita: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'json/ITA.geo.json'
+                style: {
+                    fill: {
+                        color: 'rgba(255, 0, 255, 0.6)'
                     },
-                    style: {
-                        fill: {
-                            color: 'rgba(255, 0, 255, 0.6)'
-                        },
-                        stroke: {
-                            color: 'white',
-                            width: 3
-                        }
-                    }
-                },
-                fra: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'json/FRA.geo.json'
-                    },
-                    style: {
-                        fill: {
-                            color: 'rgba(0, 255, 0, 0.6)'
-                        },
-                        stroke: {
-                            color: 'white',
-                            width: 3
-                        }
-                    }
-                },
-                esp: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'json/ESP.geo.json'
-                    },
-                    style: {
-                        fill: {
-                            color: 'rgba(255, 0, 0, 0.6)'
-                        },
-                        stroke: {
-                            color: 'white',
-                            width: 3
-                        }
-                    }
-                },
-                prt: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'json/PRT.geo.json'
-                    },
-                    style: {
-                        fill: {
-                            color: 'rgba(0, 0, 255, 0.6)'
-                        },
-                        stroke: {
-                            color: 'white',
-                            width: 3
-                        }
+                    stroke: {
+                        color: 'white',
+                        width: 3
                     }
                 }
-            }
+            },
+            {
+                name: 'France',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/FRA.geo.json'
+                },
+                style: {
+                    fill: {
+                        color: 'rgba(0, 255, 0, 0.6)'
+                    },
+                    stroke: {
+                        color: 'white',
+                        width: 3
+                    }
+                }
+            },
+            {
+                name: 'Spain',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/ESP.geo.json'
+                },
+                style: {
+                    fill: {
+                        color: 'rgba(255, 0, 0, 0.6)'
+                    },
+                    stroke: {
+                        color: 'white',
+                        width: 3
+                    }
+                }
+            },
+            {
+                name: 'Portugal',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/PRT.geo.json'
+                },
+                style: {
+                    fill: {
+                        color: 'rgba(0, 0, 255, 0.6)'
+                    },
+                    stroke: {
+                        color: 'white',
+                        width: 3
+                    }
+                }
+            }]
         });
       } ]);
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers ol-center="europe" ol-layers="layers" height="400px"></openlayers>
+     <openlayers ol-center="europe" height="400px">
+         <ol-layer ol-layer-properties="layer" ng-repeat="layer in geojson"></ol-layer>
+     </openlayers>
      <h1>Layers GeoJSON example</h1>
      <p>You can load GeoJSON as new layers easily, look at the source of the <strong>layers</strong> attribute:</p>
      <pre ng-bind="layers | json"></pre>

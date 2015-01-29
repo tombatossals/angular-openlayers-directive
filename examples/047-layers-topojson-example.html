@@ -15,25 +15,18 @@
                 lon: 7.57,
                 zoom: 3
             },
-            layers: {
-                main: {
-                    source: {
-                        type: "OSM"
-                    }
+            topojson: {
+                source: {
+                    type: 'TopoJSON',
+                    url: 'json/world.topo.json'
                 },
-                topojson: {
-                    source: {
-                        type: 'TopoJSON',
-                        url: 'json/world.topo.json'
+                style: {
+                    fill: {
+                        color: 'rgba(255, 0, 0, 0.6)'
                     },
-                    style: {
-                        fill: {
-                            color: 'rgba(255, 0, 0, 0.6)'
-                        },
-                        stroke: {
-                            color: 'white',
-                            width: 3
-                        }
+                    stroke: {
+                        color: 'white',
+                        width: 3
                     }
                 }
             }
@@ -43,9 +36,11 @@
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers ol-center="europe" ol-layers="layers" height="400px"></openlayers>
+     <openlayers ol-center="europe" height="400px">
+         <ol-layer ol-layer-properties="topojson"></ol-layer>
+     </openlayers>
      <h1>Layers TopoJSON example</h1>
      <p>You can load TopoJSON as new layers easily, look at the source of the <strong>layers</strong> attribute:</p>
-     <pre ng-bind="layers | json"></pre>
+     <pre ng-bind="topojson | json"></pre>
   </body>
 </html>
