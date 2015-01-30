@@ -75,7 +75,12 @@ angular.module('openlayers-directive')
                         data.coord = properties.coord ? properties.coord : data.coord;
                         data.lat = properties.lat ? properties.lat : data.lat;
                         data.lon = properties.lon ? properties.lon : data.lon;
-                        data.style = mapDefaults.styles.marker;
+
+                        if (isDefined(properties.style)) {
+                            data.style = properties.style;
+                        } else {
+                            data.style = mapDefaults.styles.marker;
+                        }
 
                         marker = createFeature(data, viewProjection);
                         if (!isDefined(marker)) {
