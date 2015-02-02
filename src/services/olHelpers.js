@@ -88,6 +88,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     return 'Image';
                 case 'GeoJSON':
                     return 'Vector';
+                case 'JSONP':
+                    return 'Vector';    
                 case 'TopoJSON':
                     return 'Vector';
                 default:
@@ -212,6 +214,29 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
                     oSource = new ol.source.GeoJSON(source.geojson);
                 }
 
+                break;
+            case 'JSONP':
+                if (!(source.url)) {
+                    $log.error('[AngularJS - Openlayers] - You need an url properly configured to add a JSONP layer.');
+                    return;
+                }
+
+                if (isDefined(source.url)) {
+                    oSource = new ol.source.ServerVector({
+			            format: new ol.format.GeoJSON(),	
+			            loader: function(extent, resolution, projection) {
+				            var url = source.url + '&outputFormat=text/javascript&format_options=callback:JSON_CALLBACK';
+            				$http.jsonp(url, { cache: source.cache})
+            				    .success(function(response) {
+            					oSource.addFeatures(oSource.readFeatures(response));
+            				    })
+            				    .error(function(response) {
+            				    	$log(response);
+            				    })	
+			            },
+                        projection: projection
+                    });
+                }
                 break;
             case 'TopoJSON':
                 if (!(source.topojson || source.url)) {
