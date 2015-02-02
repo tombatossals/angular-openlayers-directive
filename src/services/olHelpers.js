@@ -1,4 +1,4 @@
-angular.module('openlayers-directive').factory('olHelpers', function($q, $log) {
+angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $http) {
     var isDefined = function(value) {
         return angular.isDefined(value);
     };
