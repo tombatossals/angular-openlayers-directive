@@ -7,20 +7,42 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         if (eventType === 'pointermove') {
             map.on('pointermove', function(e) {
                 var coord = e.coordinate;
-                scope.$emit('openlayers.map.' + eventType, {
-                    lat: coord[1],
-                    lon: coord[0],
-                    projection: map.getView().getProjection().getCode()
-                });
+                var proj = map.getView().getProjection().getCode();
+                if (proj === 'pixel') {
+                    coord = coord.map(function(v) {
+                        return parseInt(v, 10);
+                    });
+                    scope.$emit('openlayers.map.' + eventType, {
+                        coord: coord,
+                        projection: proj
+                    });
+                } else {
+                    scope.$emit('openlayers.map.' + eventType, {
+                        lat: coord[1],
+                        lon: coord[0],
+                        projection: proj
+                    });
+                }
             });
         } else if (eventType === 'singleclick') {
             map.on('singleclick', function(e) {
                 var coord = e.coordinate;
-                scope.$emit('openlayers.map.' + eventType, {
-                    lat: coord[1],
-                    lon: coord[0],
-                    projection: map.getView().getProjection().getCode()
-                });
+                var proj = map.getView().getProjection().getCode();
+                if (proj === 'pixel') {
+                    coord = coord.map(function(v) {
+                        return parseInt(v, 10);
+                    });
+                    scope.$emit('openlayers.map.' + eventType, {
+                        coord: coord,
+                        projection: proj
+                    });
+                } else {
+                    scope.$emit('openlayers.map.' + eventType, {
+                        lat: coord[1],
+                        lon: coord[0],
+                        projection: proj
+                    });
+                }
             });
         }
     };
