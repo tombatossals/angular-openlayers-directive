@@ -20,7 +20,7 @@
     vertical-align: middle;
 }
 
-.popup-label:before {
+.popup-label.marker:before {
   	border-top: 6px solid transparent;
   	border-bottom: 6px solid transparent;
   	content: "";
