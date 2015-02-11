@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <link rel="stylesheet" href="../dist/angular-openlayers-directive.css" />
+    <script>
+        var app = angular.module('demoapp', ['openlayers-directive']);
+        app.controller('DemoController', [ '$scope', function($scope) {
+            angular.extend($scope, {
+                london: {
+                    lat: 51.505,
+                    lon: -0.09,
+                    zoom: 4
+                },
+                defaults: {
+                    events: {
+                        map: [ 'singleclick' ]
+                    }
+                },
+                markers: []
+            });
+
+        $scope.$on('openlayers.map.singleclick', function(event, data) {
+            var prj = ol.proj.transform([ data.lon, data.lat ], data.projection, 'EPSG:4326').map(function(c) {
+                return c.toFixed(4);
+            })
+            $scope.$apply(function() {
+                $scope.markers.push({
+                    lat: data.lat,
+                    lon: data.lon,
+                    projection: data.projection,
+                    label: {
+                        message: "Lat: " + prj[1] + ", Lon: " + prj[0],
+                        show: true,
+                        showOnMouseOver: true
+                    }
+                });
+            });
+        });
+
+       }]);
+    </script>
+  </head>
+  <body ng-controller="DemoController">
+    <openlayers ol-center="london" ol-defaults="defaults" height="400">
+        <ol-marker ng-repeat="marker in markers" ol-marker-properties="marker"></ol-marker>
+    </openlayers>
+  </body>
+</html>
