@@ -8,7 +8,8 @@ angular.module('openlayers-directive')
                 lon: 0,
                 coord: [],
                 show: true,
-                showOnMouseOver: false
+                showOnMouseOver: false,
+                showOnMouseClick: false
             };
         };
 
@@ -70,6 +71,38 @@ angular.module('openlayers-directive')
                     }
 
                     scope.$watch('properties', function(properties) {
+                        function showLabelOnEvent(evt) {
+                            if (properties.label.show) {
+                                return;
+                            }
+                            var found = false;
+                            var pixel = map.getEventPixel(evt);
+                            var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+                                return feature;
+                            });
+
+                            if (feature === marker) {
+                                found = true;
+                                if (!isDefined(label)) {
+                                    if (data.projection === 'pixel') {
+                                        pos = data.coord;
+                                    } else {
+                                        pos = ol.proj.transform([data.lon, data.lat],
+                                            data.projection, viewProjection);
+                                    }
+                                    label = createOverlay(element, pos);
+                                    map.addOverlay(label);
+                                }
+                                map.getTarget().style.cursor = 'pointer';
+                            }
+
+                            if (!found && label) {
+                                map.removeOverlay(label);
+                                label = undefined;
+                                map.getTarget().style.cursor = '';
+                            }
+                        }
+
                         if (!isDefined(marker)) {
                             data.projection = properties.projection ? properties.projection : data.projection;
                             data.coord = properties.coord ? properties.coord : data.coord;
@@ -119,37 +152,11 @@ angular.module('openlayers-directive')
                         }
 
                         if (properties.label && properties.label.show === false && properties.label.showOnMouseOver) {
-                            map.getViewport().addEventListener('mousemove', function(evt) {
-                                if (properties.label.show) {
-                                    return;
-                                }
-                                var found = false;
-                                var pixel = map.getEventPixel(evt);
-                                var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
-                                    return feature;
-                                });
+                            map.getViewport().addEventListener('mousemove', showLabelOnEvent);
+                        }
 
-                                if (feature === marker) {
-                                    found = true;
-                                    if (!isDefined(label)) {
-                                        if (data.projection === 'pixel') {
-                                            pos = data.coord;
-                                        } else {
-                                            pos = ol.proj.transform([data.lon, data.lat],
-                                                data.projection, viewProjection);
-                                        }
-                                        label = createOverlay(element, pos);
-                                        map.addOverlay(label);
-                                    }
-                                    map.getTarget().style.cursor = 'pointer';
-                                }
-
-                                if (!found && label) {
-                                    map.removeOverlay(label);
-                                    label = undefined;
-                                    map.getTarget().style.cursor = '';
-                                }
-                            });
+                        if (properties.label && properties.label.show === false && properties.label.showOnMouseClick) {
+                            map.getViewport().addEventListener('click', showLabelOnEvent);
                         }
                     }, true);
                 });
