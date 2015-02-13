@@ -76,6 +76,12 @@ angular.module('openlayers-directive')
                         data.lat = properties.lat ? properties.lat : data.lat;
                         data.lon = properties.lon ? properties.lon : data.lon;
 
+                        if (isDefined(properties.style)) {
+                            data.style = properties.style;
+                        } else {
+                            data.style = mapDefaults.styles.marker;
+                        }
+
                         marker = createFeature(data, viewProjection);
                         if (!isDefined(marker)) {
                             $log.error('[AngularJS - Openlayers] Received invalid data on ' +

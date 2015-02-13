@@ -636,6 +636,12 @@ angular.module('openlayers-directive')
                         data.lat = properties.lat ? properties.lat : data.lat;
                         data.lon = properties.lon ? properties.lon : data.lon;
 
+                        if (isDefined(properties.style)) {
+                            data.style = properties.style;
+                        } else {
+                            data.style = mapDefaults.styles.marker;
+                        }
+
                         marker = createFeature(data, viewProjection);
                         if (!isDefined(marker)) {
                             $log.error('[AngularJS - Openlayers] Received invalid data on ' +
@@ -762,7 +768,7 @@ angular.module('openlayers-directive').service('olData', ["$log", "$q", "olHelpe
 
 }]);
 
-angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", function($q, $log) {
+angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$http", function($q, $log, $http) {
     var isDefined = function(value) {
         return angular.isDefined(value);
     };
@@ -771,20 +777,42 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
         if (eventType === 'pointermove') {
             map.on('pointermove', function(e) {
                 var coord = e.coordinate;
-                scope.$emit('openlayers.map.' + eventType, {
-                    lat: coord[1],
-                    lon: coord[0],
-                    projection: map.getView().getProjection().getCode()
-                });
+                var proj = map.getView().getProjection().getCode();
+                if (proj === 'pixel') {
+                    coord = coord.map(function(v) {
+                        return parseInt(v, 10);
+                    });
+                    scope.$emit('openlayers.map.' + eventType, {
+                        coord: coord,
+                        projection: proj
+                    });
+                } else {
+                    scope.$emit('openlayers.map.' + eventType, {
+                        lat: coord[1],
+                        lon: coord[0],
+                        projection: proj
+                    });
+                }
             });
         } else if (eventType === 'singleclick') {
             map.on('singleclick', function(e) {
                 var coord = e.coordinate;
-                scope.$emit('openlayers.map.' + eventType, {
-                    lat: coord[1],
-                    lon: coord[0],
-                    projection: map.getView().getProjection().getCode()
-                });
+                var proj = map.getView().getProjection().getCode();
+                if (proj === 'pixel') {
+                    coord = coord.map(function(v) {
+                        return parseInt(v, 10);
+                    });
+                    scope.$emit('openlayers.map.' + eventType, {
+                        coord: coord,
+                        projection: proj
+                    });
+                } else {
+                    scope.$emit('openlayers.map.' + eventType, {
+                        lat: coord[1],
+                        lon: coord[0],
+                        projection: proj
+                    });
+                }
             });
         }
     };
@@ -851,6 +879,8 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                 case 'ImageStatic':
                     return 'Image';
                 case 'GeoJSON':
+                    return 'Vector';
+                case 'JSONP':
                     return 'Vector';
                 case 'TopoJSON':
                     return 'Vector';
@@ -977,6 +1007,30 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                 }
 
                 break;
+            case 'JSONP':
+                if (!(source.url)) {
+                    $log.error('[AngularJS - Openlayers] - You need an url properly configured to add a JSONP layer.');
+                    return;
+                }
+
+                if (isDefined(source.url)) {
+                    oSource = new ol.source.ServerVector({
+                        format: new ol.format.GeoJSON(),
+                        loader: function(/*extent, resolution, projection*/) {
+                            var url = source.url +
+                                      '&outputFormat=text/javascript&format_options=callback:JSON_CALLBACK';
+                            $http.jsonp(url, { cache: source.cache})
+                                .success(function(response) {
+                                    oSource.addFeatures(oSource.readFeatures(response));
+                                })
+                                .error(function(response) {
+                                    $log(response);
+                                });
+                        },
+                        projection: projection
+                    });
+                }
+                break;
             case 'TopoJSON':
                 if (!(source.topojson || source.url)) {
                     $log.error('[AngularJS - Openlayers] - You need a topojson ' +
@@ -997,6 +1051,53 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", funct
                 oSource = new ol.source.TileJSON({
                     url: source.url,
                     crossOrigin: 'anonymous'
+                });
+                break;
+
+            case 'TileTMS':
+                if (!source.url || !source.tileGrid) {
+                    $log.error('[AngularJS - Openlayers] - TileTMS Layer needs valid url and tileGrid properties');
+                }
+                oSource = new ol.source.TileImage({
+                    url: source.url,
+                    maxExtent: source.maxExtent,
+                    tileGrid: new ol.tilegrid.TileGrid({
+                        origin: source.tileGrid.origin,
+                        resolutions: source.tileGrid.resolutions
+                    }),
+                    tileUrlFunction: function(tileCoord) {
+
+                        var z = tileCoord[0];
+                        var x = tileCoord[1];
+                        var y = tileCoord[2]; //(1 << z) - tileCoord[2] - 1;
+
+                        if (x < 0 || y < 0) {
+                            return '';
+                        }
+
+                        var url = source.url + z + '/' + x + '/' + y + '.png';
+
+                        return url;
+                    }
+                });
+                break;
+            case 'TileImage':
+                oSource = new ol.source.TileImage({
+                    url: source.url,
+                    tileGrid: new ol.tilegrid.TileGrid({
+                        origin: source.tileGrid.origin, // top left corner of the pixel projection's extent
+                        resolutions: source.tileGrid.resolutions
+                    }),
+                  tileUrlFunction: function(tileCoord/*, pixelRatio, projection*/) {
+                        var z = tileCoord[0];
+                        var x = tileCoord[1];
+                        var y = -tileCoord[2] - 1;
+                        var url = source.url
+                            .replace('{z}', z.toString())
+                            .replace('{x}', x.toString())
+                            .replace('{y}', y.toString());
+                        return url;
+                    }
                 });
                 break;
             case 'KML':
