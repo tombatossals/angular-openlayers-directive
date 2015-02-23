@@ -9,14 +9,12 @@
                 lon: -71.205,
                 zoom: 12
             },
-            layers: {
-                main: {
-                    source: {
-                        name: 'Bing Maps',
-                        type: 'BingMaps',
-                        key: 'Aj6XtE1Q1rIvehmjn2Rh1LR2qvMGZ-8vPS9Hn3jCeUiToM77JFnf-kFRzyMELDol',
-                        imagerySet: 'Road'
-                    }
+            bing: {
+                source: {
+                    name: 'Bing Maps',
+                    type: 'BingMaps',
+                    key: 'Aj6XtE1Q1rIvehmjn2Rh1LR2qvMGZ-8vPS9Hn3jCeUiToM77JFnf-kFRzyMELDol',
+                    imagerySet: 'Road'
                 }
             }
         });

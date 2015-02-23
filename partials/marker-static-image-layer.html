@@ -1,11 +1,12 @@
 <div class="ui" ng-controller="MarkerStaticImageLayerController">
-    <openlayers ol-center="center" ol-defaults="defaults" ol-layers="layers" height="400px">
+    <openlayers ol-center="center" ol-defaults="defaults" custom-layers="true" height="400px">
+        <ol-layer ol-layer-properties="static"></ol-layer>
         <ol-marker ng-repeat="marker in markers" ol-marker-properties="marker"></ol-marker>
     </openlayers>
     <h2 class="ui header">Markers inside an Static Image Layer</h2>
     <p>Mouse over the markers to show the label with an image.</p>
-    <h3>Layers object</h3>
-    <pre>{{ layers | json }}</pre>
+    <h3>Static layer object</h3>
+    <pre>{{ static | json }}</pre>
     <h3>Markers object</h3>
     <pre>{{ markers | json }}</pre>
     <h3>Source code of this example</h3>

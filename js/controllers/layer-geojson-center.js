@@ -9,17 +9,10 @@
                 lon: 78.86,
                 zoom: 3
             },
-            layers: {
-                main: {
-                    source: {
-                        type: 'OSM'
-                    }
-                },
-                geojson: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'examples/json/JPN.geo.json'
-                    }
+            geojson: {
+                source: {
+                    type: 'GeoJSON',
+                    url: 'examples/json/JPN.geo.json'
                 }
             }
         });

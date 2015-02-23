@@ -12,11 +12,11 @@
             view: {
                 rotation: -1
             },
-            controls: {
-                zoom: true,
-                fullscreen: true,
-                rotate: true
-            }
+            controls: [
+                { name: 'zoom', active: true },
+                { name: 'rotate', active: true },
+                { name: 'attribution', active: true }
+            ]
         });
 
         $scope.degreesToRadians = function() {

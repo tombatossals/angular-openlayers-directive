@@ -20,6 +20,10 @@
             };
 
             examples.promise.then(function(examples) {
+                console.log('section', $scope.section);
+                if (!$scope.section) {
+                    $scope.section = 'first';
+                }
                 var sectionExamples = examples[$scope.section];
                 for (var i in sectionExamples) {
                     var example = sectionExamples[i];

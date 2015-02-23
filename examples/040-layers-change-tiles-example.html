@@ -9,44 +9,58 @@
     <script>
         var app = angular.module("demoapp", ["openlayers-directive"]);
         app.controller('DemoController', [ '$scope', function($scope) {
-            $scope.sources = {
-                openstreetmap: {
-                    name: 'OpenStreetMap',
-                    type: 'OSM'
-                },
-                opencyclemap: {
-                    name: 'OpenCycleMap',
-                    type: 'OSM',
-                    url: 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
-                    attribution: 'All maps &copy; <a href="http://www.opencyclemap.org/">OpenCycleMap</a>'
-                },
-                mapbox_streets: {
-                    name: 'MapBox Streets',
-                    type: 'TileJSON',
-                    url: 'https://api.tiles.mapbox.com/v3/tombatossals.map-fmyyujjl.jsonp'
-                },
-                mapbox_terrain: {
-                    name: 'MapBox Terrain',
-                    type: 'TileJSON',
-                    url: 'https://api.tiles.mapbox.com/v3/tombatossals.jbn2nnon.jsonp'
-                },
-                mapbox_geographyclass: {
-                    name: 'Mapbox Geography Class',
-                    type: 'TileJSON',
-                    url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
-                }
-            };
-
             angular.extend($scope, {
                 london: {
                     lat: 51.505,
                     lon: -0.09,
                     zoom: 3
                 },
-                layers: {
-                    main: {
-                        source: $scope.sources.opencyclemap
+                layers: [
+                    {
+                        name: 'OpenStreetMap',
+                        active: true,
+                        source: {
+                            type: 'OSM'
+                        }
+                    },
+                    {
+                        name: 'OpenCycleMap',
+                        active: false,
+                        source: {
+                            type: 'OSM',
+                            url: 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png',
+                            attribution: 'All maps &copy; <a href="http://www.opencyclemap.org/">OpenCycleMap</a>'
+                        }
+                    },
+                    {
+                        name: 'MapBox Night',
+                        active: false,
+                        source: {
+                            type: 'TileJSON',
+                            url: 'https://api.tiles.mapbox.com/v3/examples.map-0l53fhk2.jsonp'
+                        }
+                    },
+                    {
+                        name: 'MapBox Terrain',
+                        active: false,
+                        source: {
+                            type: 'TileJSON',
+                            url: 'https://api.tiles.mapbox.com/v3/examples.map-i86nkdio.jsonp'
+                        }
+                    },
+                    {
+                        name: 'Mapbox Geography Class',
+                        active: false,
+                        source: {
+                            type: 'TileJSON',
+                            url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
+                        }
                     }
+                ],
+                changeLayer: function(layer) {
+                    $scope.layers.map(function(l) {
+                        l.active = (l === layer);
+                    });
                 }
             });
         } ]);
@@ -55,14 +69,16 @@
   <body>
   <div class="container">
       <div ng-controller="DemoController">
-        <openlayers ol-center="london" ol-layers="layers" height="400px"></openlayers>
+        <openlayers ol-center="london" custom-layers="true" height="400px">
+            <ol-layer name="{{ layer.name }}" ol-layer-properties="layer" ng-repeat="layer in layers|filter: { active: true}"></ol-layer>
+        </openlayers>
 
         <h1>Layers change tiles example</h1>
         <p>This is a map that can change the tiles of the main layer by demand</p>
 
         <ul>
-            <li style="display: inline" ng-repeat="(key, source) in sources">
-                <button ng-click="layers.main.source=source" class="btn btn-default" ng-bind="source.name"></button>
+            <li style="display: inline" ng-repeat="layer in layers">
+                <button ng-click="changeLayer(layer)" class="btn btn-default" ng-bind="layer.name"></button>
             </li>
         </ul>
 

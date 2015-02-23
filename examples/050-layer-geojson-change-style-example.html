@@ -15,25 +15,18 @@
                 lon: -1.27,
                 zoom: 5
             },
-            layers: {
-                main: {
-                    source: {
-                        type: "OSM"
-                    }
+            spain: {
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/ESP.geo.json'
                 },
-                esp: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'json/ESP.geo.json'
+                style: {
+                    fill: {
+                        color: '#FF0000'
                     },
-                    style: {
-                        fill: {
-                            color: '#FF0000'
-                        },
-                        stroke: {
-                            color: '#FFFFFF',
-                            width: 3
-                        }
+                    stroke: {
+                        color: '#FFFFFF',
+                        width: 3
                     }
                 }
             }
@@ -43,10 +36,12 @@
       </script>
   </head>
   <body ng-controller="GeoJSONController">
-     <openlayers ol-center="europe" ol-layers="layers"  height="400px"></openlayers>
+     <openlayers ol-center="europe"  height="400px">
+         <ol-layer ol-layer-properties="spain"></ol-layer>
+     </openlayers>
      <h1>Layers GeoJSON change style</h1>
-     <p>Stroke color: <input type="color" ng-model="layers.esp.style.stroke.color">
-     <p>Stroke width: <input type="range" min="0" max="20" value="3" ng-model="layers.esp.style.stroke.width">
-     <p>Fill color: <input type="color" ng-model="layers.esp.style.fill.color">
+     <p>Stroke color: <input type="color" ng-model="spain.style.stroke.color">
+     <p>Stroke width: <input type="range" min="0" max="20" value="3" ng-model="spain.style.stroke.width">
+     <p>Fill color: <input type="color" ng-model="spain.style.fill.color">
   </body>
 </html>

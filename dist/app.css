@@ -77,7 +77,6 @@ input[type=range] {
     white-space: nowrap;
     line-height: 1.1em;
     text-align: center;
-    z-index: 100;
 }
 
 .info:before {

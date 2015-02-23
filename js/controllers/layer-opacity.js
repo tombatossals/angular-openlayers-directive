@@ -8,14 +8,12 @@
                 lon: -0.09,
                 zoom: 3
             },
-            layers: {
-                mapbox: {
-                    visible: true,
-                    opacity: 0.6,
-                    source: {
-                        type: 'TileJSON',
-                        url: 'https://api.tiles.mapbox.com/v3/examples.map-i86nkdio.jsonp'
-                    }
+            mapbox: {
+                visible: true,
+                opacity: 0.6,
+                source: {
+                    type: 'TileJSON',
+                    url: 'https://api.tiles.mapbox.com/v3/examples.map-i86nkdio.jsonp'
                 }
             }
         });

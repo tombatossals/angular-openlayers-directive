@@ -9,12 +9,10 @@
                 lon: -71.205,
                 zoom: 3
             },
-            layers: {
-                main: {
-                    source: {
-                        type: 'MapQuest',
-                        layer: 'sat'
-                    }
+            mapquest: {
+                source: {
+                    type: 'MapQuest',
+                    layer: 'sat'
                 }
             }
         });

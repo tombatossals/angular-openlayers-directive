@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+      var app = angular.module("demoapp", ["openlayers-directive"]);
+      app.controller("KMLEventsController", [ '$scope', '$http', 'olData', 'olHelpers', function($scope, $http, olData, olHelpers) {
+        angular.extend($scope, {
+            center: {
+                lat: 30,
+                lon: -90,
+                zoom: 4
+            },
+            kml: {
+                name: 'states',
+                source: {
+                    type: 'KML',
+                    projection: 'EPSG:3857',
+                    url: 'kml/states.kml'
+                }
+            },
+            defaults: {
+                events: {
+                    layers: [ 'mousemove', 'click' ]
+                }
+            }
+        });
+
+        $scope.$on('openlayers.layers.states.mousemove', function(event, feature) {
+            feature.setStyle(olHelpers.createStyle({
+                fill: {
+                    color: 'rgba(255, 0, 0, 0.2)'
+                }
+            }));
+        });
+
+      } ]);
+      </script>
+  </head>
+  <body ng-controller="KMLEventsController">
+     <openlayers ol-center="center" ol-defaults="defaults" height="480px">
+       <ol-layer ol-layer-properties="kml"></ol-layer>
+     </openlayers>
+  </body>
+</html>

@@ -9,24 +9,16 @@
     <link rel="stylesheet" href="../dist/angular-openlayers-directive.css" />
     <script>
         var app = angular.module("demoapp", ["openlayers-directive"]);
-        app.controller("DemoController", [ '$scope', function($scope) {
-            angular.extend($scope, {
-                center: {
-                    lat: -34.60,
-                    lon: -58.38,
-                    zoom: 10
-                }
-            });
-        } ]);
-
+        app.controller("DemoController", [ '$scope', function($scope) {} ]);
     </script>
   </head>
   <body ng-controller="DemoController">
-      <openlayers ol-center="center" height="400px" width="100%">
-          <ol-path message="This is a path" coord="[[[-58.38,-34.60], [-59.38,-35.60]]]"></ol-path>
+      <openlayers lat="-34.60" lon="-58.38" zoom="10" height="400px" width="100%">
+          <ol-path message="This is a path" coords="[[[-58.38,-34.60], [-58.58,-34.60]]]"></ol-path>
+          <ol-path message="And this is another path" coords="[[[-58.38,-34.70], [-58.38,-34.80]]]"></ol-path>
+          <ol-path message="Hello there" coords="[[[-58.48,-34.40], [-58.58,-34.50]]]"></ol-path>
       </openlayers>
-      <h1>Adding a geometry object to the map</h1>
-      <p>You can add a marker to the map easily with the <strong>ol-marker</strong> sub-directive.</p>
-      <pre ng-bind="markers | json"></pre>
+      <h1>Adding a path to the map</h1>
+      <p>You can add a path to the map easily with the <strong>ol-path</strong> sub-directive.</p>
   </body>
 </html>

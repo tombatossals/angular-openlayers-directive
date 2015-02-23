@@ -15,31 +15,22 @@
                     minZoom: 3
                 }
             },
-            layers1: {
-                main: {
-                    source: {
-                        type: 'OSM'
-                    }
-                },
-                geojson: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'examples/json/toronto1.json'
-                    }
+            defaults2: {
+                view: {
+                    maxZoom: 14,
+                    minZoom: 3
                 }
             },
-            layers2: {
-                main: {
-                    source: {
-                        type: 'Stamen',
-                        layer: 'terrain'
-                    }
-                },
-                geojson: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'examples/json/toronto2.json'
-                    }
+            geojson1: {
+                source: {
+                    type: 'GeoJSON',
+                    url: 'examples/json/toronto1.json'
+                }
+            },
+            geojson2: {
+                source: {
+                    type: 'GeoJSON',
+                    url: 'examples/json/toronto2.json'
                 }
             },
             markers1: {

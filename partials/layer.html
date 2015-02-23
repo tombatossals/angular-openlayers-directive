@@ -1,13 +1,15 @@
 <div class="ui" ng-controller="LayerController">
-    <openlayers ol-center="london" ol-layers="layers" height="400px"></openlayers>
+    <openlayers ol-center="london" custom-layers="true" height="400px">
+        <ol-layer name="{{ layer.name }}" ol-layer-properties="layer" ng-repeat="layer in layers|filter: { active: true}"></ol-layer>
+    </openlayers>
     <h2 class="ui header">Layers change tiles example</h2>
     <p>In this map you can change the main active layer pressing the buttons below. Try it.</p>
 
     <div class="4 ui fluid buttons">
-        <div class="ui button" ng-class="{ active: layers.main.source === source }" ng-repeat="(key, source) in sources" ng-click="layers.main.source=source" ng-bind="source.name"></div>
+        <div class="ui button" ng-class="{ active: layer.active }" ng-repeat="layer in layers" ng-click="changeLayer(layer)" ng-bind="layer.name"></div>
     </div>
     <br />
-    <p>On each button click we're simply setting the <strong>layers</strong> object to a new value.</p>
+    <p>On each button click we're simply adding a new <strong>&lt;ol-layer></strong> object inside the <strong>&lt;openlayers></strong> tag.</p>
     <h3>Current <strong>layers</strong> object:</h3>
     <pre>{{ layers | json }}</pre>
     <h3>Source code of this example</h3>

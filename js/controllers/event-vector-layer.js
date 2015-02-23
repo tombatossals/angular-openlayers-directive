@@ -9,28 +9,29 @@
                 lon: 0,
                 zoom: 2
             },
-            layers: {
-                main: {
-                    source: {
-                        type: 'TileJSON',
-                        url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
-                    }
-                },
-                geojson: {
-                    source: {
-                        type: 'GeoJSON',
-                        url: 'examples/json/countries.geo.json'
-                    }
+            mapbox: {
+                name: 'mapbox',
+                source: {
+                    type: 'TileJSON',
+                    url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
                 }
             },
-            events: {
-                layers: {
-                    vector: ['mousemove', 'click']
+            geojson: {
+                name: 'geojson',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'examples/json/countries.geo.json'
+                }
+            },
+            defaults: {
+                events: {
+                    layers: ['mousemove', 'click']
                 }
             }
         });
 
-        $scope.$on('openlayers.geojson.mousemove', function(event, feature) {
+        $scope.$on('openlayers.layers.geojson.mousemove', function(event, feature) {
+            console.log('hola');
             $scope.$apply(function(scope) {
                 if (feature && $scope.countries[feature.getId()]) {
                     scope.mouseMoveCountry = feature ? scope.countries[feature.getId()].name : '';
@@ -38,7 +39,7 @@
             });
         });
 
-        $scope.$on('openlayers.geojson.click', function(event, feature) {
+        $scope.$on('openlayers.layers.geojson.click', function(event, feature) {
             $scope.$apply(function(scope) {
                 if (feature) {
                     scope.mouseClickCountry = feature ? scope.countries[feature.getId()].name : '';

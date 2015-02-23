@@ -6,15 +6,16 @@
     <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
     <script src="../dist/angular-openlayers-directive.js"></script>
     <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <link rel="stylesheet" href="../dist/angular-openlayers-directive.css" />
     <style>
-    .ol-full-screen {
-        position: absolute;
-        top: 50%;
-    }
+        .ol-full-screen {
+            position: absolute;
+            top: 50%;
+        }
     </style>
     <script>
       var app = angular.module("demoapp", ["openlayers-directive"]);
-      app.controller("GeoJSONController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
+      app.controller("DemoController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
         angular.extend($scope, {
             center: {
                 lat: 43.88,
@@ -24,11 +25,11 @@
             view: {
                 rotation: -1
             },
-            controls: {
-                zoom: true,
-                fullscreen: true,
-                rotate: true
-            }
+            controls: [
+                { name: 'zoom', active: true },
+                { name: 'rotate', active: true },
+                { name: 'attribution', active: true }
+            ]
         });
 
         $scope.degreesToRadians = function() {
@@ -42,15 +43,12 @@
       } ]);
       </script>
   </head>
-  <body ng-controller="GeoJSONController">
-     <div style="height: 400px;">
-         <openlayers ol-center="center" ol-controls="controls" ol-view="view"></openlayers>
-     </div>
+  <body ng-controller="DemoController">
+     <openlayers ol-center="center" ol-controls="controls" ol-view="view">
+         <ol-control name="{{ control.name }}" ng-repeat="control in controls|filter: {active: true}"></ol-control>
+     </openlayers>
      <h1>Controls example</h1>
-     <input type="button" ng-click="controls.zoom = !controls.zoom" value="Toggle Zoom Control"/>
-     <input type="button" ng-click="controls.attribution = !controls.attribution" value="Toggle Attribution Control"/>
-     <input type="button" ng-click="controls.rotate = !controls.rotate" value="Toggle Rotate Control"/>
-     <input type="button" ng-click="controls.fullscreen = !controls.fullscreen" value="Toggle Fullscreen Control"/>
+     <input type="button" ng-click="control.active = !control.active" ng-repeat="control in controls" value="Toggle {{ control.name }} control" />
      <p><input type="range" min="-180" max="180" ng-change="degreesToRadians()" ng-model="degrees" /> Degrees: {{ degrees }}</p>
      <p>You can add/remove controls to the map via the <strong>controls</strong> attribute:</p>
      <pre ng-bind="controls | json"></pre>

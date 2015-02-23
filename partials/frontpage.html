@@ -1,7 +1,14 @@
-<div class="ui" ng-controller="FrontPageController">
-    <openlayers ol-center="center" ol-layers="layers" ol-events="events" height="620"></openlayers>
-    <div id="countrybox" class="info country f32">
-        <div ng-show="selectedCountry" class="flag" ng-class="selectedCountry['alpha-2']|lowercase"></div>
-        {{ selectedCountry.name || 'No country'}}
-    </div>
+<div class="ui">
+    <openlayers lat="39.92" lon="116.38" zoom="10" height="400" custom-layers="true">
+        <ol-layer source-type="TileJSON" source-url="https://api.tiles.mapbox.com/v3/examples.map-i86nkdio.jsonp"></ol-layer>
+        <ol-marker lat="39.92" lon="116.38" message="Here is Beijing. Dreamful place."></ol-marker>
+    </openlayers>
+    <h2 class="ui header">Manage your maps with the least javascript code possible</h2>
+    <p>Look at the HTML source code used to show this map.</p>
+    <pre class="language-markup"><code>&lt;openlayers lat="39.92" lon="116.38" zoom="10" height="400" custom-layers="true">
+    &lt;ol-layer source-type="TileJSON" source-url="https://api.tiles.mapbox.com/v3/examples.map-i86nkdio.jsonp">&lt;/ol-layer>
+    &lt;ol-marker lat="39.92" lon="116.38" message="Here is Beijing. Dreamful place.">&lt;/ol-marker>
+&lt;/openlayers>
+</code></pre>
+    <p><a ng-href="http://localhost/dev/angular-openlayers-directive/examples/066-markers-with-layers-no-javascript-example.html">View stand-alone example</a></p>
 </div>

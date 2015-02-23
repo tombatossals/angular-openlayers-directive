@@ -9,8 +9,10 @@
                 lon: -0.09,
                 zoom: 4
             },
-            events: {
-                map: ['singleclick', 'pointermove']
+            defaults: {
+                events: {
+                    map: ['singleclick', 'pointermove']
+                }
             },
             mouseposition: {},
             mouseclickposition: {},
