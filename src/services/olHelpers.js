@@ -73,7 +73,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
     var createStyle = function(style) {
         var fill;
         var stroke;
-        var image;
+        var icon;
 
         if (style.fill) {
             fill = new ol.style.Fill({
@@ -88,14 +88,14 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             });
         }
 
-        if (style.image) {
-            image = style.image;
+        if (style.icon) {
+            icon = new ol.style.Icon(style.icon);
         }
 
         return new ol.style.Style({
             fill: fill,
             stroke: stroke,
-            image: image
+            image: icon
         });
     };
 
@@ -113,6 +113,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 case 'JSONP':
                     return 'Vector';
                 case 'TopoJSON':
+                    return 'Vector';
+                case 'KML':
                     return 'Vector';
                 default:
                     return 'Tile';
@@ -331,11 +333,12 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 });
                 break;
             case 'KML':
+                var extractStyles = source.extractStyles || false;
                 oSource = new ol.source.KML({
                     url: source.url,
                     projection: source.projection,
                     radius: source.radius,
-                    extractStyles: false
+                    extractStyles: extractStyles
                 });
                 break;
             case 'Stamen':
@@ -508,7 +511,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         },
 
         setVectorLayerEvents: function(events, map, scope, layerName) {
+            console.log(events, map, scope, layerName);
             if (isDefined(events) && angular.isArray(events.layers)) {
+                console.log('hola');
                 angular.forEach(events.layers, function(eventType) {
                     angular.element(map.getViewport()).on(eventType, function(evt) {
                         var pixel = map.getEventPixel(evt);
