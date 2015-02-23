@@ -44,6 +44,7 @@ Let's start with some basic examples. Look at the source code of the example to 
 - [Events with vectors example](http://tombatossals.github.io/angular-openlayers-directive/examples/081-events-vector-example.html)
 - [Events with vectors and dynamic styles example](http://tombatossals.github.io/angular-openlayers-directive/examples/082-events-vector-dynamic-styles-example.html)
 - [Events in an static image layer example](http://tombatossals.github.io/angular-openlayers-directive/examples/083-events-static-image-layer-example.html)
+- [Events in a KML layer example](http://tombatossals.github.io/angular-openlayers-directive/examples/085-events-kml-example.html)
 - [Multiple maps example](http://tombatossals.github.io/angular-openlayers-directive/examples/090-multiple-maps-example.html)
 - [Controls example](http://tombatossals.github.io/angular-openlayers-directive/examples/100-controls-example.html)
 - [Fullscreen control example](http://tombatossals.github.io/angular-openlayers-directive/examples/101-controls-fullscreen-example.html)
