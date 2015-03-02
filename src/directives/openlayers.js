@@ -8,7 +8,9 @@ angular.module('openlayers-directive', ['ngSanitize'])
             center: '=olCenter',
             defaults: '=olDefaults',
             view: '=olView',
-            events: '=olEvents'
+            events: '=olEvents',
+            height: '=',
+            width: '='
         },
         template: '<div class="angular-openlayers-map" ng-transclude></div>',
         controller: function($scope) {
@@ -31,23 +33,6 @@ angular.module('openlayers-directive', ['ngSanitize'])
             var setMapEvents = olHelpers.setMapEvents;
             var createView = olHelpers.createView;
             var defaults = olMapDefaults.setDefaults(scope);
-
-            // Set width and height if they are defined
-            if (isDefined(attrs.width)) {
-                if (isNaN(attrs.width)) {
-                    element.css('width', attrs.width);
-                } else {
-                    element.css('width', attrs.width + 'px');
-                }
-            }
-
-            if (isDefined(attrs.height)) {
-                if (isNaN(attrs.height)) {
-                    element.css('height', attrs.height);
-                } else {
-                    element.css('height', attrs.height + 'px');
-                }
-            }
 
             if (isDefined(attrs.lat)) {
                 defaults.center.lat = parseFloat(attrs.lat);
@@ -100,6 +85,29 @@ angular.module('openlayers-directive', ['ngSanitize'])
             // Resolve the map object to the promises
             scope.setMap(map);
             olData.setMap(map, attrs.id);
+            
+            // Set width and height if they are defined dynamically
+            scope.$watch("height", function (newVal, oldVal) {
+            	if (isDefined(newVal)) {
+                    if (isNaN(newVal)) {
+                        element.css('height', newVal);
+                    } else {
+                        element.css('height', newVal + 'px');
+                    }
+                    map.updateSize();
+                }
+            });
+            
+            scope.$watch("width", function (newVal, oldVal) {
+            	if (isDefined(newVal)) {
+                    if (isNaN(newVal)) {
+                        element.css('width', newVal);
+                    } else {
+                        element.css('width', newVal + 'px');
+                    }
+                    map.updateSize();
+                }
+            });
         }
     };
 });
