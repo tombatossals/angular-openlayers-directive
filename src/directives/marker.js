@@ -72,6 +72,7 @@ angular.module('openlayers-directive')
 
                     scope.$watch('properties', function(properties) {
                         function showLabelOnEvent(evt) {
+                            evt.preventDefault();
                             if (properties.label.show) {
                                 return;
                             }
@@ -157,6 +158,7 @@ angular.module('openlayers-directive')
 
                         if (properties.label && properties.label.show === false && properties.label.showOnMouseClick) {
                             map.getViewport().addEventListener('click', showLabelOnEvent);
+                            map.getViewport().addEventListener('touchend', showLabelOnEvent);
                         }
                     }, true);
                 });
