@@ -3,23 +3,35 @@ angular.module('openlayers-directive')
 
         return {
             restrict: 'E',
-            scope: false,
+            scope: {
+                properties: '=olControlProperties'
+            },
             replace: false,
             require: '^openlayers',
             link: function(scope, element, attrs, controller) {
+                var isDefined   = olHelpers.isDefined;
                 var olScope   = controller.getOpenlayersScope();
-                var control;
+                var olControl;
 
                 olScope.getMap().then(function(map) {
                     var getControlClasses = olHelpers.getControlClasses;
                     var controlClasses = getControlClasses();
-                    if (attrs.name) {
-                        control = new controlClasses[attrs.name]();
-                        map.addControl(control);
+
+                    if (!isDefined(scope.properties)) {
+                        if (attrs.name) {
+                            olControl = new controlClasses[attrs.name]();
+                            map.addControl(olControl);
+                        }
+                        return;
+                    }
+
+                    if (isDefined(scope.properties.control)) {
+                        olControl = scope.properties.control;
+                        map.addControl(olControl);
                     }
 
                     scope.$on('$destroy', function() {
-                        map.removeControl(control);
+                        map.removeControl(olControl);
                     });
                 });
             }
