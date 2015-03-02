@@ -90,7 +90,7 @@ angular.module('openlayers-directive')
                     var marker;
 
                     scope.$on('$destroy', function() {
-                        markerLayerManager.deregisterScope(scope);
+                        markerLayerManager.deregisterScope(scope, map);
                     });
 
                     if (!isDefined(scope.properties)) {
