@@ -164,7 +164,7 @@ angular.module('openlayers-directive')
 
                         if (properties.label && properties.label.show === false && properties.label.showOnMouseClick) {
                             map.getViewport().addEventListener('click', showLabelOnEvent);
-                            map.getViewport().addEventListener('touchend', showLabelOnEvent);
+                            map.getViewport().querySelector('canvas.ol-unselectable').addEventListener('touchend', showLabelOnEvent);
                         }
                     }, true);
                 });
