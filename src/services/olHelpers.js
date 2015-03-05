@@ -92,6 +92,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             icon = new ol.style.Icon(style.icon);
         }
 
+        if (style.image) {
+            icon = style.image;
+        }
+
         return new ol.style.Style({
             fill: fill,
             stroke: stroke,

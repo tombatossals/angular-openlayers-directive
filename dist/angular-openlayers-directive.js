@@ -376,6 +376,10 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                             olLayer.setOpacity(properties.opacity);
                         }
 
+                        if (angular.isArray(properties.extent)) {
+                            olLayer.setExtent(properties.extent);
+                        }
+
                         if (properties.style) {
                             if (!angular.isFunction(properties.style)) {
                                 style = createStyle(properties.style);
@@ -945,6 +949,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
         if (style.icon) {
             icon = new ol.style.Icon(style.icon);
+        }
+
+        if (style.image) {
+            icon = style.image;
         }
 
         return new ol.style.Style({
