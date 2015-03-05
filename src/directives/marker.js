@@ -57,6 +57,7 @@ angular.module('openlayers-directive')
 
                     if (!scopes.length) {
                         map.removeLayer(mapDict[mapIndex].markerLayer);
+                        delete mapDict[mapIndex];
                     }
                 }
             };
