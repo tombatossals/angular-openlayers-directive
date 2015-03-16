@@ -183,9 +183,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                                'valid server url and params properties');
                 }
                 oSource = new ol.source.ImageWMS({
-                  url: source.url,
-                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
-                  params: source.params
+                    url: source.url,
+                    crossOrigin: (source.crossOrigin === undefined) ? 'anonymous' : source.crossOrigin,
+                    params: source.params
                 });
                 break;
 
@@ -194,9 +194,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url and params properties');
                 }
                 oSource = new ol.source.TileWMS({
-                  url: source.url,
-                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
-                  params: source.params
+                    url: source.url,
+                    crossOrigin: (source.crossOrigin === undefined) ? 'anonymous' : source.crossOrigin,
+                    params: source.params
                 });
                 break;
             case 'OSM':
@@ -206,6 +206,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         attributions.unshift(new ol.Attribution({ html: source.attribution }));
                     }
                     oSource = new ol.source.OSM({
+                        crossOrigin: (source.crossOrigin === undefined) ? 'anonymous' : source.crossOrigin,
                         attributions: attributions
                     });
                 } else {
