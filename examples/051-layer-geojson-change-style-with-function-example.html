@@ -35,6 +35,20 @@
             return [ style ];
         };
 
+        function styleFuncGreen(feature, resolution) {
+            var style = new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: '#00FF00'
+                })
+            });
+
+            return [ style ];
+        };
+
+         $scope.changeStyle = function() {
+            $scope.spain.style = styleFuncGreen;
+         }
+
       } ]);
       </script>
   </head>
@@ -44,5 +58,6 @@
      </openlayers>
      <h1>Layers GeoJSON change style with a function</h1>
      <p>Move the map to change the vector layer style.</p>
+     <button ng-click="changeStyle()">Change Style</button>
   </body>
 </html>
