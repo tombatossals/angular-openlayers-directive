@@ -1,13 +1,13 @@
 {
   "name": "openlayers3",
-  "homepage": "https://github.com/tombatossals/ol3",
-  "_release": "8edfe81f39",
+  "homepage": "https://github.com/tombatossals/ol3-compiled",
+  "_release": "b15c7dca02",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "8edfe81f39fbc307da8dd06a9c8d4ac09b1d9e97"
+    "commit": "b15c7dca02125f1d42be1cc0290902dc4769bf75"
   },
-  "_source": "https://github.com/tombatossals/ol3.git",
-  "_target": "master",
-  "_originalSource": "https://github.com/tombatossals/ol3.git"
+  "_source": "https://github.com/tombatossals/ol3-compiled.git",
+  "_target": "*",
+  "_originalSource": "https://github.com/tombatossals/ol3-compiled.git"
 }

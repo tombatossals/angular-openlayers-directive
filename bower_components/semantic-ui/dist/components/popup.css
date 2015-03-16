@@ -1,14 +1,13 @@
- /*
- * # Semantic UI
- * https://github.com/Semantic-Org/Semantic-UI
- * http://www.semantic-ui.com/
+/*!
+ * # Semantic UI 1.11.0 - Popup
+ * http://github.com/semantic-org/semantic-ui/
+ *
  *
  * Copyright 2014 Contributors
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
-
 
 
 /*******************************
@@ -20,11 +19,11 @@
   position: absolute;
   top: 0px;
   right: 0px;
-  z-index: 900;
-  border: 1px solid #cccccc;
-  min-width: -webkit-max-content;
+  
+/* Fixes content being squished when inline (moz only) */
   min-width: -moz-max-content;
-  min-width: max-content;
+  z-index: 1900;
+  border: 1px solid #cccccc;
   max-width: 250px;
   background-color: #ffffff;
   padding: 0.833em 1em;
@@ -220,11 +219,9 @@
 ---------------*/
 
 .ui.wide.popup {
-  width: 350px;
   max-width: 350px;
 }
 .ui[class*="very wide"].popup {
-  width: 550px;
   max-width: 550px;
 }
 

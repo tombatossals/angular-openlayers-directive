@@ -1,13 +1,14 @@
- /*
- * # Semantic - Progress Bar
+/*!
+ * # Semantic UI - Progress Bar
  * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributorss
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
+
 
 /*******************************
             Theme
@@ -16,8 +17,7 @@
 @type    : 'module';
 @element : 'progress';
 
-@import '../../theme.config';
-
+@import (multiple) '../../theme.config';
 
 /*******************************
             Progress
@@ -334,6 +334,20 @@
   border-radius: 0em;
 }
 
+/* Coupling */
+.ui.segment > .ui.attached.progress,
+.ui.card > .ui.attached.progress {
+  position: absolute;
+  top: auto;
+  left: 0;
+  bottom: 100%;
+  width: 100%;
+}
+.ui.segment > .ui.bottom.attached.progress,
+.ui.card > .ui.bottom.attached.progress {
+  top: 100%;
+  bottom: auto;
+}
 
 /*--------------
      Colors
@@ -433,3 +447,5 @@
 .ui.big.progress .bar {
   height: @bigBarHeight;
 }
+
+.loadUIOverrides();

@@ -3,6 +3,9 @@
 .ui.button {
   min-width: 72px;
 }
+.ui.buttons .button {
+  min-width: 0px;
+}
 
 .ui.primary.button:hover {
   box-shadow:
@@ -16,8 +19,4 @@
     0px 0px 0px 1px rgba(0, 0, 0, 0.2) inset,
     0px 2px 3px 0px rgba(0, 0, 0, 0.3) !important
   ;
-}
-.ui.buttons > .button:hover,
-.ui.buttons > .button.active {
-  position: static !important;
 }

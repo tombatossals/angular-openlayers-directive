@@ -16,8 +16,8 @@
     "angular-sanitize": "*",
     "jquery": "*",
     "semantic-ui": "*",
-    "openlayers3": "https://github.com/tombatossals/ol3.git#master",
-    "prismjs": "*"
+    "openlayers3": "https://github.com/tombatossals/ol3-compiled.git",
+    "prism": "git@github.com:LeaVerou/prism.git#gh-pages"
   },
   "devDependencies": {
     "jquery": "*",

@@ -1,9 +1,9 @@
-/*
- * # Semantic - Search
+/*!
+ * # Semantic UI 1.11.0 - Search
  * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributor
+ * Copyright 2014 Contributors
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -32,6 +32,8 @@ $.fn.search = function(parameters) {
         settings        = $.extend(true, {}, $.fn.search.settings, parameters),
 
         className       = settings.className,
+        metadata        = settings.metadata,
+        regExp          = settings.regExp,
         selector        = settings.selector,
         error           = settings.error,
         namespace       = settings.namespace,
@@ -65,7 +67,8 @@ $.fn.search = function(parameters) {
           ;
           if(settings.automatic) {
             $prompt
-              .on(inputEvent + eventNamespace, module.search.throttle)
+              .on(inputEvent + eventNamespace, module.throttle)
+              .attr('autocomplete', 'off')
             ;
           }
           $prompt
@@ -74,12 +77,12 @@ $.fn.search = function(parameters) {
             .on('keydown' + eventNamespace, module.handleKeyboard)
           ;
           $searchButton
-            .on('click' + eventNamespace, module.search.query)
+            .on('click' + eventNamespace, module.query)
           ;
           $results
-            .on('mousedown' + eventNamespace, module.event.mousedown)
-            .on('mouseup' + eventNamespace, module.event.mouseup)
-            .on('click' + eventNamespace, selector.result, module.results.select)
+            .on('mousedown' + eventNamespace, module.event.result.mousedown)
+            .on('mouseup' + eventNamespace, module.event.result.mouseup)
+            .on('click' + eventNamespace, selector.result, module.event.result.click)
           ;
           module.instantiate();
         },
@@ -107,47 +110,84 @@ $.fn.search = function(parameters) {
         },
         event: {
           focus: function() {
-            $module
-              .addClass(className.focus)
-            ;
+            module.set.focus();
             clearTimeout(module.timer);
-            module.search.throttle();
-            if(module.has.minimum())  {
-              module.results.show();
+            module.throttle();
+            if( module.has.minimumCharacters() ) {
+              module.showResults();
             }
           },
-          mousedown: function() {
-            module.resultsClicked = true;
-          },
-          mouseup: function() {
-            module.resultsClicked = false;
-          },
           blur: function(event) {
-            module.search.cancel();
-            $module
-              .removeClass(className.focus)
+            var
+              pageLostFocus = (document.activeElement === this)
             ;
-            if(!module.resultsClicked) {
-              module.timer = setTimeout(module.results.hide, settings.hideDelay);
+            if(!pageLostFocus && !module.resultsClicked) {
+              module.cancel.query();
+              module.remove.focus();
+              module.timer = setTimeout(module.hideResults, settings.hideDelay);
+            }
+          },
+          result: {
+            mousedown: function() {
+              module.resultsClicked = true;
+            },
+            mouseup: function() {
+              module.resultsClicked = false;
+            },
+            click: function(event) {
+              module.debug('Search result selected');
+              var
+                $result = $(this),
+                $title  = $result.find(selector.title).eq(0),
+                $link   = $result.find('a[href]').eq(0),
+                href    = $link.attr('href')   || false,
+                target  = $link.attr('target') || false,
+                title   = $title.html(),
+                name    = ($title.length > 0)
+                  ? $title.text()
+                  : false,
+                results = module.get.results(),
+                result  = module.get.result(name, results),
+                returnedValue
+              ;
+              if( $.isFunction(settings.onSelect) ) {
+                if(settings.onSelect.call(element, result, results) === false) {
+                  module.debug('Custom onSelect callback cancelled default select action');
+                  return;
+                }
+              }
+              module.hideResults();
+              if(name) {
+                module.set.value(name);
+              }
+              if(href) {
+                module.verbose('Opening search link found in result', $link);
+                if(target == '_blank' || event.ctrlKey) {
+                  window.open(href);
+                }
+                else {
+                  window.location.href = (href);
+                }
+              }
             }
           }
         },
         handleKeyboard: function(event) {
           var
-            // force latest jq dom
-            $result       = $module.find(selector.result),
-            $category     = $module.find(selector.category),
-            keyCode       = event.which,
-            keys          = {
+            // force selector refresh
+            $result      = $module.find(selector.result),
+            $category    = $module.find(selector.category),
+            currentIndex = $result.index( $result.filter('.' + className.active) ),
+            resultSize   = $result.length,
+
+            keyCode      = event.which,
+            keys         = {
               backspace : 8,
               enter     : 13,
               escape    : 27,
               upArrow   : 38,
               downArrow : 40
             },
-            activeClass  = className.active,
-            currentIndex = $result.index( $result.filter('.' + activeClass) ),
-            resultSize   = $result.size(),
             newIndex
           ;
           // search shortcuts
@@ -157,12 +197,11 @@ $.fn.search = function(parameters) {
               .trigger('blur')
             ;
           }
-          // result shortcuts
-          if($results.filter(':visible').size() > 0) {
+          if( module.is.visible() ) {
             if(keyCode == keys.enter) {
               module.verbose('Enter key pressed, selecting active result');
-              if( $result.filter('.' + activeClass).size() > 0 ) {
-                $.proxy(module.results.select, $result.filter('.' + activeClass) )(event);
+              if( $result.filter('.' + className.active).length > 0 ) {
+                module.event.result.click.call($result.filter('.' + className.active), event);
                 event.preventDefault();
                 return false;
               }
@@ -174,14 +213,14 @@ $.fn.search = function(parameters) {
                 : currentIndex - 1
               ;
               $category
-                .removeClass(activeClass)
+                .removeClass(className.active)
               ;
               $result
-                .removeClass(activeClass)
+                .removeClass(className.active)
                 .eq(newIndex)
-                  .addClass(activeClass)
+                  .addClass(className.active)
                   .closest($category)
-                    .addClass(activeClass)
+                    .addClass(className.active)
               ;
               event.preventDefault();
             }
@@ -192,14 +231,14 @@ $.fn.search = function(parameters) {
                 : currentIndex + 1
               ;
               $category
-                .removeClass(activeClass)
+                .removeClass(className.active)
               ;
               $result
-                .removeClass(activeClass)
+                .removeClass(className.active)
                 .eq(newIndex)
-                  .addClass(activeClass)
+                  .addClass(className.active)
                   .closest($category)
-                    .addClass(activeClass)
+                    .addClass(className.active)
               ;
               event.preventDefault();
             }
@@ -208,95 +247,213 @@ $.fn.search = function(parameters) {
             // query shortcuts
             if(keyCode == keys.enter) {
               module.verbose('Enter key pressed, executing query');
-              module.search.query();
-              $searchButton
-                .addClass(className.down)
-              ;
-              $prompt
-                .one('keyup', function(){
-                  $searchButton
-                    .removeClass(className.down)
-                  ;
-                })
-              ;
+              module.query();
+              module.set.buttonPressed();
+              $prompt.one('keyup', module.remove.buttonFocus);
             }
           }
         },
-        has: {
-          minimum: function() {
+
+        setup: {
+          api: function() {
             var
-              searchTerm    = $prompt.val(),
-              numCharacters = searchTerm.length
+              apiSettings = {
+                on        : false,
+                action    : 'search',
+                onFailure : module.error
+              },
+              searchHTML
             ;
-            return (numCharacters >= settings.minCharacters);
+            module.verbose('First request, initializing API');
+            $module.api(apiSettings);
           }
         },
-        search: {
-          cancel: function() {
-            var
-              xhr = $module.data('xhr') || false
-            ;
-            if( xhr && xhr.state() != 'resolved') {
-              module.debug('Cancelling last search');
-              xhr.abort();
-            }
+
+        can: {
+          useAPI: function() {
+            return $.fn.api !== undefined;
           },
-          throttle: function() {
-            clearTimeout(module.timer);
-            if(module.has.minimum())  {
-              module.timer = setTimeout(module.search.query, settings.searchDelay);
+          transition: function() {
+            return settings.transition && $.fn.transition !== undefined && $module.transition('is supported');
+          }
+        },
+
+        is: {
+          empty: function() {
+            return ($results.html() === '');
+          },
+          visible: function() {
+            return ($results.filter(':visible').length > 0);
+          },
+          focused: function() {
+            return ($prompt.filter(':focus').length > 0);
+          }
+        },
+
+        get: {
+          value: function() {
+            return $prompt.val();
+          },
+          results: function() {
+            var
+              results = $module.data(metadata.results)
+            ;
+            return results;
+          },
+          result: function(value, results) {
+            var
+              result = false
+            ;
+            value   = value   || module.get.value();
+            results = results || module.get.results();
+            if(settings.type === 'category') {
+              module.debug('Finding result that matches', value);
+              $.each(results, function(index, category) {
+                if($.isArray(category.results)) {
+                  result = module.search.object(value, category.results)[0];
+                  if(result && result.length > 0) {
+                    return true;
+                  }
+                }
+              });
             }
             else {
-              module.results.hide();
+              module.debug('Finding result in results object', value);
+              result = module.search.object(value, results)[0];
             }
+            return result;
           },
-          query: function() {
-            var
-              searchTerm = $prompt.val(),
-              cachedHTML = module.search.cache.read(searchTerm)
-            ;
-            if(cachedHTML) {
-              module.debug("Reading result for '" + searchTerm + "' from cache");
-              module.results.add(cachedHTML);
+        },
+
+        set: {
+          focus: function() {
+            $module.addClass(className.focus);
+          },
+          loading: function() {
+            $module.addClass(className.loading);
+          },
+          value: function(value) {
+            module.verbose('Setting search input value', value);
+            $prompt.val(value);
+            module.query();
+          },
+          buttonPressed: function() {
+            $searchButton.addClass(className.pressed);
+          }
+        },
+
+        remove: {
+          loading: function() {
+            $module.removeClass(className.loading);
+          },
+          focus: function() {
+            $module.removeClass(className.focus);
+          },
+          buttonPressed: function() {
+            $searchButton.removeClass(className.pressed);
+          }
+        },
+
+        query: function() {
+          var
+            searchTerm = module.get.value(),
+            cache = module.read.cache(searchTerm)
+          ;
+          if(cache) {
+            module.debug('Reading result for ' + searchTerm + ' from cache');
+            module.save.results(cache.results);
+            module.addResults(cache.html);
+          }
+          else {
+            module.debug('Querying for ' + searchTerm);
+            if($.isPlainObject(settings.source) || $.isArray(settings.source)) {
+              module.search.local(searchTerm);
             }
-            else {
-              module.debug("Querying for '" + searchTerm + "'");
-              if($.isPlainObject(settings.source) || $.isArray(settings.source)) {
-                module.search.local(searchTerm);
-              }
-              else if(settings.apiSettings) {
+            else if( module.can.useAPI() ) {
+              if(settings.apiSettings) {
+                module.debug('Searching with specified API settings', settings.apiSettings);
                 module.search.remote(searchTerm);
               }
-              else if($.fn.api !== undefined && $.api.settings.api.search !== undefined) {
+              else if($.api.settings.api.search !== undefined) {
                 module.debug('Searching with default search API endpoint');
-                settings.apiSettings = {
-                  action: 'search'
-                };
                 module.search.remote(searchTerm);
               }
               else {
-                module.error(error.source);
+                module.error(error.noEndpoint);
               }
-              $.proxy(settings.onSearchQuery, $module)(searchTerm);
             }
-          },
+            else {
+              module.error(error.source);
+            }
+            settings.onSearchQuery.call(element, searchTerm);
+          }
+        },
+
+        search: {
           local: function(searchTerm) {
             var
-              results   = [],
+              searchResults = module.search.object(searchTerm, settings.content),
+              searchHTML
+            ;
+            module.set.loading();
+            module.save.results(searchResults);
+            module.debug('Returned local search results', searchResults);
+
+            searchHTML = module.generateResults({
+              results: searchResults
+            });
+            module.remove.loading();
+            module.write.cache(searchTerm, {
+              html    : searchHTML,
+              results : searchResults
+            });
+            module.addResults(searchHTML);
+          },
+          remote: function(searchTerm) {
+            var
+              apiSettings = {
+                onSuccess : function(response) {
+                  module.parse.response.call(element, response, searchTerm);
+                },
+                urlData: {
+                  query: searchTerm
+                }
+              }
+            ;
+            if( !$module.api('get request') ) {
+              module.setup.api();
+            }
+            $.extend(true, apiSettings, settings.apiSettings);
+            module.debug('Executing search', apiSettings);
+            module.cancel.query();
+            $module
+              .api('setting', apiSettings)
+              .api('query')
+            ;
+          },
+          object: function(searchTerm, source) {
+            var
+              results         = [],
               fullTextResults = [],
               searchFields    = $.isArray(settings.searchFields)
                 ? settings.searchFields
                 : [settings.searchFields],
-              searchRegExp   = new RegExp('(?:\s|^)' + searchTerm, 'i'),
-              fullTextRegExp = new RegExp(searchTerm, 'i'),
-              searchHTML
+              searchExp       = searchTerm.replace(regExp.escape, '\\$&'),
+              searchRegExp    = new RegExp(regExp.exact + searchExp, 'i'),
+              fullTextRegExp  = new RegExp(searchExp, 'i')
             ;
-            $module
-              .addClass(className.loading)
-            ;
+
+            source = source || settings.source;
+
+            // exit conditions on no source
+            if(source === undefined) {
+              module.error(error.source);
+              return [];
+            }
+
             // iterate through search fields in array order
             $.each(searchFields, function(index, field) {
-              $.each(settings.source, function(label, content) {
+              $.each(source, function(label, content) {
                 var
                   fieldExists = (typeof content[field] == 'string'),
                   notAlreadyResult = ($.inArray(content, results) == -1 && $.inArray(content, fullTextResults) == -1)
@@ -311,177 +468,192 @@ $.fn.search = function(parameters) {
                 }
               });
             });
-            searchHTML = module.results.generate({
-              results: $.merge(results, fullTextResults)
-            });
-            $module
-              .removeClass(className.loading)
-            ;
-            module.search.cache.write(searchTerm, searchHTML);
-            module.results.add(searchHTML);
-          },
-          remote: function(searchTerm) {
-            var
-              apiSettings = {
-                stateContext : $module,
-                urlData      : {
-                  query: searchTerm
-                },
-                onSuccess : function(response) {
-                  searchHTML = module.results.generate(response);
-                  module.search.cache.write(searchTerm, searchHTML);
-                  module.results.add(searchHTML);
-                },
-                onFailure : module.error
-              },
-              searchHTML
-            ;
-            module.search.cancel();
-            module.debug('Executing search');
-            $.extend(true, apiSettings, settings.apiSettings);
-            $.api(apiSettings);
-          },
+            return $.merge(results, fullTextResults);
+          }
+        },
 
-          cache: {
-            read: function(name) {
-              var
-                cache = $module.data('cache')
-              ;
-              return (settings.cache && (typeof cache == 'object') && (cache[name] !== undefined) )
+        parse: {
+          response: function(response, searchTerm) {
+            var
+              searchHTML = module.generateResults(response)
+            ;
+            module.verbose('Parsing server response', response);
+            if(response !== undefined) {
+              if(searchTerm !== undefined && response.results !== undefined) {
+                module.write.cache(searchTerm, {
+                  html    : searchHTML,
+                  results : response.results
+                });
+                module.save.results(response.results);
+                module.addResults(searchHTML);
+              }
+            }
+          }
+        },
+
+        throttle: function() {
+          clearTimeout(module.timer);
+          if(module.has.minimumCharacters())  {
+            module.timer = setTimeout(module.query, settings.searchDelay);
+          }
+          else {
+            module.hideResults();
+          }
+        },
+
+        cancel: {
+          query: function() {
+            if( module.can.useAPI() ) {
+              $module.api('abort');
+            }
+          }
+        },
+
+        has: {
+          minimumCharacters: function() {
+            var
+              searchTerm    = module.get.value(),
+              numCharacters = searchTerm.length
+            ;
+            return (numCharacters >= settings.minCharacters);
+          }
+        },
+
+        read: {
+          cache: function(name) {
+            var
+              cache = $module.data(metadata.cache)
+            ;
+            if(settings.cache) {
+              module.verbose('Checking cache for generated html for query', name);
+              return (typeof cache == 'object') && (cache[name] !== undefined)
                 ? cache[name]
                 : false
               ;
-            },
-            write: function(name, value) {
-              var
-                cache = ($module.data('cache') !== undefined)
-                  ? $module.data('cache')
-                  : {}
-              ;
+            }
+            return false;
+          }
+        },
+
+        save: {
+          results: function(results) {
+            module.verbose('Saving current search results to metadata', results);
+            $module.data(metadata.results, results);
+          }
+        },
+
+        write: {
+          cache: function(name, value) {
+            var
+              cache = ($module.data(metadata.cache) !== undefined)
+                ? $module.data(metadata.cache)
+                : {}
+            ;
+            if(settings.cache) {
+              module.verbose('Writing generated html to cache', name, value);
               cache[name] = value;
               $module
-                .data('cache', cache)
+                .data(metadata.cache, cache)
               ;
             }
           }
         },
 
-        results: {
-          generate: function(response) {
-            module.debug('Generating html from response', response);
-            var
-              template = settings.templates[settings.type],
-              html     = ''
-            ;
-            if(($.isPlainObject(response.results) && !$.isEmptyObject(response.results)) || ($.isArray(response.results) && response.results.length > 0) ) {
-              if(settings.maxResults > 0) {
-                response.results = $.isArray(response.results)
-                  ? response.results.slice(0, settings.maxResults)
-                  : response.results
-                ;
-              }
-              if($.isFunction(template)) {
-                html = template(response);
-              }
-              else {
-                module.error(error.noTemplate, false);
-              }
+        addResults: function(html) {
+          if( $.isFunction(settings.onResultsAdd) ) {
+            if( settings.onResultsAdd.call($results, html) === false ) {
+              module.debug('onResultsAdd callback cancelled default action');
+              return false;
+            }
+          }
+          $results
+            .html(html)
+          ;
+          module.showResults();
+        },
+
+        showResults: function() {
+          if( !module.is.visible() && module.is.focused() && !module.is.empty() ) {
+            if( module.can.transition() ) {
+              module.debug('Showing results with css animations');
+              $results
+                .transition({
+                  animation  : settings.transition + ' in',
+                  duration   : settings.duration,
+                  queue      : true
+                })
+              ;
             }
             else {
-              html = module.message(error.noResults, 'empty');
-            }
-            $.proxy(settings.onResults, $module)(response);
-            return html;
-          },
-          add: function(html) {
-            if(settings.onResultsAdd == 'default' || $.proxy(settings.onResultsAdd, $results)(html) == 'default') {
+              module.debug('Showing results with javascript');
               $results
-                .html(html)
+                .stop()
+                .fadeIn(settings.duration, settings.easing)
               ;
             }
-            module.results.show();
-          },
-          show: function() {
-            if( ($results.filter(':visible').size() === 0) && ($prompt.filter(':focus').size() > 0) && $results.html() !== '') {
-              if(settings.transition && $.fn.transition !== undefined && $module.transition('is supported') && !$results.transition('is inward')) {
-                module.debug('Showing results with css animations');
-                $results
-                  .transition({
-                    animation  : settings.transition + ' in',
-                    duration   : settings.duration,
-                    queue      : true
-                  })
-                ;
-              }
-              else {
-                module.debug('Showing results with javascript');
-                $results
-                  .stop()
-                  .fadeIn(settings.duration, settings.easing)
-                ;
-              }
-              $.proxy(settings.onResultsOpen, $results)();
-            }
-          },
-          hide: function() {
-            if($results.filter(':visible').size() > 0) {
-              if(settings.transition && $.fn.transition !== undefined && $module.transition('is supported') && !$results.transition('is outward')) {
-                module.debug('Hiding results with css animations');
-                $results
-                  .transition({
-                    animation  : settings.transition + ' out',
-                    duration   : settings.duration,
-                    queue      : true
-                  })
-                ;
-              }
-              else {
-                module.debug('Hiding results with javascript');
-                $results
-                  .stop()
-                  .fadeIn(settings.duration, settings.easing)
-                ;
-              }
-              $.proxy(settings.onResultsClose, $results)();
-            }
-          },
-          select: function(event) {
-            module.debug('Search result selected');
-            var
-              $result = $(this),
-              $title  = $result.find('.title'),
-              title   = $title.html()
-            ;
-            if(settings.onSelect == 'default' || $.proxy(settings.onSelect, this)(event) == 'default') {
-              var
-                $link  = $result.find('a[href]').eq(0),
-                $title = $result.find(selector.title).eq(0),
-                href   = $link.attr('href') || false,
-                target = $link.attr('target') || false,
-                name   = ($title.size() > 0)
-                  ? $title.text()
-                  : false
+            settings.onResultsOpen.call($results);
+          }
+        },
+        hideResults: function() {
+          if( module.is.visible() ) {
+            if( module.can.transition() ) {
+              module.debug('Hiding results with css animations');
+              $results
+                .transition({
+                  animation  : settings.transition + ' out',
+                  duration   : settings.duration,
+                  queue      : true
+                })
               ;
-              module.results.hide();
-              if(name) {
-                $prompt.val(name);
-              }
-              if(href) {
-                if(target == '_blank' || event.ctrlKey) {
-                  window.open(href);
-                }
-                else {
-                  window.location.href = (href);
-                }
-              }
             }
+            else {
+              module.debug('Hiding results with javascript');
+              $results
+                .stop()
+                .fadeOut(settings.duration, settings.easing)
+              ;
+            }
+            settings.onResultsClose.call($results);
           }
         },
 
-        // displays mesage visibly in search results
-        message: function(text, type) {
+        generateResults: function(response) {
+          module.debug('Generating html from response', response);
+          var
+            template       = settings.templates[settings.type],
+            isProperObject = ($.isPlainObject(response.results) && !$.isEmptyObject(response.results)),
+            isProperArray  = ($.isArray(response.results) && response.results.length > 0),
+            html           = ''
+          ;
+          if(isProperObject || isProperArray ) {
+            if(settings.maxResults > 0) {
+              if(isProperObject) {
+                if(settings.type == 'standard') {
+                  module.error(error.maxResults);
+                }
+              }
+              else {
+                response.results = response.results.slice(0, settings.maxResults);
+              }
+            }
+            if($.isFunction(template)) {
+              html = template(response);
+            }
+            else {
+              module.error(error.noTemplate, false);
+            }
+          }
+          else {
+            html = module.displayMessage(error.noResults, 'empty');
+          }
+          settings.onResults.call(element, response);
+          return html;
+        },
+
+        displayMessage: function(text, type) {
           type = type || 'standard';
-          module.results.add( settings.templates.message(text, type) );
+          module.debug('Displaying message', text, type);
+          module.addResults( settings.templates.message(text, type) );
           return settings.templates.message(text, type);
         },
 
@@ -569,8 +741,8 @@ $.fn.search = function(parameters) {
             if(moduleSelector) {
               title += ' \'' + moduleSelector + '\'';
             }
-            if($allModules.size() > 1) {
-              title += ' ' + '(' + $allModules.size() + ')';
+            if($allModules.length > 1) {
+              title += ' ' + '(' + $allModules.length + ')';
             }
             if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
               console.groupCollapsed(title);
@@ -649,7 +821,7 @@ $.fn.search = function(parameters) {
       }
       else {
         if(instance !== undefined) {
-          module.destroy();
+          instance.invoke('destroy');
         }
         module.initialize();
       }
@@ -672,10 +844,11 @@ $.fn.search.settings = {
   verbose        : true,
   performance    : true,
 
-  // api config
-  apiSettings    : false,
   type           : 'standard',
   minCharacters  : 1,
+
+  // api config
+  apiSettings    : false,
 
   source         : false,
   searchFields   : [
@@ -686,7 +859,7 @@ $.fn.search.settings = {
 
   automatic      : 'true',
   hideDelay      : 0,
-  searchDelay    : 300,
+  searchDelay    : 100,
   maxResults     : 7,
   cache          : true,
 
@@ -694,9 +867,8 @@ $.fn.search.settings = {
   duration       : 300,
   easing         : 'easeOutExpo',
 
-  // onSelect default action is defined in module
-  onSelect       : 'default',
-  onResultsAdd   : 'default',
+  onSelect       : false,
+  onResultsAdd   : false,
 
   onSearchQuery  : function(){},
   onResults      : function(response){},
@@ -706,19 +878,31 @@ $.fn.search.settings = {
 
   className: {
     active  : 'active',
-    down    : 'down',
-    focus   : 'focus',
     empty   : 'empty',
-    loading : 'loading'
+    focus   : 'focus',
+    loading : 'loading',
+    pressed : 'down'
   },
 
   error : {
     source      : 'Cannot search. No source used, and Semantic API module was not included',
     noResults   : 'Your search returned no results',
     logging     : 'Error in debug logging, exiting.',
+    noEndpoint  : 'No search endpoint was specified',
     noTemplate  : 'A valid template name was not specified.',
     serverError : 'There was an issue with querying the server.',
+    maxResults  : 'Results must be an array to use maxResults setting',
     method      : 'The method you called is not defined.'
+  },
+
+  metadata: {
+    cache   : 'cache',
+    results : 'results'
+  },
+
+  regExp: {
+    escape : /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+    exact  : '(?:\s|^)'
   },
 
   selector : {

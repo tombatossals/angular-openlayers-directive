@@ -1,13 +1,14 @@
-/*
- * # Semantic - Site
+/*!
+ * # Semantic UI - Site
  * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributor
+ * Copyright 2014 Contributors
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
+
 
 /*******************************
             Theme
@@ -16,13 +17,13 @@
 @type    : 'global';
 @element : 'site';
 
-@import '../../theme.config';
-
-.loadFonts();
+@import (multiple) '../../theme.config';
 
 /*******************************
              Page
 *******************************/
+
+.loadFonts();
 
 html,
 body {
@@ -110,6 +111,7 @@ a:hover {
           Highlighting
 *******************************/
 
+/* Site */
 ::-webkit-selection {
   background-color: @highlightBackground;
   color: @highlightColor;
@@ -122,5 +124,23 @@ a:hover {
   background-color: @highlightBackground;
   color: @highlightColor;
 }
+
+/* Form */
+textarea::-webkit-selection,
+input::-webkit-selection {
+  background-color: @inputHighlightBackground;
+  color: @inputHighlightColor;
+}
+textarea::-moz-selection,
+input::-moz-selection {
+  background-color: @inputHighlightBackground;
+  color: @inputHighlightColor;
+}
+textarea::selection,
+input::selection {
+  background-color: @inputHighlightBackground;
+  color: @inputHighlightColor;
+}
+
 
 .loadUIOverrides();

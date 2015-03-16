@@ -1,13 +1,14 @@
-/*
- * # Semantic - Menu
+/*!
+ * # Semantic UI - Menu
  * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributor
+ * Copyright 2014 Contributors
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
+
 
 /*******************************
             Theme
@@ -16,7 +17,7 @@
 @type    : 'collection';
 @element : 'menu';
 
-@import '../../theme.config';
+@import (multiple) '../../theme.config';
 
 /*******************************
             Standard
@@ -29,7 +30,7 @@
 .ui.menu {
   margin: @margin;
   background: @background;
-  font-size: 0px;
+  font-size: 0em;
   font-weight: @fontWeight;
   box-shadow: @boxShadow;
   border-radius: @borderRadius;
@@ -48,6 +49,13 @@
 }
 .ui.menu:last-child {
   margin-bottom: 0rem;
+}
+
+.ui.menu .menu {
+  margin: 0em;
+}
+.ui.menu:not(.vertical) .menu {
+  font-size: 0em;
 }
 
 /*--------------
@@ -90,9 +98,6 @@
   transition: @transition;
 }
 
-.ui.menu .menu {
-  margin: 0em;
-}
 
 /* Floated Content */
 .ui.menu > .item:first-child {
@@ -526,7 +531,7 @@
 /* Sub Menu */
 .ui.tiered.menu .sub.menu {
   background-color: @tieredActiveMenuBackground;
-  border-radius: 0em;
+  border-radius: 0em 0em @borderRadius @borderRadius;
   border-top: 1px solid @borderColor;
   box-shadow: none;
 }
@@ -598,10 +603,12 @@
 
 .ui.tabular.menu {
   background-color: transparent;
-  border-bottom: @tabularBorderWidth solid @tabularBorderColor;
-
   border-radius: 0em;
   box-shadow: none !important;
+  border-bottom: @tabularBorderWidth solid @tabularBorderColor;
+}
+.ui.tabular.fluid.menu {
+  width: @tabularFluidWidth !important;
 }
 .ui.tabular.menu .item {
   background-color: transparent;
@@ -627,17 +634,15 @@
 /* Active */
 .ui.tabular.menu .active.item {
   position: relative;
+  border-bottom: none;
+  vertical-align: bottom;
 
   background-color: @tabularMenuActiveBackground;
   color: @tabularActiveColor;
-
   border-color: @tabularBorderColor;
   font-weight: @tabularActiveWeight;
-
   margin-bottom: -@tabularBorderWidth;
-  border-bottom: @tabularBorderWidth solid @tabularBackgroundColor;
-
-  box-shadow: none;
+  box-shadow: @tabularActiveBoxShadow;
   border-radius: @tabularBorderRadius @tabularBorderRadius 0px 0px;
 }
 
@@ -646,8 +651,10 @@
   position: relative;
   z-index: 2;
 }
-.ui.tabular.menu ~ .bottom.attached.segment {
-  margin: -1px 0px 0px;
+.ui.tabular.menu + .bottom.attached.segment,
+.ui.tabular.menu ~ .bottom.attached.segment + .bottom.attached.segment {
+  border-top: none;
+  margin: 0px;
 }
 
 
@@ -1006,11 +1013,18 @@
   box-shadow: none;
 }
 
+/* Inverted */
 .ui.inverted.text.menu,
 .ui.inverted.text.menu .item,
 .ui.inverted.text.menu .item:hover,
 .ui.inverted.text.menu .item.active {
   background-color: transparent;
+}
+
+/* Fluid */
+.ui.fluid.text.menu {
+  margin-left: 0em;
+  margin-right: 0em;
 }
 
 /*--------------
@@ -1025,14 +1039,14 @@
 }
 .ui.icon.menu > .item {
   height: auto;
-  text-align: center;
-  color: rgba(60, 60, 60, 0.7);
+  text-align: @iconMenuTextAlign;
+  color: @iconMenuItemColor;
 }
 .ui.icon.menu > .item > .icon {
   display: block;
   float: none !important;
-  opacity: 1;
   margin: 0em auto !important;
+  opacity: 1;
 }
 .ui.icon.menu .icon:before {
   opacity: 1;
@@ -1062,6 +1076,10 @@
 .ui.labeled.icon.menu {
   text-align: center;
 }
+.ui.fluid.labeled.icon.menu > .item {
+  min-width: 0em;
+}
+
 .ui.labeled.icon.menu > .item {
   min-width: @labeledIconMinWidth;
 }
@@ -1154,6 +1172,11 @@
 }
 .ui.inverted.menu .dropdown .menu .item {
   color: @dropdownTextColor !important;
+  transition: none;
+}
+.ui.inverted.menu .dropdown .menu .item:hover {
+  background: @dropdownBackgroundHover !important;
+  color: @dropdownTextColorHover !important;
 }
 .ui.inverted.menu .item.disabled,
 .ui.inverted.menu .item.disabled:hover {
@@ -1392,9 +1415,6 @@
   padding-right: 0px !important;
   text-align: center;
 }
-.ui.item.menu > .item:last-child {
-  border-radius: 0px @borderRadius @borderRadius 0px;
-}
 .ui.menu.two.item .item {
   width: 50%;
 }
@@ -1489,11 +1509,13 @@
 
 .ui.pointing.menu .active.item:after {
   position: absolute;
-  bottom: @arrowOffset;
-  left: 50%;
   content: '';
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%) rotate(45deg);
+  margin: 0em;
+  background: none;
 
-  margin-left: @arrowOffset;
   width: @arrowSize;
   height: @arrowSize;
 
@@ -1501,13 +1523,9 @@
   border-bottom: @arrowBorder;
   border-right: @arrowBorder;
 
-  background: none;
-  transform: rotate(45deg);
-  z-index: 2;
+  z-index: @arrowZIndex;
 
-  transition:
-    background 0.2s ease
-  ;
+  transition: @arrowTransition;
 }
 
 /* Don't double up pointers */
@@ -1518,10 +1536,12 @@
 .ui.vertical.pointing.menu .active.item:after {
   position: absolute;
   top: 50%;
-  margin-top: @arrowOffset;
-  right: @arrowOffset;
+  right: 0%;
   bottom: auto;
   left: auto;
+
+  transform: translateX(50%) translateY(-50%) rotate(45deg);
+  margin: 0em -@arrowBorderSize 0em 0em;
 
   border: none;
   border-top: @arrowBorder;
@@ -1541,6 +1561,9 @@
 }
 .ui.vertical.pointing.menu .active.item:after {
   background-color: @arrowVerticalActiveColor;
+}
+.ui.vertical.pointing.menu .menu .active.item:after {
+  background-color: @arrowVerticalSubMenuColor;
 }
 
 

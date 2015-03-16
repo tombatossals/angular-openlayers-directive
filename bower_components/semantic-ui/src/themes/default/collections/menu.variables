@@ -124,6 +124,7 @@
 @dropdownPointingDistance: 0px;
 
 @dropdownTextColor: @textColor;
+@dropdownBackgroundHover: @transparentBlack;
 @dropdownTextColorHover: @darkTextColor;
 @dropdownIconMargin: 0em 0em 0em 1em;
 
@@ -132,14 +133,17 @@
 
 /* Pointing Arrow */
 @arrowSize: 0.6em;
-@arrowOffset: -(@arrowSize / 2);
-@arrowBorder: 1px solid rgba(0, 0, 0, 0.1);
+@arrowBorderSize: 1px;
+@arrowBorder: @arrowBorderSize solid @solidBorderColor;
+@arrowTransition: background @transitionDuration @transitionEasing;
+@arrowZIndex: 11;
 
 @arrowHoverColor: #FAFAFA;
-@arrowActiveColor: #F6F6F6;
+@arrowActiveColor: #F7F7F7;
 
-@arrowVerticalHoverColor: #FAFAFA;
-@arrowVerticalActiveColor: #FCFCFC;
+@arrowVerticalHoverColor: @arrowHoverColor;
+@arrowVerticalActiveColor: @arrowActiveColor;
+@arrowVerticalSubMenuColor: @white;
 
 /*--------------
      States
@@ -231,6 +235,10 @@
 
 @tieredInvertedSubMenuBackground: rgba(0, 0, 0, 0.2);
 
+/* Icon */
+@iconMenuTextAlign: center;
+@iconMenuItemColor: rgba(0, 0, 0, 0.6);
+
 /* Tabular */
 @tabularBorderColor: @solidBorderColor;
 @tabularBackgroundColor: #FFFFFF;
@@ -238,7 +246,11 @@
 @tabularHorizontalPadding: 1.4em;
 @tabularMenuTextColor: @menuTextColor;
 
+@tabularFluidOffset: 1px;
+@tabularFluidWidth: ~"calc(100% + "(@tabularFluidOffset * 2)~")";
+
 @tabularActiveColor: @selectedTextColor;
+@tabularActiveBoxShadow: none;
 
 @tabularMenuActiveBackground: #FFFFFF;
 @tabularActiveWeight: bold;

@@ -1,9 +1,9 @@
-/*
- * # Semantic - Checkbox
+/*!
+ * # Semantic UI - Checkbox
  * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributor
+ * Copyright 2014 Contributors
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -62,13 +62,13 @@ $.fn.checkbox = function(parameters) {
           if( module.is.checked() ) {
             module.set.checked();
             if(settings.fireOnInit) {
-              $.proxy(settings.onChecked, $input.get())();
+              settings.onChecked.call($input.get());
             }
           }
           else {
             module.remove.checked();
             if(settings.fireOnInit) {
-              $.proxy(settings.onUnchecked, $input.get())();
+              settings.onUnchecked.call($input.get());
             }
           }
           module.observeChanges();
@@ -120,7 +120,7 @@ $.fn.checkbox = function(parameters) {
             ? module[event]
             : module.toggle
           ;
-          if($element.size() > 0) {
+          if($element.length > 0) {
             module.debug('Attaching checkbox events to element', selector, event);
             $element
               .on('click' + eventNamespace, event)
@@ -137,6 +137,7 @@ $.fn.checkbox = function(parameters) {
               key     = event.which,
               keyCode = {
                 enter  : 13,
+                space  : 32,
                 escape : 27
               }
             ;
@@ -146,9 +147,9 @@ $.fn.checkbox = function(parameters) {
                 .blur()
               ;
             }
-            if(!event.ctrlKey && key == keyCode.enter) {
+            if(!event.ctrlKey && (key == keyCode.enter || key == keyCode.space)) {
               module.verbose('Enter key pressed, toggling checkbox');
-              $.proxy(module.toggle, this)();
+              module.toggle.call(this);
               event.preventDefault();
             }
           }
@@ -193,7 +194,7 @@ $.fn.checkbox = function(parameters) {
 
         create: {
           label: function() {
-            if($input.prevAll(selector.label).size() > 0) {
+            if($input.prevAll(selector.label).length > 0) {
               $input.prev(selector.label).detach().insertAfter($input);
               module.debug('Moving existing label', $label);
             }
@@ -206,7 +207,7 @@ $.fn.checkbox = function(parameters) {
 
         has: {
           label: function() {
-            return ($label.size() > 0);
+            return ($label.length > 0);
           }
         },
 
@@ -243,14 +244,14 @@ $.fn.checkbox = function(parameters) {
           module.debug('Enabling checkbox functionality');
           $module.removeClass(className.disabled);
           $input.prop('disabled', false);
-          $.proxy(settings.onEnabled, $input.get())();
+          settings.onEnabled.call($input.get());
         },
 
         disable: function() {
           module.debug('Disabling checkbox functionality');
           $module.addClass(className.disabled);
           $input.prop('disabled', 'disabled');
-          $.proxy(settings.onDisabled, $input.get())();
+          settings.onDisabled.call($input.get());
         },
 
         check: function() {
@@ -260,8 +261,9 @@ $.fn.checkbox = function(parameters) {
             .trigger('change')
           ;
           module.set.checked();
-          $.proxy(settings.onChange, $input.get())();
-          $.proxy(settings.onChecked, $input.get())();
+          $input.trigger('blur');
+          settings.onChange.call($input.get());
+          settings.onChecked.call($input.get());
         },
 
         uncheck: function() {
@@ -271,8 +273,9 @@ $.fn.checkbox = function(parameters) {
             .trigger('change')
           ;
           module.remove.checked();
-          $.proxy(settings.onChange, $input.get())();
-          $.proxy(settings.onUnchecked, $input.get())();
+          $input.trigger('blur');
+          settings.onChange.call($input.get());
+          settings.onUnchecked.call($input.get());
         },
 
         toggle: function(event) {
@@ -453,7 +456,7 @@ $.fn.checkbox = function(parameters) {
       }
       else {
         if(instance !== undefined) {
-          module.destroy();
+          instance.invoke('destroy');
         }
         module.initialize();
       }
@@ -497,7 +500,7 @@ $.fn.checkbox.settings = {
   },
 
   selector : {
-    input  : 'input[type=checkbox], input[type=radio]',
+    input  : 'input[type="checkbox"], input[type="radio"]',
     label  : 'label'
   }
 

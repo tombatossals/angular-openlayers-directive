@@ -26,12 +26,12 @@
     "src/site",
     "test"
   ],
-  "version": "1.5.2",
-  "_release": "1.5.2",
+  "version": "1.11.0",
+  "_release": "1.11.0",
   "_resolution": {
     "type": "version",
-    "tag": "1.5.2",
-    "commit": "6aaa0410c40904e50c07ca0d5f848fc524ca03da"
+    "tag": "1.11.0",
+    "commit": "f1cc86db5d7a29a41c69420522c104545e19d652"
   },
   "_source": "git://github.com/Semantic-Org/Semantic-UI.git",
   "_target": "*",

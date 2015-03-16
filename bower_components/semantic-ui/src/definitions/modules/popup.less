@@ -1,13 +1,14 @@
-/*
- * # Semantic - Popup
+/*!
+ * # Semantic UI - Popup
  * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributor
+ * Copyright 2014 Contributors
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
+
 
 /*******************************
             Theme
@@ -16,7 +17,8 @@
 @type    : 'module';
 @element : 'popup';
 
-@import '../../theme.config';
+@import (multiple) '../../theme.config';
+
 
 /*******************************
             Popup
@@ -27,10 +29,13 @@
   position: absolute;
   top: 0px;
   right: 0px;
+
+  /* Fixes content being squished when inline (moz only) */
+  min-width: -moz-max-content;
+
   z-index: @zIndex;
 
   border: @border;
-  min-width: max-content;
   max-width: @maxWidth;
   background-color: @background;
 
@@ -222,11 +227,9 @@
 ---------------*/
 
 .ui.wide.popup {
-  width: @wideWidth;
   max-width: @wideWidth;
 }
 .ui[class*="very wide"].popup {
-  width: @veryWideWidth;
   max-width: @veryWideWidth;
 }
 

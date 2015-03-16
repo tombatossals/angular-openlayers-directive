@@ -1,9 +1,9 @@
-/*
- * # Semantic - Form
+/*!
+ * # Semantic UI - Form
  * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributor
+ * Copyright 2014 Contributors
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -16,7 +16,7 @@
 @type    : 'collection';
 @element : 'form';
 
-@import '../../theme.config';
+@import (multiple) '../../theme.config';
 
 
 /*******************************
@@ -91,33 +91,37 @@
 
 .ui.form textarea,
 .ui.form input:not([type]),
-.ui.form input[type="text"],
-.ui.form input[type="email"],
 .ui.form input[type="date"],
 .ui.form input[type="datetime-local"],
-.ui.form input[type="password"],
+.ui.form input[type="email"],
 .ui.form input[type="number"],
-.ui.form input[type="url"],
+.ui.form input[type="password"],
+.ui.form input[type="search"],
 .ui.form input[type="tel"],
+.ui.form input[type="time"],
+.ui.form input[type="text"],
+.ui.form input[type="url"],
 .ui.form .ui.input {
   width: 100%;
   vertical-align: top;
 }
 
 .ui.form input:not([type]),
-.ui.form input[type="text"],
-.ui.form input[type="email"],
 .ui.form input[type="date"],
 .ui.form input[type="datetime-local"],
-.ui.form input[type="password"],
+.ui.form input[type="email"],
 .ui.form input[type="number"],
-.ui.form input[type="url"],
-.ui.form input[type="tel"] {
+.ui.form input[type="password"],
+.ui.form input[type="search"],
+.ui.form input[type="tel"],
+.ui.form input[type="time"],
+.ui.form input[type="text"],
+.ui.form input[type="url"] {
   font-family: @inputFont;
   margin: 0em;
   outline: none;
   -webkit-appearance: none;
-  -webkit-tap-highlight-color:  rgba(255, 255, 255, 0);
+  tap-highlight-color:  rgba(255, 255, 255, 0);
 
   line-height: @inputLineHeight;
   padding: @inputPadding;
@@ -136,7 +140,7 @@
 .ui.form textarea {
   margin: 0em;
   -webkit-appearance: none;
-  -webkit-tap-highlight-color:  rgba(255, 255, 255, 0);
+  tap-highlight-color:  rgba(255, 255, 255, 0);
 
   padding: @textAreaPadding;
   font-size: @textAreaFontSize;
@@ -219,7 +223,6 @@
    Types of Messages
 ---------------------*/
 
-.ui.form .info.message,
 .ui.form .success.message,
 .ui.form .warning.message,
 .ui.form .error.message {
@@ -239,10 +242,10 @@
   white-space: nowrap;
 }
 .ui.form .inline.field .prompt {
-  margin: @validationMargin;
+  margin: @inlineValidationMargin;
 }
 .ui.form .inline.field .prompt:before {
-  margin-top: @validationArrowOffset;
+  margin-top: @inlineValidationArrowOffset;
   bottom: auto;
   right: auto;
   top: 50%;
@@ -292,14 +295,16 @@
 ---------------------*/
 
 .ui.form input:not([type]):focus,
-.ui.form input[type="text"]:focus,
-.ui.form input[type="email"]:focus,
 .ui.form input[type="date"]:focus,
 .ui.form input[type="datetime-local"]:focus,
-.ui.form input[type="password"]:focus,
+.ui.form input[type="email"]:focus,
 .ui.form input[type="number"]:focus,
-.ui.form input[type="url"]:focus,
-.ui.form input[type="tel"]:focus {
+.ui.form input[type="password"]:focus,
+.ui.form input[type="search"]:focus,
+.ui.form input[type="tel"]:focus,
+.ui.form input[type="time"]:focus,
+.ui.form input[type="text"]:focus,
+.ui.form input[type="url"]:focus {
   color: @inputFocusColor;
   border-color: @inputFocusBorderColor;
   border-radius: @inputFocusBorderRadius;
@@ -357,25 +362,31 @@
 }
 
 .ui.form .fields.error .field textarea,
+.ui.form .fields.error .field select,
 .ui.form .fields.error .field input:not([type]),
-.ui.form .fields.error .field input[type="text"],
-.ui.form .fields.error .field input[type="email"],
 .ui.form .fields.error .field input[type="date"],
 .ui.form .fields.error .field input[type="datetime-local"],
-.ui.form .fields.error .field input[type="password"],
+.ui.form .fields.error .field input[type="email"],
 .ui.form .fields.error .field input[type="number"],
-.ui.form .fields.error .field input[type="url"],
+.ui.form .fields.error .field input[type="password"],
+.ui.form .fields.error .field input[type="search"],
 .ui.form .fields.error .field input[type="tel"],
+.ui.form .fields.error .field input[type="time"],
+.ui.form .fields.error .field input[type="text"],
+.ui.form .fields.error .field input[type="url"],
 .ui.form .field.error textarea,
+.ui.form .field.error select,
 .ui.form .field.error input:not([type]),
-.ui.form .field.error input[type="text"],
-.ui.form .field.error input[type="email"],
 .ui.form .field.error input[type="date"],
 .ui.form .field.error input[type="datetime-local"],
-.ui.form .field.error input[type="password"],
+.ui.form .field.error input[type="email"],
 .ui.form .field.error input[type="number"],
-.ui.form .field.error input[type="url"],
-.ui.form .field.error input[type="tel"] {
+.ui.form .field.error input[type="password"],
+.ui.form .field.error input[type="search"],
+.ui.form .field.error input[type="tel"],
+.ui.form .field.error input[type="time"],
+.ui.form .field.error input[type="text"],
+.ui.form .field.error input[type="url"] {
   background: @formErrorBackground;
   border-color: @formErrorBorder;
   color: @formErrorColor;
@@ -383,21 +394,29 @@
   box-shadow: @inputErrorBoxShadow;
 }
 .ui.form .field.error textarea:focus,
+.ui.form .field.error select:focus,
 .ui.form .field.error input:not([type]):focus,
-.ui.form .field.error input[type="text"]:focus,
-.ui.form .field.error input[type="email"]:focus,
 .ui.form .field.error input[type="date"]:focus,
 .ui.form .field.error input[type="datetime-local"]:focus,
-.ui.form .field.error input[type="password"]:focus,
+.ui.form .field.error input[type="email"]:focus,
 .ui.form .field.error input[type="number"]:focus,
-.ui.form .field.error input[type="url"]:focus,
-.ui.form .field.error input[type="tel"]:focus{
+.ui.form .field.error input[type="password"]:focus,
+.ui.form .field.error input[type="search"]:focus,
+.ui.form .field.error input[type="tel"]:focus,
+.ui.form .field.error input[type="time"]:focus,
+.ui.form .field.error input[type="text"]:focus,
+.ui.form .field.error input[type="url"]:focus {
   background: @inputErrorFocusBackground;
   border-color: @inputErrorFocusBorder;
   color: @inputErrorFocusColor;
 
   -webkit-appearance: none;
   box-shadow: @inputErrorFocusBoxShadow;
+}
+
+/* Preserve Native Select Stylings */
+.ui.form .field.error select {
+  -webkit-appearance: menulist-button;
 }
 
 /*------------------
@@ -668,7 +687,7 @@
 }
 
 /* Swap to full width on mobile */
-@media only screen and (max-width : 767px) {
+@media only screen and (max-width : @largestMobileScreen) {
   .ui.form .two.fields > .fields,
   .ui.form .two.fields > .field,
   .ui.form .three.fields > .fields,
@@ -766,7 +785,7 @@
 }
 
 /* Swap to full width on mobile */
-@media only screen and (max-width : 767px) {
+@media only screen and (max-width : @largestMobileScreen) {
   .ui.form .two.fields > .fields,
   .ui.form .two.fields > .field,
   .ui.form .three.fields > .fields,
