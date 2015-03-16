@@ -3,110 +3,115 @@
 "use strict";
 
 angular.module('openlayers-directive', ['ngSanitize'])
-       .directive('openlayers', ["$log", "$q", "$compile", "olHelpers", "olMapDefaults", "olData", function($log, $q, $compile, olHelpers, olMapDefaults, olData) {
-    return {
-        restrict: 'EA',
-        transclude: true,
-        replace: true,
-        scope: {
-            center: '=olCenter',
-            defaults: '=olDefaults',
-            view: '=olView',
-            events: '=olEvents'
-        },
-        template: '<div class="angular-openlayers-map" ng-transclude></div>',
-        controller: ["$scope", function($scope) {
-            var _map = $q.defer();
-            $scope.getMap = function() {
-                return _map.promise;
-            };
-
-            $scope.setMap = function(map) {
-                _map.resolve(map);
-            };
-
-            this.getOpenlayersScope = function() {
-                return $scope;
-            };
-        }],
-        link: function(scope, element, attrs) {
-            var isDefined = olHelpers.isDefined;
-            var createLayer = olHelpers.createLayer;
-            var setMapEvents = olHelpers.setMapEvents;
-            var createView = olHelpers.createView;
-            var defaults = olMapDefaults.setDefaults(scope);
-
-            // Set width and height if they are defined
-            if (isDefined(attrs.width)) {
-                if (isNaN(attrs.width)) {
-                    element.css('width', attrs.width);
-                } else {
-                    element.css('width', attrs.width + 'px');
-                }
-            }
-
-            if (isDefined(attrs.height)) {
-                if (isNaN(attrs.height)) {
-                    element.css('height', attrs.height);
-                } else {
-                    element.css('height', attrs.height + 'px');
-                }
-            }
-
-            if (isDefined(attrs.lat)) {
-                defaults.center.lat = parseFloat(attrs.lat);
-            }
-
-            if (isDefined(attrs.lon)) {
-                defaults.center.lon = parseFloat(attrs.lon);
-            }
-
-            if (isDefined(attrs.zoom)) {
-                defaults.center.zoom = parseFloat(attrs.zoom);
-            }
-
-            var controls = ol.control.defaults(defaults.controls);
-            var interactions = ol.interaction.defaults(defaults.interactions);
-            var view = createView(defaults.view);
-
-            // Create the Openlayers Map Object with the options
-            var map = new ol.Map({
-                target: element[0],
-                controls: controls,
-                interactions: interactions,
-                renderer: defaults.renderer,
-                view: view
-            });
-
-            // If no layer is defined, set the default tileLayer
-            if (!attrs.customLayers) {
-                var l = {
-                    type: 'Tile',
-                    source: {
-                        type: 'OSM'
-                    }
+    .directive('openlayers', ["$log", "$q", "$compile", "olHelpers", "olMapDefaults", "olData", function($log, $q, $compile, olHelpers,
+        olMapDefaults, olData) {
+        return {
+            restrict: 'EA',
+            transclude: true,
+            replace: true,
+            scope: {
+                center: '=olCenter',
+                defaults: '=olDefaults',
+                view: '=olView',
+                events: '=olEvents'
+            },
+            template: '<div class="angular-openlayers-map" ng-transclude></div>',
+            controller: ["$scope", function($scope) {
+                var _map = $q.defer();
+                $scope.getMap = function() {
+                    return _map.promise;
                 };
-                var layer = createLayer(l, view.getProjection());
-                map.addLayer(layer);
-                map.set('default', true);
+
+                $scope.setMap = function(map) {
+                    _map.resolve(map);
+                };
+
+                this.getOpenlayersScope = function() {
+                    return $scope;
+                };
+            }],
+            link: function(scope, element, attrs) {
+                var isDefined = olHelpers.isDefined;
+                var createLayer = olHelpers.createLayer;
+                var setMapEvents = olHelpers.setMapEvents;
+                var createView = olHelpers.createView;
+                var defaults = olMapDefaults.setDefaults(scope);
+
+                // Set width and height if they are defined
+                if (isDefined(attrs.width)) {
+                    if (isNaN(attrs.width)) {
+                        element.css('width', attrs.width);
+                    } else {
+                        element.css('width', attrs.width + 'px');
+                    }
+                }
+
+                if (isDefined(attrs.height)) {
+                    if (isNaN(attrs.height)) {
+                        element.css('height', attrs.height);
+                    } else {
+                        element.css('height', attrs.height + 'px');
+                    }
+                }
+
+                if (isDefined(attrs.lat)) {
+                    defaults.center.lat = parseFloat(attrs.lat);
+                }
+
+                if (isDefined(attrs.lon)) {
+                    defaults.center.lon = parseFloat(attrs.lon);
+                }
+
+                if (isDefined(attrs.zoom)) {
+                    defaults.center.zoom = parseFloat(attrs.zoom);
+                }
+
+                var controls = ol.control.defaults(defaults.controls);
+                var interactions = ol.interaction.defaults(defaults.interactions);
+                var view = createView(defaults.view);
+
+                // Create the Openlayers Map Object with the options
+                var map = new ol.Map({
+                    target: element[0],
+                    controls: controls,
+                    interactions: interactions,
+                    renderer: defaults.renderer,
+                    view: view
+                });
+
+                // If no layer is defined, set the default tileLayer
+                if (!attrs.customLayers) {
+                    var l = {
+                        type: 'Tile',
+                        source: {
+                            type: 'OSM'
+                        }
+                    };
+                    var layer = createLayer(l, view.getProjection());
+                    map.addLayer(layer);
+                    map.set('default', true);
+                }
+
+                if (!isDefined(attrs.olCenter)) {
+                    var c = ol.proj.transform([defaults.center.lon,
+                            defaults.center.lat
+                        ],
+                        defaults.center.projection, view.getProjection()
+                    );
+                    view.setCenter(c);
+                    view.setZoom(defaults.center.zoom);
+                }
+
+                // Set the Default events for the map
+                setMapEvents(defaults.events, map, scope);
+
+                // Resolve the map object to the promises
+                scope.setMap(map);
+                olData.setMap(map, attrs.id);
+
             }
-
-            if (!isDefined(attrs.olCenter)) {
-                var c = ol.proj.transform([defaults.center.lon, defaults.center.lat],
-                                                defaults.center.projection, view.getProjection());
-                view.setCenter(c);
-                view.setZoom(defaults.center.zoom);
-            }
-
-            // Set the Default events for the map
-            setMapEvents(defaults.events, map, scope);
-
-            // Resolve the map object to the promises
-            scope.setMap(map);
-            olData.setMap(map, attrs.id);
-        }
-    };
-}]);
+        };
+    }]);
 
 angular.module('openlayers-directive').directive('olCenter', ["$log", "$location", "olMapDefaults", "olHelpers", function($log, $location, olMapDefaults, olHelpers) {
     return {
@@ -311,13 +316,17 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
             var isBoolean   = olHelpers.isBoolean;
             var addLayerBeforeMarkers = olHelpers.addLayerBeforeMarkers;
             var isNumber    = olHelpers.isNumber;
+            var insertLayer = olHelpers.insertLayer;
+            var removeLayer = olHelpers.removeLayer;
 
             olScope.getMap().then(function(map) {
                 var projection = map.getView().getProjection();
                 var defaults = olMapDefaults.setDefaults(olScope);
+                var layerCollection = map.getLayers();
                 var olLayer;
 
                 scope.$on('$destroy', function() {
+                    removeLayer(layerCollection, olLayer.index);
                     map.removeLayer(olLayer);
                 });
 
@@ -334,7 +343,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                         if (detectLayerType(l) === 'Vector') {
                             setVectorLayerEvents(defaults.events, map, scope, attrs.name);
                         }
-                        addLayerBeforeMarkers(map.getLayers(), olLayer);
+                        addLayerBeforeMarkers(layerCollection, olLayer);
                     }
                     return;
                 }
@@ -357,7 +366,11 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                     var style;
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
-                        addLayerBeforeMarkers(map.getLayers(), olLayer);
+                        if (isDefined(properties.index)) {
+                            insertLayer(layerCollection, properties.index, olLayer);
+                        } else {
+                            addLayerBeforeMarkers(layerCollection, olLayer);
+                        }
 
                         if (detectLayerType(properties) === 'Vector') {
                             setVectorLayerEvents(defaults.events, map, scope, properties.name);
@@ -369,6 +382,10 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
 
                         if (properties.opacity) {
                             olLayer.setOpacity(properties.opacity);
+                        }
+
+                        if (angular.isArray(properties.extent)) {
+                            olLayer.setExtent(properties.extent);
                         }
 
                         if (properties.style) {
@@ -383,22 +400,21 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                     } else {
                         if (isDefined(oldProperties) && !equals(properties, oldProperties)) {
                             if (!equals(properties.source, oldProperties.source)) {
-                                var layerCollection = map.getLayers();
+                                var idx = olLayer.index;
+                                layerCollection.setAt(idx, null);
+                                olLayer = createLayer(properties, projection);
+                                if (isDefined(olLayer)) {
+                                    insertLayer(layerCollection, idx, olLayer);
 
-                                for (var j = 0; j < layerCollection.getLength(); j++) {
-                                    var l = layerCollection.item(j);
-                                    if (l === olLayer) {
-                                        layerCollection.removeAt(j);
-                                        olLayer = createLayer(properties, projection);
-                                        if (isDefined(olLayer)) {
-                                            layerCollection.insertAt(j, olLayer);
-
-                                            if (detectLayerType(properties) === 'Vector') {
-                                                setVectorLayerEvents(defaults.events, map, scope, properties.name);
-                                            }
-                                        }
+                                    if (detectLayerType(properties) === 'Vector') {
+                                        setVectorLayerEvents(defaults.events, map, scope, properties.name);
                                     }
                                 }
+                            }
+
+                            if (isDefined(properties.index) && properties.index !== olLayer.index) {
+                                removeLayer(layerCollection, olLayer.index);
+                                insertLayer(layerCollection, properties.index, olLayer);
                             }
 
                             if (isBoolean(properties.visible) && properties.visible !== oldProperties.visible) {
@@ -535,23 +551,35 @@ angular.module('openlayers-directive')
 
         return {
             restrict: 'E',
-            scope: false,
+            scope: {
+                properties: '=olControlProperties'
+            },
             replace: false,
             require: '^openlayers',
             link: function(scope, element, attrs, controller) {
+                var isDefined   = olHelpers.isDefined;
                 var olScope   = controller.getOpenlayersScope();
-                var control;
+                var olControl;
 
                 olScope.getMap().then(function(map) {
                     var getControlClasses = olHelpers.getControlClasses;
                     var controlClasses = getControlClasses();
-                    if (attrs.name) {
-                        control = new controlClasses[attrs.name]();
-                        map.addControl(control);
+
+                    if (!isDefined(scope.properties)) {
+                        if (attrs.name) {
+                            olControl = new controlClasses[attrs.name]();
+                            map.addControl(olControl);
+                        }
+                        return;
+                    }
+
+                    if (isDefined(scope.properties.control)) {
+                        olControl = scope.properties.control;
+                        map.addControl(olControl);
                     }
 
                     scope.$on('$destroy', function() {
-                        map.removeControl(control);
+                        map.removeControl(olControl);
                     });
                 });
             }
@@ -573,6 +601,56 @@ angular.module('openlayers-directive')
             };
         };
 
+        var markerLayerManager = (function() {
+            var mapDict = [];
+
+            function getMapIndex(map) {
+                return mapDict.map(function(record) {
+                    return record.map;
+                }).indexOf(map);
+            }
+
+            return {
+                getInst: function getMarkerLayerInst(scope, map) {
+                    var mapIndex = getMapIndex(map);
+
+                    if (mapIndex === -1) {
+                        var markerLayer = olHelpers.createVectorLayer();
+                        markerLayer.set('markers', true);
+                        map.addLayer(markerLayer);
+                        mapDict.push({
+                            map: map,
+                            markerLayer: markerLayer,
+                            instScopes: []
+                        });
+                        mapIndex = mapDict.length - 1;
+                    }
+
+                    mapDict[mapIndex].instScopes.push(scope);
+
+                    return mapDict[mapIndex].markerLayer;
+                },
+                deregisterScope: function deregisterScope(scope, map) {
+                    var mapIndex = getMapIndex(map);
+                    if (mapIndex === -1) {
+                        throw Error('This map has no markers');
+                    }
+
+                    var scopes = mapDict[mapIndex].instScopes;
+                    var scopeIndex = scopes.indexOf(scope);
+                    if (scopeIndex === -1) {
+                        throw Error('Scope wan\'t registered');
+                    }
+
+                    scopes.splice(scopeIndex, 1);
+
+                    if (!scopes.length) {
+                        map.removeLayer(mapDict[mapIndex].markerLayer);
+                        delete mapDict[mapIndex];
+                    }
+                }
+            };
+        })();
         return {
             restrict: 'E',
             scope: {
@@ -581,21 +659,25 @@ angular.module('openlayers-directive')
                 label: '=label',
                 properties: '=olMarkerProperties'
             },
+            transclude: true,
             require: '^openlayers',
             replace: true,
-            template: '<div class="popup-label marker" ng-bind-html="message"></div>',
+            template:
+            '<div class="popup-label marker">' +
+                '<div ng-bind-html="message"></div>' +
+                '<ng-transclude></ng-transclude>' +
+            '</div>',
 
             link: function(scope, element, attrs, controller) {
                 var isDefined = olHelpers.isDefined;
                 var olScope = controller.getOpenlayersScope();
-                var createVectorLayer = olHelpers.createVectorLayer;
                 var createFeature = olHelpers.createFeature;
                 var createOverlay = olHelpers.createOverlay;
 
+                var hasTranscluded = element.find('ng-transclude').children().length > 0;
+
                 olScope.getMap().then(function(map) {
-                    var markerLayer = createVectorLayer();
-                    markerLayer.set('markers', true);
-                    map.addLayer(markerLayer);
+                    var markerLayer = markerLayerManager.getInst(scope, map);
                     var data = getMarkerDefaults();
 
                     var mapDefaults = olMapDefaults.getDefaults(olScope);
@@ -605,7 +687,7 @@ angular.module('openlayers-directive')
                     var marker;
 
                     scope.$on('$destroy', function() {
-                        map.removeLayer(markerLayer);
+                        markerLayerManager.deregisterScope(scope, map);
                     });
 
                     if (!isDefined(scope.properties)) {
@@ -617,13 +699,14 @@ angular.module('openlayers-directive')
                         marker = createFeature(data, viewProjection);
                         if (!isDefined(marker)) {
                             $log.error('[AngularJS - Openlayers] Received invalid data on ' +
-                            'the marker.');
+                                'the marker.');
                         }
                         markerLayer.getSource().addFeature(marker);
 
-                        if (data.message) {
+                        if (data.message || hasTranscluded) {
                             scope.message = attrs.message;
-                            pos = ol.proj.transform([data.lon, data.lat], data.projection, viewProjection);
+                            pos = ol.proj.transform([data.lon, data.lat], data.projection,
+                                viewProjection);
                             label = createOverlay(element, pos);
                             map.addOverlay(label);
                         }
@@ -641,7 +724,9 @@ angular.module('openlayers-directive')
                                 return feature;
                             });
 
+                            var actionTaken = false;
                             if (feature === marker) {
+                                actionTaken = true;
                                 found = true;
                                 if (!isDefined(label)) {
                                     if (data.projection === 'pixel') {
@@ -657,14 +742,20 @@ angular.module('openlayers-directive')
                             }
 
                             if (!found && label) {
+                                actionTaken = true;
                                 map.removeOverlay(label);
                                 label = undefined;
                                 map.getTarget().style.cursor = '';
                             }
+
+                            if (actionTaken) {
+                                evt.preventDefault();
+                            }
                         }
 
                         if (!isDefined(marker)) {
-                            data.projection = properties.projection ? properties.projection : data.projection;
+                            data.projection = properties.projection ? properties.projection :
+                                data.projection;
                             data.coord = properties.coord ? properties.coord : data.coord;
                             data.lat = properties.lat ? properties.lat : data.lat;
                             data.lon = properties.lon ? properties.lon : data.lon;
@@ -678,7 +769,7 @@ angular.module('openlayers-directive')
                             marker = createFeature(data, viewProjection);
                             if (!isDefined(marker)) {
                                 $log.error('[AngularJS - Openlayers] Received invalid data on ' +
-                                'the marker.');
+                                    'the marker.');
                             }
                             markerLayer.getSource().addFeature(marker);
                         }
@@ -692,7 +783,7 @@ angular.module('openlayers-directive')
                         }
 
                         scope.message = properties.label.message;
-                        if (!isDefined(scope.message) || scope.message.length === 0) {
+                        if (!hasTranscluded && (!isDefined(scope.message) || scope.message.length === 0)) {
                             return;
                         }
 
@@ -700,7 +791,8 @@ angular.module('openlayers-directive')
                             if (data.projection === 'pixel') {
                                 pos = data.coord;
                             } else {
-                                pos = ol.proj.transform([data.lon, data.lat], data.projection, viewProjection);
+                                pos = ol.proj.transform([data.lon, data.lat], data.projection,
+                                    viewProjection);
                             }
                             label = createOverlay(element, pos);
                             map.addOverlay(label);
@@ -711,12 +803,16 @@ angular.module('openlayers-directive')
                             label = undefined;
                         }
 
-                        if (properties.label && properties.label.show === false && properties.label.showOnMouseOver) {
+                        if (properties.label && properties.label.show === false &&
+                            properties.label.showOnMouseOver) {
                             map.getViewport().addEventListener('mousemove', showLabelOnEvent);
                         }
 
-                        if (properties.label && properties.label.show === false && properties.label.showOnMouseClick) {
+                        if (properties.label && properties.label.show === false &&
+                            properties.label.showOnMouseClick) {
                             map.getViewport().addEventListener('click', showLabelOnEvent);
+                            map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
+                                'touchend', showLabelOnEvent);
                         }
                     }, true);
                 });
@@ -869,6 +965,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
             icon = new ol.style.Icon(style.icon);
         }
 
+        if (style.image) {
+            icon = style.image;
+        }
+
         return new ol.style.Style({
             fill: fill,
             stroke: stroke,
@@ -931,15 +1031,34 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
         var oSource;
 
         switch (source.type) {
+            case 'MapBox':
+                if (!source.mapId || !source.accessToken) {
+                    $log.error('[AngularJS - Openlayers] - MapBox layer requires the map id and the access token');
+                    return;
+                }
+                var url = 'http://api.tiles.mapbox.com/v4/' + source.mapId + '/{z}/{x}/{y}.png?access_token=' +
+                    source.accessToken;
+
+                var pixelRatio = window.devicePixelRatio;
+
+                if (pixelRatio > 1) {
+                    url = url.replace('.png', '@2x.png');
+                }
+
+                oSource = new ol.source.XYZ({
+                    url: url,
+                    tilePixelRatio: pixelRatio > 1 ? 2 : 1
+                });
+                break;
             case 'ImageWMS':
                 if (!source.url || !source.params) {
                     $log.error('[AngularJS - Openlayers] - ImageWMS Layer needs ' +
                                'valid server url and params properties');
                 }
                 oSource = new ol.source.ImageWMS({
-                  url: source.url,
-                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
-                  params: source.params
+                    url: source.url,
+                    crossOrigin: (source.crossOrigin === undefined) ? 'anonymous' : source.crossOrigin,
+                    params: source.params
                 });
                 break;
 
@@ -948,9 +1067,9 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                     $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url and params properties');
                 }
                 oSource = new ol.source.TileWMS({
-                  url: source.url,
-                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
-                  params: source.params
+                    url: source.url,
+                    crossOrigin: (source.crossOrigin === undefined) ? 'anonymous' : source.crossOrigin,
+                    params: source.params
                 });
                 break;
             case 'OSM':
@@ -960,6 +1079,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                         attributions.unshift(new ol.Attribution({ html: source.attribution }));
                     }
                     oSource = new ol.source.OSM({
+                        crossOrigin: (source.crossOrigin === undefined) ? 'anonymous' : source.crossOrigin,
                         attributions: attributions
                     });
                 } else {
@@ -1408,12 +1528,50 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
             if (isDefined(markersIndex)) {
                 var markers = layers.item(markersIndex);
+                layer.index = markersIndex;
                 layers.setAt(markersIndex, layer);
+                markers.index = layers.getLength();
                 layers.push(markers);
             } else {
+                layer.index = layers.getLength();
                 layers.push(layer);
             }
 
+        },
+
+        removeLayer: function(layers, index) {
+            layers.removeAt(index);
+            for (var i = index; i < layers.getLength(); i++) {
+                var l = layers.item(i);
+                if (l === null) {
+                    layers.insertAt(i, null);
+                    break;
+                } else {
+                    l.index = i;
+                }
+            }
+        },
+
+        insertLayer: function(layers, index, layer) {
+            if (layers.getLength() < index) {
+                while (layers.getLength() < index) {
+                    layers.push(null);
+                }
+                layer.index = index;
+                layers.push(layer);
+            } else {
+                layer.index = index;
+                layers.insertAt(layer.index, layer);
+                for (var i = index + 1; i < layers.getLength(); i++) {
+                    var l = layers.item(i);
+                    if (l === null) {
+                        layers.removeAt(i);
+                        break;
+                    } else {
+                        l.index = i;
+                    }
+                }
+            }
         },
 
         createOverlay: function(element, pos) {
