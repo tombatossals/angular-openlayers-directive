@@ -1072,6 +1072,26 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                     params: source.params
                 });
                 break;
+
+            case 'WMTS':
+                if (!source.url || !source.tileGrid) {
+                    $log.error('[AngularJS - Openlayers] - WMTS Layer needs valid url and tileGrid properties');
+                }
+                oSource = new ol.source.WMTS({
+                    url: source.url,
+                    projection: projection,
+                    matrixSet: (source.matrixSet === undefined) ? projection : source.matrixSet,
+                    format: (source.format === undefined) ? 'image/jpeg' : source.format,
+                    requestEncoding: (source.requestEncoding === undefined) ?
+                        'KVP' : source.requestEncoding,
+                    tileGrid: new ol.tilegrid.WMTS({
+                        origin: source.tileGrid.origin,
+                        resolutions: source.tileGrid.resolutions,
+                        matrixIds: source.tileGrid.matrixIds
+                    })
+                });
+                break;
+
             case 'OSM':
                 if (source.attribution) {
                     var attributions = [];
