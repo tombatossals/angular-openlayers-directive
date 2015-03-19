@@ -113,7 +113,7 @@
             {
                 "date": "Jan 01, 2015",
                 "url": "layer-geojson-center",
-                "extUrl": "examples/046-geojson-center-example.html",
+                "extUrl": "examples/046-layers-geojson-center-example.html",
                 "title": "GeoJSON Center Example",
                 "description": "Centering a GeoJSON region interactively."
             },

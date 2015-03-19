@@ -25,10 +25,13 @@
 
         $scope.centerJSON = function() {
             olData.getMap().then(function(map) {
-                olData.getLayers().then(function(layers) {
-                    var extent = layers.geojson.getSource().getExtent();
-                    map.getView().fitExtent(extent, map.getSize());
-                });
+                var layers = map.getLayers();
+                layers.forEach(function(layer) {
+                    if (layer.get('name') === 'geojson') {
+                        var extent = layer.getSource().getExtent();
+                        map.getView().fitExtent(extent, map.getSize());
+                    }
+                })
             });
         };
 
