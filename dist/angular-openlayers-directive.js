@@ -348,7 +348,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                     return;
                 }
 
-                scope.$watchCollection('properties', function(properties, oldProperties) {
+                scope.$watch('properties', function(properties, oldProperties) {
                     if (!isDefined(properties.source) || !isDefined(properties.source.type)) {
                         return;
                     }
@@ -404,7 +404,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
 
                             if (!equals(properties.source, oldProperties.source)) {
                                 var idx = olLayer.index;
-                                layerCollection.setAt(idx, null);
+                                layerCollection.removeAt(idx);
                                 olLayer = createLayer(properties, projection);
                                 if (isDefined(olLayer)) {
                                     insertLayer(layerCollection, idx, olLayer);
