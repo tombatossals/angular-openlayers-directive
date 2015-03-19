@@ -10,6 +10,7 @@
                 zoom: 3
             },
             geojson: {
+                name: 'japan',
                 source: {
                     type: 'GeoJSON',
                     url: 'examples/json/JPN.geo.json'
@@ -21,7 +22,7 @@
             olData.getMap().then(function(map) {
                 var layers = map.getLayers();
                 layers.forEach(function(layer) {
-                    if (layer.get('name') === 'geojson') {
+                    if (layer.get('name') === 'japan') {
                         var extent = layer.getSource().getExtent();
                         map.getView().fitExtent(extent, map.getSize());
                     }
