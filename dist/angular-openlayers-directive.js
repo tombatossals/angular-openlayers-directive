@@ -87,7 +87,7 @@ angular.module('openlayers-directive', ['ngSanitize'])
                             type: 'OSM'
                         }
                     };
-                    var layer = createLayer(l, view.getProjection());
+                    var layer = createLayer(l, view.getProjection(), 'default');
                     map.addLayer(layer);
                     map.set('default', true);
                 }
@@ -339,7 +339,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                             }
                         };
 
-                        olLayer = createLayer(l, projection);
+                        olLayer = createLayer(l, projection, attrs.olLayerProperties);
                         if (detectLayerType(l) === 'Vector') {
                             setVectorLayerEvents(defaults.events, map, scope, attrs.name);
                         }
@@ -365,7 +365,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
 
                     var style;
                     if (!isDefined(olLayer)) {
-                        olLayer = createLayer(properties, projection);
+                        olLayer = createLayer(properties, projection, attrs.olLayerProperties);
                         if (isDefined(properties.index)) {
                             insertLayer(layerCollection, properties.index, olLayer);
                         } else {
@@ -405,7 +405,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                             if (!equals(properties.source, oldProperties.source)) {
                                 var idx = olLayer.index;
                                 layerCollection.removeAt(idx);
-                                olLayer = createLayer(properties, projection);
+                                olLayer = createLayer(properties, projection, attrs.olLayerProperties);
                                 if (isDefined(olLayer)) {
                                     insertLayer(layerCollection, idx, olLayer);
 
@@ -1431,9 +1431,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
         },
 
         setVectorLayerEvents: function(events, map, scope, layerName) {
-            console.log(events, map, scope, layerName);
             if (isDefined(events) && angular.isArray(events.layers)) {
-                console.log('hola');
                 angular.forEach(events.layers, function(eventType) {
                     angular.element(map.getViewport()).on(eventType, function(evt) {
                         var pixel = map.getEventPixel(evt);
@@ -1450,7 +1448,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
         detectLayerType: detectLayerType,
 
-        createLayer: function(layer, projection) {
+        createLayer: function(layer, projection, name) {
             var oLayer;
             var type = detectLayerType(layer);
             var oSource = createSource(layer.source, projection);
@@ -1471,6 +1469,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 case 'Vector':
                     oLayer = new ol.layer.Vector({ source: oSource });
                     break;
+            }
+
+            if (name) {
+                oLayer.set('name', name);
             }
 
             return oLayer;

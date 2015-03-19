@@ -83,7 +83,7 @@ angular.module('openlayers-directive', ['ngSanitize'])
                             type: 'OSM'
                         }
                     };
-                    var layer = createLayer(l, view.getProjection());
+                    var layer = createLayer(l, view.getProjection(), 'default');
                     map.addLayer(layer);
                     map.set('default', true);
                 }

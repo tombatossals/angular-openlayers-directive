@@ -555,9 +555,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         },
 
         setVectorLayerEvents: function(events, map, scope, layerName) {
-            console.log(events, map, scope, layerName);
             if (isDefined(events) && angular.isArray(events.layers)) {
-                console.log('hola');
                 angular.forEach(events.layers, function(eventType) {
                     angular.element(map.getViewport()).on(eventType, function(evt) {
                         var pixel = map.getEventPixel(evt);
@@ -574,7 +572,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
         detectLayerType: detectLayerType,
 
-        createLayer: function(layer, projection) {
+        createLayer: function(layer, projection, name) {
             var oLayer;
             var type = detectLayerType(layer);
             var oSource = createSource(layer.source, projection);
@@ -595,6 +593,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 case 'Vector':
                     oLayer = new ol.layer.Vector({ source: oSource });
                     break;
+            }
+
+            if (name) {
+                oLayer.set('name', name);
             }
 
             return oLayer;
