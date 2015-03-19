@@ -595,8 +595,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     break;
             }
 
-            if (name) {
+            if (isDefined(name)) {
                 oLayer.set('name', name);
+            } else if (isDefined(layer.name)) {
+                oLayer.set('name', layer.name);
             }
 
             return oLayer;

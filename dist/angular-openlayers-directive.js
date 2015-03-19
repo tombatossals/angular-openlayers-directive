@@ -339,7 +339,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                             }
                         };
 
-                        olLayer = createLayer(l, projection, attrs.olLayerProperties);
+                        olLayer = createLayer(l, projection, attrs.layerName);
                         if (detectLayerType(l) === 'Vector') {
                             setVectorLayerEvents(defaults.events, map, scope, attrs.name);
                         }
@@ -365,7 +365,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
 
                     var style;
                     if (!isDefined(olLayer)) {
-                        olLayer = createLayer(properties, projection, attrs.olLayerProperties);
+                        olLayer = createLayer(properties, projection);
                         if (isDefined(properties.index)) {
                             insertLayer(layerCollection, properties.index, olLayer);
                         } else {
@@ -405,7 +405,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                             if (!equals(properties.source, oldProperties.source)) {
                                 var idx = olLayer.index;
                                 layerCollection.removeAt(idx);
-                                olLayer = createLayer(properties, projection, attrs.olLayerProperties);
+                                olLayer = createLayer(properties, projection);
                                 if (isDefined(olLayer)) {
                                     insertLayer(layerCollection, idx, olLayer);
 
@@ -1471,8 +1471,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                     break;
             }
 
-            if (name) {
+            if (isDefined(name)) {
                 oLayer.set('name', name);
+            } else if (isDefined(layer.name)) {
+                oLayer.set('name', layer.name);
             }
 
             return oLayer;
