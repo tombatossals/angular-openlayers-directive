@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <link rel="stylesheet" href="../dist/angular-openlayers-directive.css" />
+    <script>
+        var app = angular.module("demoapp", ["openlayers-directive"]);
+        app.controller("DemoController", [ '$scope', function($scope) {
+
+            angular.extend($scope, {
+                center: {
+                    lat: 42.9515,
+                    lon: -8.6619,
+                    zoom: 9
+                },
+                santiago: {
+                    lat: 42.880596200000010000,
+                    lon: -8.544641200000001000,
+                    label: {
+                        message: 'Santiago de Compostela',
+                        show: true,
+                        showOnMouseOver: true
+                    },
+                    style: {
+                        icon: {
+                            anchor: [0.5, 1],
+                            anchorXUnits: 'fraction',
+                            anchorYUnits: 'fraction',
+                            opacity: 0.90,
+                            src: 'images/map-marker.png'
+                        }
+                    }
+                }
+            });
+        } ]);
+
+    </script>
+  </head>
+  <body ng-controller="DemoController">
+      <openlayers ol-center="center" height="400px" width="100%">
+          <ol-marker ol-marker-properties="santiago" ></ol-marker>
+      </openlayers>
+  </body>
+</html>
