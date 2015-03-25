@@ -170,7 +170,7 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                                 var extent = view.calculateExtent(map.getSize());
                                 var centerProjection = scope.center.projection;
                                 var viewProjection = defaults.view.projection;
-                                scope.center.bounds = ol.proj.transform(extent, viewProjection, centerProjection);
+                                scope.center.bounds = ol.proj.transformExtent(extent, viewProjection, centerProjection);
                             }
                         }
                     });
