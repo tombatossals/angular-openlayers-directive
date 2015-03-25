@@ -232,14 +232,24 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 break;
 
             case 'TileWMS':
-                if (!source.url || !source.params) {
-                    $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url and params properties');
+                if ((!source.url && !source.urls) || !source.params) {
+                    $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url (or urls) and params properties');
                 }
-                oSource = new ol.source.TileWMS({
-                  url: source.url,
+
+                var wmsConfiguration = {
                   crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
                   params: source.params
-                });
+                };
+
+                if(wmsConfiguration.url){
+                    wmsConfiguration.url = source.url;
+                }
+
+                if(source.urls){
+                    wmsConfiguration.urls = source.urls;
+                }
+
+                oSource = new ol.source.TileWMS(wmsConfiguration);
                 break;
             case 'OSM':
                 if (source.attribution) {
