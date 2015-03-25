@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+<head>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="openlayers3/build/ol.css" />
+    <script>
+        var app = angular.module("demoapp", ["openlayers-directive"]);
+        app.controller("GeoJSONController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
+
+            $http.get('json/features.json').success(function(data) {
+                var features = data;
+                $scope.feat = {
+                    source: {
+                        type: 'GeoJSON',
+                        geojson: {
+                            object: features,
+                            projection: 'EPSG:3857'
+                        }
+                    },
+                    style: (function() {
+                        var someStyle = [new ol.style.Style({
+                            fill: new ol.style.Fill({
+                                color: 'blue'
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: 'olive',
+                                width: 1
+                            })
+                        })];
+                        var otherStyle = function(r,c){ return [new ol.style.Style({
+                            image: new ol.style.Circle({
+                                radius: r,
+                                fill: new ol.style.Fill({
+                                    color: c
+                                })
+                            })
+                        })]};
+                        return function(feature, resolution) {
+                            if (feature.get('class') === "someClass") {
+                                return someStyle;
+                            } else {
+                                return otherStyle(feature.get('radius'), feature.get('color'));
+                            }
+                        };
+                    }())
+                }
+            });
+
+            angular.extend($scope, {
+                charlotte: {
+                    lat: 35.30674709224663,
+                    lon: -80.83827000459532,
+                    zoom: 11
+                },
+                feat: {}
+            });
+        } ]);
+    </script>
+</head>
+<body ng-controller="GeoJSONController">
+<openlayers ol-center="charlotte" height="400px">
+    <ol-layer ol-layer-properties="feat"></ol-layer>
+</openlayers>
+<h1>Layers GeoJSON features with different styles example</h1>
+<p>You can define a function to set the style for features based on properties </p>
+<pre ng-bind="feat | json"></pre>
+</body>
+</html>
