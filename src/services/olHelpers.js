@@ -233,7 +233,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
             case 'TileWMS':
                 if ((!source.url && !source.urls) || !source.params) {
-                    $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url (or urls) and params properties');
+                    $log.error('[AngularJS - Openlayers] - TileWMS Layer needs ' +
+                               'valid url (or urls) and params properties');
                 }
 
                 var wmsConfiguration = {
@@ -241,11 +242,11 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                   params: source.params
                 };
 
-                if(wmsConfiguration.url){
+                if (wmsConfiguration.url) {
                     wmsConfiguration.url = source.url;
                 }
 
-                if(source.urls){
+                if (source.urls) {
                     wmsConfiguration.urls = source.urls;
                 }
 
