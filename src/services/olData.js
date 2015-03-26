@@ -47,4 +47,9 @@ angular.module('openlayers-directive').service('olData', function($log, $q, olHe
         return defer.promise;
     };
 
+    this.destroyMap = function(scopeId) {
+      var id = obtainEffectiveMapId(maps, scopeId);
+      delete maps[id];
+    };
+
 });

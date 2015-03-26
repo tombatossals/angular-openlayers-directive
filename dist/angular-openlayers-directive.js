@@ -285,7 +285,7 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
                                 var extent = view.calculateExtent(map.getSize());
                                 var centerProjection = scope.center.projection;
                                 var viewProjection = defaults.view.projection;
-                                scope.center.bounds = ol.proj.transform(extent, viewProjection, centerProjection);
+                                scope.center.bounds = ol.proj.transformExtent(extent, viewProjection, centerProjection);
                             }
                         }
                     });
@@ -872,6 +872,11 @@ angular.module('openlayers-directive').service('olData', ["$log", "$q", "olHelpe
         return defer.promise;
     };
 
+    this.destroyMap = function(scopeId) {
+      var id = obtainEffectiveMapId(maps, scopeId);
+      delete maps[id];
+    };
+
 }]);
 
 angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$http", function($q, $log, $http) {
@@ -946,37 +951,79 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
     var mapQuestLayers = ['osm', 'sat', 'hyb'];
 
-    var createStyle = function(style) {
-        var fill;
-        var stroke;
-        var icon;
+    var styleMap = {
+        'style': ol.style.Style,
+        'fill': ol.style.Fill,
+        'stroke': ol.style.Stroke,
+        'circle': ol.style.Circle,
+        'icon': ol.style.Icon,
+        'image': ol.style.Image,
+        'regularshape': ol.style.RegularShape,
+        'text': ol.style.Text
+    };
 
-        if (style.fill) {
-            fill = new ol.style.Fill({
-                color: style.fill.color
-            });
+    var optionalFactory = function(style, Constructor) {
+        if (Constructor && style instanceof Constructor) {
+            return style;
+        } else if (Constructor) {
+            return new Constructor(style);
+        } else {
+            return style;
+        }
+    };
+
+    //Parse the style tree calling the appropriate constructors.
+    //The keys in styleMap can be used and the OpenLayers constructors can be
+    //used directly.
+    var createStyle = function recursiveStyle(data, styleName) {
+        var style;
+        if (!styleName) {
+            styleName = 'style';
+            style = data;
+        } else {
+            style = data[styleName];
+        }
+        //Instead of defining one style for the layer, we've been given a style function
+        //to apply to each feature.
+        if (styleName === 'style' && data instanceof Function) {
+            return data;
         }
 
-        if (style.stroke) {
-            stroke = new ol.style.Stroke({
-                color: style.stroke.color,
-                width: style.stroke.width
-            });
+        if (!(style instanceof Object)) {
+            return style;
         }
 
-        if (style.icon) {
-            icon = new ol.style.Icon(style.icon);
+        var styleObject = {};
+        var styleConstructor = styleMap[styleName];
+        if (styleConstructor && style instanceof styleConstructor) {
+            return style;
         }
-
-        if (style.image) {
-            icon = style.image;
-        }
-
-        return new ol.style.Style({
-            fill: fill,
-            stroke: stroke,
-            image: icon
+        Object.getOwnPropertyNames(style).forEach(function(val, idx, array) {
+            //Consider the case
+            //image: {
+            //  circle: {
+            //     fill: {
+            //       color: 'red'
+            //     }
+            //   }
+            //
+            //An ol.style.Circle is an instance of ol.style.Image, so we do not want to construct
+            //an Image and then construct a Circle.  We assume that if we have an instanceof
+            //relationship, that the JSON parent has exactly one child.
+            //We check to see if an inheritance relationship exists.
+            //If it does, then for the parent we create an instance of the child.
+            var valConstructor = styleMap[val];
+            if (styleConstructor && valConstructor &&
+               valConstructor.prototype instanceof styleMap[styleName]) {
+                console.assert(array.length === 1, 'Extra parameters for ' + styleName);
+                styleObject = recursiveStyle(style, val);
+                return optionalFactory(styleObject, valConstructor);
+            } else {
+                styleObject[val] = recursiveStyle(style, val);
+                styleObject[val] = optionalFactory(styleObject[val], styleMap[val]);
+            }
         });
+        return optionalFactory(styleObject, styleMap[styleName]);
     };
 
     var detectLayerType = function(layer) {
@@ -1059,42 +1106,32 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                                'valid server url and params properties');
                 }
                 oSource = new ol.source.ImageWMS({
-                    url: source.url,
-                    crossOrigin: (source.crossOrigin === undefined) ? 'anonymous' : source.crossOrigin,
-                    params: source.params
+                  url: source.url,
+                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
+                  params: source.params
                 });
                 break;
 
             case 'TileWMS':
-                if (!source.url || !source.params) {
-                    $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url and params properties');
+                if ((!source.url && !source.urls) || !source.params) {
+                    $log.error('[AngularJS - Openlayers] - TileWMS Layer needs valid url (or urls) and params properties');
                 }
-                oSource = new ol.source.TileWMS({
-                    url: source.url,
-                    crossOrigin: (source.crossOrigin === undefined) ? 'anonymous' : source.crossOrigin,
-                    params: source.params
-                });
-                break;
 
-            case 'WMTS':
-                if (!source.url || !source.tileGrid) {
-                    $log.error('[AngularJS - Openlayers] - WMTS Layer needs valid url and tileGrid properties');
+                var wmsConfiguration = {
+                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
+                  params: source.params
+                };
+
+                if(wmsConfiguration.url){
+                    wmsConfiguration.url = source.url;
                 }
-                oSource = new ol.source.WMTS({
-                    url: source.url,
-                    projection: projection,
-                    matrixSet: (source.matrixSet === undefined) ? projection : source.matrixSet,
-                    format: (source.format === undefined) ? 'image/jpeg' : source.format,
-                    requestEncoding: (source.requestEncoding === undefined) ?
-                        'KVP' : source.requestEncoding,
-                    tileGrid: new ol.tilegrid.WMTS({
-                        origin: source.tileGrid.origin,
-                        resolutions: source.tileGrid.resolutions,
-                        matrixIds: source.tileGrid.matrixIds
-                    })
-                });
-                break;
 
+                if(source.urls){
+                    wmsConfiguration.urls = source.urls;
+                }
+
+                oSource = new ol.source.TileWMS(wmsConfiguration);
+                break;
             case 'OSM':
                 if (source.attribution) {
                     var attributions = [];
@@ -1102,7 +1139,6 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                         attributions.unshift(new ol.Attribution({ html: source.attribution }));
                     }
                     oSource = new ol.source.OSM({
-                        crossOrigin: (source.crossOrigin === undefined) ? 'anonymous' : source.crossOrigin,
                         attributions: attributions
                     });
                 } else {
@@ -1303,7 +1339,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
             return new ol.View({
                 projection: projection,
                 maxZoom: view.maxZoom,
-                minZoom: view.minZoom,
+                minZoom: view.minZoom
             });
         },
 
@@ -1431,7 +1467,9 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
         },
 
         setVectorLayerEvents: function(events, map, scope, layerName) {
+            console.log(events, map, scope, layerName);
             if (isDefined(events) && angular.isArray(events.layers)) {
+                console.log('hola');
                 angular.forEach(events.layers, function(eventType) {
                     angular.element(map.getViewport()).on(eventType, function(evt) {
                         var pixel = map.getEventPixel(evt);
@@ -1448,7 +1486,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
         detectLayerType: detectLayerType,
 
-        createLayer: function(layer, projection, name) {
+        createLayer: function(layer, projection) {
             var oLayer;
             var type = detectLayerType(layer);
             var oSource = createSource(layer.source, projection);
@@ -1469,12 +1507,6 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 case 'Vector':
                     oLayer = new ol.layer.Vector({ source: oSource });
                     break;
-            }
-
-            if (isDefined(name)) {
-                oLayer.set('name', name);
-            } else if (isDefined(layer.name)) {
-                oLayer.set('name', layer.name);
             }
 
             return oLayer;
