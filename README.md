@@ -68,25 +68,7 @@ After that, you must include the openlayers-directive dependency on your angular
 var app = angular.module("demoapp", ["openlayers-directive"]);
 ```
 
-The default behaviour will show an OpenstreetMap layer and the zoom and attributions controls, but you can customize those default vaules to fit your needs. For example, this HTML will show a map with a Mapquest layer, centered on
-
-```javascript
-angular.extend($scope, {
-    defaults: {
-        layers: {
-            main: {
-                source: {
-                    type; "OSM",
-                    url: "http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png",
-                }
-            }
-        },
-        maxZoom: 14
-    }
-});
-```
-
-Furthermore, you can set a bi-directional update of values between the map and the variables of your controler. This way you can interact easily with the map. Example:
+The default behaviour will show an OpenstreetMap layer and the zoom and attributions controls, but you can customize those default vaules to fit your needs. Furthermore, you can set a bi-directional update of values between the map and the variables of your controler. This way you can interact easily with the map. Example:
 
 ```javascript
 angular.extend($scope, {
