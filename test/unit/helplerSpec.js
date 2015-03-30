@@ -14,19 +14,21 @@ describe('Method: olHelpers.createStyle', function() {
 
     it('makes marker icon style', function() {
         var style = {
-            icon: {
-                anchor: [0.5, 1],
-                anchorXUnits: 'fraction',
-                anchorYUnits: 'fraction',
-                opacity: 0.90,
-                src: 'images/map-marker.png'
+            image: {
+                icon: {
+                    anchor: [0.5, 1],
+                    anchorXUnits: 'fraction',
+                    anchorYUnits: 'fraction',
+                    opacity: 0.90,
+                    src: 'images/map-marker.png'
+                }
             }
         };
         expect(_olHelpers.createStyle(style))
         .toEqual(new ol.style.Style({
             fill: null,
             stroke: null,
-            image: new ol.style.Icon(style.icon)
+            image: new ol.style.Icon(style.image.icon)
         }));
     });
 

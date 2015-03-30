@@ -112,36 +112,41 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             return style;
         }
 
-        var styleObject = {};
-        var styleConstructor = styleMap[styleName];
-        if (styleConstructor && style instanceof styleConstructor) {
-            return style;
-        }
-        Object.getOwnPropertyNames(style).forEach(function(val, idx, array) {
-            //Consider the case
-            //image: {
-            //  circle: {
-            //     fill: {
-            //       color: 'red'
-            //     }
-            //   }
-            //
-            //An ol.style.Circle is an instance of ol.style.Image, so we do not want to construct
-            //an Image and then construct a Circle.  We assume that if we have an instanceof
-            //relationship, that the JSON parent has exactly one child.
-            //We check to see if an inheritance relationship exists.
-            //If it does, then for the parent we create an instance of the child.
-            var valConstructor = styleMap[val];
-            if (styleConstructor && valConstructor &&
-               valConstructor.prototype instanceof styleMap[styleName]) {
-                console.assert(array.length === 1, 'Extra parameters for ' + styleName);
-                styleObject = recursiveStyle(style, val);
-                return optionalFactory(styleObject, valConstructor);
-            } else {
-                styleObject[val] = recursiveStyle(style, val);
-                styleObject[val] = optionalFactory(styleObject[val], styleMap[val]);
+        var styleObject;
+        if (Object.prototype.toString.call(style) === '[object Object]') {
+            styleObject = {};
+            var styleConstructor = styleMap[styleName];
+            if (styleConstructor && style instanceof styleConstructor) {
+                return style;
             }
-        });
+            Object.getOwnPropertyNames(style).forEach(function(val, idx, array) {
+                //Consider the case
+                //image: {
+                //  circle: {
+                //     fill: {
+                //       color: 'red'
+                //     }
+                //   }
+                //
+                //An ol.style.Circle is an instance of ol.style.Image, so we do not want to construct
+                //an Image and then construct a Circle.  We assume that if we have an instanceof
+                //relationship, that the JSON parent has exactly one child.
+                //We check to see if an inheritance relationship exists.
+                //If it does, then for the parent we create an instance of the child.
+                var valConstructor = styleMap[val];
+                if (styleConstructor && valConstructor &&
+                   valConstructor.prototype instanceof styleMap[styleName]) {
+                    console.assert(array.length === 1, 'Extra parameters for ' + styleName);
+                    styleObject = recursiveStyle(style, val);
+                    return optionalFactory(styleObject, valConstructor);
+                } else {
+                    styleObject[val] = recursiveStyle(style, val);
+                    styleObject[val] = optionalFactory(styleObject[val], styleMap[val]);
+                }
+            });
+        } else {
+            styleObject = style;
+        }
         return optionalFactory(styleObject, styleMap[styleName]);
     };
 
