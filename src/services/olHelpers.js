@@ -464,7 +464,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             return new ol.View({
                 projection: projection,
                 maxZoom: view.maxZoom,
-                minZoom: view.minZoom
+                minZoom: view.minZoom,
+                extent: view.extent
             });
         },
 
