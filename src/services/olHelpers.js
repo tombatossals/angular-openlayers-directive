@@ -441,7 +441,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     url: source.url,
                     imageSize: source.imageSize,
                     projection: projection,
-                    imageExtent: projection.getExtent()
+                    imageExtent: projection.getExtent(),
+                    imageLoadFunction: source.imageLoadFunction
                 });
                 break;
         }
