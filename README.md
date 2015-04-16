@@ -86,3 +86,8 @@ Finally, you must include the markup directive on your HTML page, like this:
 ```html
 <openlayers ol-center="center" height="480px" width="640px"></openlayers>
 ```
+
+Contributing
+--------------------------
+
+Contributions are more than welcome. Please refer to the [contributions guidelines](CONTRIBUTING.md) for more details on code style, development life-cycle etc.
