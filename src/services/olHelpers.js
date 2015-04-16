@@ -593,9 +593,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         },
 
         setVectorLayerEvents: function(events, map, scope, layerName) {
-            console.log(events, map, scope, layerName);
             if (isDefined(events) && angular.isArray(events.layers)) {
-                console.log('hola');
                 angular.forEach(events.layers, function(eventType) {
                     angular.element(map.getViewport()).on(eventType, function(evt) {
                         var pixel = map.getEventPixel(evt);
