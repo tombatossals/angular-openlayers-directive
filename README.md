@@ -1,6 +1,6 @@
 angular-openlayers-directive
 ============================
-[![Build Status](https://travis-ci.org/tombatossals/angular-leaflet-directive.png)](https://travis-ci.org/tombatossals/angular-leaflet-directive)
+[![Build Status](https://travis-ci.org/tombatossals/angular-openlayers-directive.png)](https://travis-ci.org/tombatossals/angular-openlayers-directive)
 
 Work in progress.
 
