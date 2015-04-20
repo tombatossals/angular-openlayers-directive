@@ -619,6 +619,14 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 return;
             }
 
+            // Manage clustering
+            if ( (type === 'Vector') && layer.clustering ) {
+                oSource = new ol.source.Cluster({
+                    source: oSource,
+                    distance: layer.clusteringDistance,
+                });
+            }
+
             switch (type) {
                 case 'Image':
                     oLayer = new ol.layer.Image({ source: oSource });
