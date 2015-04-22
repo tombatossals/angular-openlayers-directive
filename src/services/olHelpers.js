@@ -611,7 +611,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
         detectLayerType: detectLayerType,
 
-        createLayer: function(layer, projection) {
+        createLayer: function(layer, projection, name) {
             var oLayer;
             var type = detectLayerType(layer);
             var oSource = createSource(layer.source, projection);
@@ -632,6 +632,13 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 case 'Vector':
                     oLayer = new ol.layer.Vector({ source: oSource });
                     break;
+            }
+
+            // set a layer name if given
+            if (isDefined(name)) {
+                oLayer.set('name', name);
+            } else if (isDefined(layer.name)) {
+                oLayer.set('name', layer.name);
             }
 
             return oLayer;
