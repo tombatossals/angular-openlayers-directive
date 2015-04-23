@@ -201,6 +201,53 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         return ['watercolor', 'terrain', 'toner'].indexOf(layer) !== -1;
     };
 
+    var createLayer = function(layer, projection, name) {
+        var oLayer, oSource;
+        var type = detectLayerType(layer);
+
+        if (type !== 'Group') {
+            oSource = createSource(layer.source, projection);
+            if (!oSource) {
+                return;
+            }
+        }
+
+        switch (type) {
+            case 'Image':
+                oLayer = new ol.layer.Image({ source: oSource });
+                break;
+            case 'Tile':
+                oLayer = new ol.layer.Tile({ source: oSource });
+                break;
+            case 'Heatmap':
+                oLayer = new ol.layer.Heatmap({ source: oSource });
+                break;
+            case 'Vector':
+                oLayer = new ol.layer.Vector({ source: oSource });
+                break;
+            case 'Group':
+                var layers = [];
+                angular.forEach(layer.layers, function(l) {
+                  layers.push(createLayer(l));
+                });
+                oLayer = new ol.layer.Group({layers: layers});
+                break;
+        }
+
+        // set a layer name if given
+        if (isDefined(name)) {
+            oLayer.set('name', name);
+        } else if (isDefined(layer.name)) {
+            oLayer.set('name', layer.name);
+        }
+
+        if (isDefined(layer.group)) {
+          oLayer.set('group', layer.group);
+        }
+
+        return oLayer;
+    };
+
     var createSource = function(source, projection) {
         var oSource;
 
@@ -611,38 +658,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
         detectLayerType: detectLayerType,
 
-        createLayer: function(layer, projection, name) {
-            var oLayer;
-            var type = detectLayerType(layer);
-            var oSource = createSource(layer.source, projection);
-            if (!oSource) {
-                return;
-            }
-
-            switch (type) {
-                case 'Image':
-                    oLayer = new ol.layer.Image({ source: oSource });
-                    break;
-                case 'Tile':
-                    oLayer = new ol.layer.Tile({ source: oSource });
-                    break;
-                case 'Heatmap':
-                    oLayer = new ol.layer.Heatmap({ source: oSource });
-                    break;
-                case 'Vector':
-                    oLayer = new ol.layer.Vector({ source: oSource });
-                    break;
-            }
-
-            // set a layer name if given
-            if (isDefined(name)) {
-                oLayer.set('name', name);
-            } else if (isDefined(layer.name)) {
-                oLayer.set('name', layer.name);
-            }
-
-            return oLayer;
-        },
+        createLayer: createLayer,
 
         createVectorLayer: function() {
             return new ol.layer.Vector({

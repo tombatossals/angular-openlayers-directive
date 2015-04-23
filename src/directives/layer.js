@@ -51,7 +51,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                 }
 
                 scope.$watch('properties', function(properties, oldProperties) {
-                    if (!isDefined(properties.source) || !isDefined(properties.source.type)) {
+                    if ((!isDefined(properties.source) || !isDefined(properties.source.type)) && !isDefined(properties.layers)) {
                         return;
                     }
 
