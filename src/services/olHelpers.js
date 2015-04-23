@@ -281,11 +281,16 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     return;
                 }
 
-                oSource = new ol.source.BingMaps({
+                var bingConfiguration = {
                     key: source.key,
                     imagerySet: source.imagerySet ? source.imagerySet : bingImagerySets[0]
-                });
+                };
 
+                if(source.maxZoom){
+                    bingConfiguration.maxZoom = source.maxZoom;
+                }
+
+                oSource = new ol.source.BingMaps(bingConfiguration);
                 break;
 
             case 'MapQuest':
