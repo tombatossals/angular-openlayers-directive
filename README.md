@@ -1,5 +1,6 @@
 angular-openlayers-directive
 ============================
+[![Build Status](https://travis-ci.org/tombatossals/angular-openlayers-directive.png)](https://travis-ci.org/tombatossals/angular-openlayers-directive)
 
 Work in progress.
 
@@ -68,25 +69,7 @@ After that, you must include the openlayers-directive dependency on your angular
 var app = angular.module("demoapp", ["openlayers-directive"]);
 ```
 
-The default behaviour will show an OpenstreetMap layer and the zoom and attributions controls, but you can customize those default vaules to fit your needs. For example, this HTML will show a map with a Mapquest layer, centered on
-
-```javascript
-angular.extend($scope, {
-    defaults: {
-        layers: {
-            main: {
-                source: {
-                    type; "OSM",
-                    url: "http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png",
-                }
-            }
-        },
-        maxZoom: 14
-    }
-});
-```
-
-Furthermore, you can set a bi-directional update of values between the map and the variables of your controler. This way you can interact easily with the map. Example:
+The default behaviour will show an OpenstreetMap layer and the zoom and attributions controls, but you can customize those default vaules to fit your needs. Furthermore, you can set a bi-directional update of values between the map and the variables of your controler. This way you can interact easily with the map. Example:
 
 ```javascript
 angular.extend($scope, {
@@ -104,3 +87,8 @@ Finally, you must include the markup directive on your HTML page, like this:
 ```html
 <openlayers ol-center="center" height="480px" width="640px"></openlayers>
 ```
+
+Contributing
+--------------------------
+
+Contributions are more than welcome. Please refer to the [contributions guidelines](CONTRIBUTING.md) for more details on code style, development life-cycle etc.

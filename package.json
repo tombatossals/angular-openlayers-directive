@@ -2,7 +2,7 @@
   "author": "https://github.com/tombatossals/angular-openlayers-directive/graphs/contributors",
   "name": "angular-openlayers-directive",
   "description": "angular-openlayers-directive - An AngularJS directive to easily interact with Openlayers maps",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "homepage": "http://tombatossals.github.io/angular-openlayers-directive/",
   "repository": {
     "type": "git",
