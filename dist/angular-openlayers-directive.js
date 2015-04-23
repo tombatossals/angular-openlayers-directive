@@ -349,7 +349,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                 }
 
                 scope.$watch('properties', function(properties, oldProperties) {
-                    if (!isDefined(properties.source) || !isDefined(properties.source.type)) {
+                    if ((!isDefined(properties.source) || !isDefined(properties.source.type)) && !isDefined(properties.layers)) {
                         return;
                     }
 
@@ -872,6 +872,11 @@ angular.module('openlayers-directive').service('olData', ["$log", "$q", "olHelpe
         return defer.promise;
     };
 
+    this.destroyMap = function(scopeId) {
+      var id = obtainEffectiveMapId(maps, scopeId);
+      delete maps[id];
+    };
+
 }]);
 
 angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$http", function($q, $log, $http) {
@@ -988,36 +993,41 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
             return style;
         }
 
-        var styleObject = {};
-        var styleConstructor = styleMap[styleName];
-        if (styleConstructor && style instanceof styleConstructor) {
-            return style;
-        }
-        Object.getOwnPropertyNames(style).forEach(function(val, idx, array) {
-            //Consider the case
-            //image: {
-            //  circle: {
-            //     fill: {
-            //       color: 'red'
-            //     }
-            //   }
-            //
-            //An ol.style.Circle is an instance of ol.style.Image, so we do not want to construct
-            //an Image and then construct a Circle.  We assume that if we have an instanceof
-            //relationship, that the JSON parent has exactly one child.
-            //We check to see if an inheritance relationship exists.
-            //If it does, then for the parent we create an instance of the child.
-            var valConstructor = styleMap[val];
-            if (styleConstructor && valConstructor &&
-               valConstructor.prototype instanceof styleMap[styleName]) {
-                console.assert(array.length === 1, 'Extra parameters for ' + styleName);
-                styleObject = recursiveStyle(style, val);
-                return optionalFactory(styleObject, valConstructor);
-            } else {
-                styleObject[val] = recursiveStyle(style, val);
-                styleObject[val] = optionalFactory(styleObject[val], styleMap[val]);
+        var styleObject;
+        if (Object.prototype.toString.call(style) === '[object Object]') {
+            styleObject = {};
+            var styleConstructor = styleMap[styleName];
+            if (styleConstructor && style instanceof styleConstructor) {
+                return style;
             }
-        });
+            Object.getOwnPropertyNames(style).forEach(function(val, idx, array) {
+                //Consider the case
+                //image: {
+                //  circle: {
+                //     fill: {
+                //       color: 'red'
+                //     }
+                //   }
+                //
+                //An ol.style.Circle is an instance of ol.style.Image, so we do not want to construct
+                //an Image and then construct a Circle.  We assume that if we have an instanceof
+                //relationship, that the JSON parent has exactly one child.
+                //We check to see if an inheritance relationship exists.
+                //If it does, then for the parent we create an instance of the child.
+                var valConstructor = styleMap[val];
+                if (styleConstructor && valConstructor &&
+                   valConstructor.prototype instanceof styleMap[styleName]) {
+                    console.assert(array.length === 1, 'Extra parameters for ' + styleName);
+                    styleObject = recursiveStyle(style, val);
+                    return optionalFactory(styleObject, valConstructor);
+                } else {
+                    styleObject[val] = recursiveStyle(style, val);
+                    styleObject[val] = optionalFactory(styleObject[val], styleMap[val]);
+                }
+            });
+        } else {
+            styleObject = style;
+        }
         return optionalFactory(styleObject, styleMap[styleName]);
     };
 
@@ -1070,6 +1080,53 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
     var isValidStamenLayer = function(layer) {
         return ['watercolor', 'terrain', 'toner'].indexOf(layer) !== -1;
+    };
+
+    var createLayer = function(layer, projection, name) {
+        var oLayer, oSource;
+        var type = detectLayerType(layer);
+
+        if (type !== 'Group') {
+            oSource = createSource(layer.source, projection);
+            if (!oSource) {
+                return;
+            }
+        }
+
+        switch (type) {
+            case 'Image':
+                oLayer = new ol.layer.Image({ source: oSource });
+                break;
+            case 'Tile':
+                oLayer = new ol.layer.Tile({ source: oSource });
+                break;
+            case 'Heatmap':
+                oLayer = new ol.layer.Heatmap({ source: oSource });
+                break;
+            case 'Vector':
+                oLayer = new ol.layer.Vector({ source: oSource });
+                break;
+            case 'Group':
+                var layers = [];
+                angular.forEach(layer.layers, function(l) {
+                  layers.push(createLayer(l));
+                });
+                oLayer = new ol.layer.Group({layers: layers});
+                break;
+        }
+
+        // set a layer name if given
+        if (isDefined(name)) {
+            oLayer.set('name', name);
+        } else if (isDefined(layer.name)) {
+            oLayer.set('name', layer.name);
+        }
+
+        if (isDefined(layer.group)) {
+          oLayer.set('group', layer.group);
+        }
+
+        return oLayer;
     };
 
     var createSource = function(source, projection) {
@@ -1312,7 +1369,8 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                     url: source.url,
                     imageSize: source.imageSize,
                     projection: projection,
-                    imageExtent: projection.getExtent()
+                    imageExtent: projection.getExtent(),
+                    imageLoadFunction: source.imageLoadFunction
                 });
                 break;
         }
@@ -1335,7 +1393,8 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
             return new ol.View({
                 projection: projection,
                 maxZoom: view.maxZoom,
-                minZoom: view.minZoom
+                minZoom: view.minZoom,
+                extent: view.extent
             });
         },
 
@@ -1463,9 +1522,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
         },
 
         setVectorLayerEvents: function(events, map, scope, layerName) {
-            console.log(events, map, scope, layerName);
             if (isDefined(events) && angular.isArray(events.layers)) {
-                console.log('hola');
                 angular.forEach(events.layers, function(eventType) {
                     angular.element(map.getViewport()).on(eventType, function(evt) {
                         var pixel = map.getEventPixel(evt);
@@ -1482,31 +1539,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
         detectLayerType: detectLayerType,
 
-        createLayer: function(layer, projection) {
-            var oLayer;
-            var type = detectLayerType(layer);
-            var oSource = createSource(layer.source, projection);
-            if (!oSource) {
-                return;
-            }
-
-            switch (type) {
-                case 'Image':
-                    oLayer = new ol.layer.Image({ source: oSource });
-                    break;
-                case 'Tile':
-                    oLayer = new ol.layer.Tile({ source: oSource });
-                    break;
-                case 'Heatmap':
-                    oLayer = new ol.layer.Heatmap({ source: oSource });
-                    break;
-                case 'Vector':
-                    oLayer = new ol.layer.Vector({ source: oSource });
-                    break;
-            }
-
-            return oLayer;
-        },
+        createLayer: createLayer,
 
         createVectorLayer: function() {
             return new ol.layer.Vector({
