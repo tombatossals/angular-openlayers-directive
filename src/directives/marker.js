@@ -152,7 +152,9 @@ angular.module('openlayers-directive')
                                 }
 
                                 if (properties.onClick && (evt.type === 'click' || evt.type === 'touchend')) {
-                                    properties.onClick.call(marker, evt, properties);
+                                    scope.$apply(function() {
+                                        properties.onClick.call(marker, evt, properties);
+                                    });
                                 }
                                 map.getTarget().style.cursor = 'pointer';
                             }
