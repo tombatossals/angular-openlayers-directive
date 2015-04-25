@@ -4,47 +4,20 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
     };
 
     var setEvent = function(map, eventType, scope) {
-        if (eventType === 'pointermove') {
-            map.on('pointermove', function(e) {
-                var coord = e.coordinate;
-                var proj = map.getView().getProjection().getCode();
-                if (proj === 'pixel') {
-                    coord = coord.map(function(v) {
-                        return parseInt(v, 10);
-                    });
-                    scope.$emit('openlayers.map.' + eventType, {
-                        coord: coord,
-                        projection: proj
-                    });
-                } else {
-                    scope.$emit('openlayers.map.' + eventType, {
-                        lat: coord[1],
-                        lon: coord[0],
-                        projection: proj
-                    });
-                }
+        map.on(eventType, function(event) {
+            var coord = event.coordinate;
+            var proj = map.getView().getProjection().getCode();
+            if (proj === 'pixel') {
+                coord = coord.map(function(v) {
+                    return parseInt(v, 10);
+                });
+            }
+            scope.$emit('openlayers.map.' + eventType, {
+                coord: coord,
+                projection: proj,
+                event: event
             });
-        } else if (eventType === 'singleclick') {
-            map.on('singleclick', function(e) {
-                var coord = e.coordinate;
-                var proj = map.getView().getProjection().getCode();
-                if (proj === 'pixel') {
-                    coord = coord.map(function(v) {
-                        return parseInt(v, 10);
-                    });
-                    scope.$emit('openlayers.map.' + eventType, {
-                        coord: coord,
-                        projection: proj
-                    });
-                } else {
-                    scope.$emit('openlayers.map.' + eventType, {
-                        lat: coord[1],
-                        lon: coord[0],
-                        projection: proj
-                    });
-                }
-            });
-        }
+        });
     };
 
     var bingImagerySets = [
@@ -622,6 +595,14 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             var oSource = createSource(layer.source, projection);
             if (!oSource) {
                 return;
+            }
+
+            // Manage clustering
+            if ( (type === 'Vector') && layer.clustering ) {
+                oSource = new ol.source.Cluster({
+                    source: oSource,
+                    distance: layer.clusteringDistance,
+                });
             }
 
             switch (type) {
