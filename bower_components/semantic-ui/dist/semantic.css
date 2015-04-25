@@ -1,5 +1,5 @@
  /*
- * # Semantic UI - 1.11.0
+ * # Semantic UI - 1.12.0
  * https://github.com/Semantic-Org/Semantic-UI
  * http://www.semantic-ui.com/
  *
@@ -10,7 +10,7 @@
  */
 @import 'https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic&subset=latin';
 /*!
- * # Semantic UI 1.11.0 - Reset
+ * # Semantic UI 1.12.0 - Reset
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -526,7 +526,7 @@ html {
 body {
   margin: 0px;
   padding: 0px;
-  min-width: 278px;
+  min-width: 320px;
   background: #f7f7f7;
   font-family: 'Lato', 'Helvetica Neue', Arial, Helvetica, sans-serif;
   font-size: 14px;
@@ -571,6 +571,22 @@ h4 {
 
 h5 {
   font-size: 1rem;
+}
+
+h1:first-child,
+h2:first-child,
+h3:first-child,
+h4:first-child,
+h5:first-child {
+  margin-top: 0em;
+}
+
+h1:last-child,
+h2:last-child,
+h3:last-child,
+h4:last-child,
+h5:last-child {
+  margin-bottom: 0em;
 }
 
 /*******************************
@@ -652,7 +668,7 @@ input::selection {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Button
+ * # Semantic UI 1.12.0 - Button
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -3373,7 +3389,7 @@ input::selection {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Divider
+ * # Semantic UI 1.12.0 - Divider
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -3618,7 +3634,7 @@ input::selection {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Flag
+ * # Semantic UI 1.12.0 - Flag
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -4880,7 +4896,7 @@ i.flag.zimbabwe:before {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Header
+ * # Semantic UI 1.12.0 - Header
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -4997,6 +5013,7 @@ i.flag.zimbabwe:before {
 ---------------*/
 
 .ui.header .ui.label {
+  font-size: '';
   margin: 0em 0em 0em 0.5rem;
   vertical-align: middle;
 }
@@ -5567,7 +5584,7 @@ a.ui.inverted.yellow.header:hover {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI - Icon
+ * # Semantic UI 1.12.0 - Icon
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -5945,17 +5962,6 @@ i.massive.icon {
   font-size: 8em;
   vertical-align: middle;
 }
-
-/*!
- * # Semantic UI 1.11.0 - Icon
- * http://github.com/semantic-org/semantic-ui/
- *
- *
- * Copyright 2014 Contributors
- * Released under the MIT license
- * http://opensource.org/licenses/MIT
- *
- */
 
 /*
  * Font Awesome 4.3.0 by @davegandy - http://fontawesome.io - @fontawesome
@@ -8758,7 +8764,7 @@ i.icon.bed:before {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Image
+ * # Semantic UI 1.12.0 - Image
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -9054,7 +9060,7 @@ img.ui.bordered.image {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Input
+ * # Semantic UI 1.12.0 - Input
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -9074,13 +9080,19 @@ img.ui.bordered.image {
 
 .ui.input {
   position: relative;
-  display: inline-block;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
   color: rgba(0, 0, 0, 0.8);
 }
 
 .ui.input input {
   margin: 0em;
-  width: 100%;
+  -webkit-box-flex: 1;
+  -webkit-flex-grow: 1;
+  -ms-flex-positive: 1;
+  flex-grow: 1;
   outline: none;
   -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
   text-align: left;
@@ -9338,10 +9350,10 @@ img.ui.bordered.image {
 }
 
 .ui.labeled.input > .label {
-  -webkit-box-flex: 1;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
+  -webkit-box-flex: 0;
+  -webkit-flex-grow: 0;
+  -ms-flex-positive: 0;
+  flex-grow: 0;
   margin: 0;
   font-size: 1em;
 }
@@ -9422,10 +9434,10 @@ img.ui.bordered.image {
 
 .ui.action.input > .button,
 .ui.action.input > .buttons {
-  -webkit-box-flex: 1;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
+  -webkit-box-flex: 0;
+  -webkit-flex-grow: 0;
+  -ms-flex-positive: 0;
+  flex-grow: 0;
 }
 
 .ui.action.input > .button,
@@ -9487,7 +9499,10 @@ img.ui.bordered.image {
 ---------------------*/
 
 .ui.fluid.input {
-  display: block;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
 }
 
 /*--------------------
@@ -9530,7 +9545,7 @@ img.ui.bordered.image {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Label
+ * # Semantic UI 1.12.0 - Label
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -10585,7 +10600,7 @@ a.ui.yellow.label:hover:before {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - List
+ * # Semantic UI 1.12.0 - List
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -11576,7 +11591,7 @@ ol.ui.horizontal.list li:before,
     User Variable Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Loader
+ * # Semantic UI 1.12.0 - Loader
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -11879,7 +11894,7 @@ ol.ui.horizontal.list li:before,
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Rail
+ * # Semantic UI 1.12.0 - Rail
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -12003,7 +12018,7 @@ ol.ui.horizontal.list li:before,
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Reveal
+ * # Semantic UI 1.12.0 - Reveal
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -12319,7 +12334,7 @@ ol.ui.horizontal.list li:before,
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Segment
+ * # Semantic UI 1.12.0 - Segment
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -13022,7 +13037,7 @@ ol.ui.horizontal.list li:before,
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Step
+ * # Semantic UI 1.12.0 - Step
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -13495,7 +13510,7 @@ ol.ui.horizontal.list li:before,
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Breadcrumb
+ * # Semantic UI 1.12.0 - Breadcrumb
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -13626,7 +13641,7 @@ ol.ui.horizontal.list li:before,
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Form
+ * # Semantic UI 1.12.0 - Form
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -14213,22 +14228,24 @@ ol.ui.horizontal.list li:before,
      Required Field
 ---------------------*/
 
-.ui.form .required.fields > .field > label:after,
+.ui.form .required.fields:not(.grouped) > .field > label:after,
+.ui.form .required.fields.grouped > label:after,
 .ui.form .required.field > label:after,
-.ui.form .required.fields > .field > .checkbox:after,
+.ui.form .required.fields:not(.grouped) > .field > .checkbox:after,
 .ui.form .required.field > .checkbox:after {
   margin: -0.2em 0em 0em 0.2em;
   content: '*';
   color: #d95c5c;
 }
 
-.ui.form .required.fields > .field > label:after,
+.ui.form .required.fields:not(.grouped) > .field > label:after,
+.ui.form .required.fields.grouped > label:after,
 .ui.form .required.field > label:after {
   display: inline-block;
   vertical-align: top;
 }
 
-.ui.form .required.fields > .field > .checkbox:after,
+.ui.form .required.fields:not(.grouped) > .field > .checkbox:after,
 .ui.form .required.field > .checkbox:after {
   position: absolute;
   top: 0%;
@@ -14594,7 +14611,7 @@ ol.ui.horizontal.list li:before,
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Grid
+ * # Semantic UI 1.12.0 - Grid
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -15678,7 +15695,6 @@ ol.ui.horizontal.list li:before,
 
 .ui.centered.grid > .column:not(.aligned):not(.row),
 .ui.centered.grid > .row > .column:not(.aligned),
-.ui.centered.grid > .row:not(.centered),
 .ui.grid .centered.row > .column:not(.aligned) {
   text-align: left;
 }
@@ -15937,6 +15953,10 @@ ol.ui.horizontal.list li:before,
 .ui.grid [class*="left aligned"].column,
 .ui.grid > [class*="left aligned"].row > .column {
   text-align: left;
+  -webkit-box-align: start !important;
+  -webkit-align-items: flex-start !important;
+  -ms-flex-align: start !important;
+  align-items: flex-start !important;
 }
 
 .ui.grid [class*="left aligned"].column {
@@ -15950,6 +15970,10 @@ ol.ui.horizontal.list li:before,
 .ui[class*="center aligned"].grid > .column,
 .ui.grid > [class*="center aligned"].row > .column {
   text-align: center;
+  -webkit-box-align: center !important;
+  -webkit-align-items: center !important;
+  -ms-flex-align: center !important;
+  align-items: center !important;
 }
 
 .ui.grid [class*="center aligned"].column {
@@ -15963,6 +15987,10 @@ ol.ui.horizontal.list li:before,
 .ui[class*="right aligned"].grid > .column,
 .ui.grid > [class*="right aligned"].row > .column {
   text-align: right;
+  -webkit-box-align: end !important;
+  -webkit-align-items: flex-end !important;
+  -ms-flex-align: end !important;
+  align-items: flex-end !important;
 }
 
 .ui.grid [class*="right aligned"].column {
@@ -16003,16 +16031,43 @@ ol.ui.horizontal.list li:before,
 .ui.grid [class*="top aligned"].column,
 .ui.grid > [class*="top aligned"].row > .column {
   vertical-align: top;
-  -webkit-align-self: flex-start;
-  -ms-flex-item-align: start;
-  align-self: flex-start;
+  -webkit-box-pack: start !important;
+  -webkit-justify-content: flex-start !important;
+  -ms-flex-pack: start !important;
+  justify-content: flex-start !important;
 }
 
 .ui.grid [class*="top aligned"].column {
   vertical-align: top !important;
-  -webkit-align-self: flex-start;
-  -ms-flex-item-align: start;
-  align-self: flex-start;
+  -webkit-box-pack: start !important;
+  -webkit-justify-content: flex-start !important;
+  -ms-flex-pack: start !important;
+  justify-content: flex-start !important;
+}
+
+.ui.stretched.grid > .row > .column,
+.ui.stretched.grid > .column:not(.row),
+.ui.grid .stretched.column,
+.ui.grid > .stretched.row > .column {
+  display: -webkit-box !important;
+  display: -webkit-flex !important;
+  display: -ms-flexbox !important;
+  display: flex !important;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.ui.stretched.grid > .row > .column > *,
+.ui.stretched.grid > .column > *,
+.ui.grid .stretched.column > *,
+.ui.grid > .stretched.row > .column > * {
+  -webkit-box-flex: 1;
+  -webkit-flex-grow: 1;
+  -ms-flex-positive: 1;
+  flex-grow: 1;
 }
 
 /* Middle Aligned */
@@ -16022,16 +16077,18 @@ ol.ui.horizontal.list li:before,
 .ui[class*="middle aligned"].grid > .column,
 .ui.grid > [class*="middle aligned"].row > .column {
   vertical-align: middle;
-  -webkit-align-self: center;
-  -ms-flex-item-align: center;
-  align-self: center;
+  -webkit-box-pack: center !important;
+  -webkit-justify-content: center !important;
+  -ms-flex-pack: center !important;
+  justify-content: center !important;
 }
 
 .ui.grid [class*="middle aligned"].column {
   vertical-align: middle !important;
-  -webkit-align-self: center;
-  -ms-flex-item-align: center;
-  align-self: center;
+  -webkit-box-pack: center !important;
+  -webkit-justify-content: center !important;
+  -ms-flex-pack: center !important;
+  justify-content: center !important;
 }
 
 /* Bottom Aligned */
@@ -16041,15 +16098,17 @@ ol.ui.horizontal.list li:before,
 .ui[class*="bottom aligned"].grid > .column,
 .ui.grid > [class*="bottom aligned"].row > .column {
   vertical-align: bottom;
-  -webkit-align-self: flex-end;
-  -ms-flex-item-align: end;
-  align-self: flex-end;
+  -webkit-box-pack: end !important;
+  -webkit-justify-content: flex-end !important;
+  -ms-flex-pack: end !important;
+  justify-content: flex-end !important;
 }
 
 .ui.grid [class*="bottom aligned"].column {
-  -webkit-align-self: flex-end;
-  -ms-flex-item-align: end;
-  align-self: flex-end;
+  -webkit-box-pack: end !important;
+  -webkit-justify-content: flex-end !important;
+  -ms-flex-pack: end !important;
+  justify-content: flex-end !important;
   vertical-align: bottom !important;
 }
 
@@ -16203,7 +16262,7 @@ ol.ui.horizontal.list li:before,
   width: 100% !important;
 }
 
-.ui[class*="equal width"].grid > .column,
+.ui[class*="equal width"].grid > .column:not(.row),
 .ui[class*="equal width"].grid > .row > .column,
 .ui.grid > [class*="equal width"].row > .column {
   display: table-cell;
@@ -16211,18 +16270,7 @@ ol.ui.horizontal.list li:before,
 
 /* Flexbox (Experimental / Overrides Where Supported) */
 
-.ui[class*="equal width"].grid {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-}
-
+.ui[class*="equal width"].grid,
 .ui[class*="equal width"].grid > .row,
 .ui.grid > [class*="equal width"].row {
   display: -webkit-box;
@@ -16234,25 +16282,19 @@ ol.ui.horizontal.list li:before,
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-box-align: stretch;
-  -webkit-align-items: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
 }
 
-.ui[class*="equal width"].grid > .column,
+.ui[class*="equal width"].grid > .column:not(.row),
 .ui[class*="equal width"].grid > .row > .column,
 .ui.grid > [class*="equal width"].row > .column {
-  display: inline-block;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
+  display: block;
   -webkit-box-flex: 1;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
+  -webkit-flex-grow: 1;
+  -ms-flex-positive: 1;
+  flex-grow: 1;
 }
 
 /*----------------------
@@ -16271,7 +16313,7 @@ ol.ui.horizontal.list li:before,
   width: 100% !important;
 }
 
-.ui[class*="equal height"].grid > .column,
+.ui[class*="equal height"].grid > .column:not(.row),
 .ui[class*="equal height"].grid > .row > .column,
 .ui.grid > [class*="equal height"].row > .column {
   display: table-cell;
@@ -16291,25 +16333,24 @@ ol.ui.horizontal.list li:before,
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-box-align: stretch;
-  -webkit-align-items: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
 }
 
-.ui[class*="equal height"].grid > .column,
+.ui[class*="equal height"].grid > .column:not(.row),
 .ui[class*="equal height"].grid > .row > .column,
 .ui.grid > [class*="equal height"].row > .column {
-  display: inline-block;
+  display: block;
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-box-flex: 0;
-  -webkit-flex: 0 0 auto;
-  -ms-flex: 0 0 auto;
-  flex: 0 0 auto;
+  -webkit-box-flex: 1;
+  -webkit-flex-grow: 1;
+  -ms-flex-positive: 1;
+  flex-grow: 1;
 }
 
 /*-------------------
@@ -16565,6 +16606,7 @@ ol.ui.horizontal.list li:before,
   }
 
   .ui.stackable.grid > .row {
+    display: block !important;
     margin: 0em;
     padding: 0em;
   }
@@ -16678,7 +16720,7 @@ ol.ui.horizontal.list li:before,
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Menu
+ * # Semantic UI 1.12.0 - Menu
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -18478,7 +18520,7 @@ ol.ui.horizontal.list li:before,
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Message
+ * # Semantic UI 1.12.0 - Message
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -18954,7 +18996,7 @@ ol.ui.horizontal.list li:before,
     User Variable Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Table
+ * # Semantic UI 1.12.0 - Table
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -20096,7 +20138,7 @@ ol.ui.horizontal.list li:before,
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Ad
+ * # Semantic UI 1.12.0 - Ad
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -20386,7 +20428,7 @@ ol.ui.horizontal.list li:before,
     User Variable Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Item
+ * # Semantic UI 1.12.0 - Item
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -20509,6 +20551,10 @@ ol.ui.horizontal.list li:before,
 .ui.cards > .card > .image,
 .ui.card > .image {
   display: block;
+  -webkit-box-flex: 0;
+  -webkit-flex: 0 0 auto;
+  -ms-flex: 0 0 auto;
+  flex: 0 0 auto;
   position: relative;
   padding: 0em;
   background: rgba(0, 0, 0, 0.05);
@@ -20737,6 +20783,16 @@ ol.ui.horizontal.list li:before,
 .ui.card > .button:last-child {
   margin: 0em 0em -1px;
   width: 100%;
+}
+
+/*--------------
+      Dimmer
+---------------*/
+
+.ui.cards > .card .dimmer,
+.ui.card .dimmer {
+  background-color: '';
+  z-index: 10;
 }
 
 /*--------------
@@ -21391,7 +21447,7 @@ a.ui.card:hover,
     User Variable Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Comment
+ * # Semantic UI 1.12.0 - Comment
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -21661,7 +21717,7 @@ a.ui.card:hover,
     User Variable Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Feed
+ * # Semantic UI 1.12.0 - Feed
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -21956,7 +22012,7 @@ a.ui.card:hover,
     User Variable Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Item
+ * # Semantic UI 1.12.0 - Item
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -22447,7 +22503,7 @@ a.ui.card:hover,
     User Variable Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Statistic
+ * # Semantic UI 1.12.0 - Statistic
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -22894,7 +22950,7 @@ a.ui.card:hover,
     User Variable Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Accordion
+ * # Semantic UI 1.12.0 - Accordion
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -23048,7 +23104,7 @@ a.ui.card:hover,
 }
 
 .ui.styled.accordion > .title:first-child,
-.ui.styled.accordion > .accordion .title:first-child {
+.ui.styled.accordion .accordion .title:first-child {
   border-top: none;
 }
 
@@ -23160,7 +23216,7 @@ a.ui.card:hover,
         User Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Checkbox
+ * # Semantic UI 1.12.0 - Checkbox
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -23690,7 +23746,7 @@ a.ui.card:hover,
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Dimmer
+ * # Semantic UI 1.12.0 - Dimmer
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -23882,7 +23938,7 @@ body.dimmed.dimmable > :not(.dimmer) {
         User Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Dropdown
+ * # Semantic UI 1.12.0 - Dropdown
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -23960,7 +24016,7 @@ body.dimmed.dimmable > :not(.dimmer) {
 .ui.dropdown .menu > .item .dropdown.icon {
   width: auto;
   float: right;
-  margin: 0.2em 0em 0em 1em;
+  margin: 0em 0em 0em 1em;
 }
 
 .ui.dropdown .menu > .item .dropdown.icon + .text {
@@ -23988,9 +24044,9 @@ body.dimmed.dimmable > :not(.dimmer) {
   border: none;
   height: auto;
   border-top: none;
-  line-height: 1.2em;
+  line-height: 1em;
   color: rgba(0, 0, 0, 0.8);
-  padding: 0.65rem 1.25rem !important;
+  padding: 0.71428571em 1.14285714em !important;
   font-size: 1rem;
   text-transform: none;
   font-weight: normal;
@@ -24024,7 +24080,7 @@ body.dimmed.dimmable > :not(.dimmer) {
 .ui.dropdown .menu .item > .flag.floated,
 .ui.dropdown .menu .item > .image.floated,
 .ui.dropdown .menu .item > img.floated {
-  margin-top: 0.2em;
+  margin-top: 0em;
 }
 
 /*--------------
@@ -24033,9 +24089,9 @@ body.dimmed.dimmable > :not(.dimmer) {
 
 .ui.dropdown .menu > .header {
   margin: 1rem 0rem 0.75rem;
-  padding: 0em 1.25rem;
+  padding: 0em 1.14285714em;
   color: rgba(0, 0, 0, 0.85);
-  font-size: 0.8em;
+  font-size: 0.7857rem;
   font-weight: bold;
   text-transform: uppercase;
 }
@@ -24047,7 +24103,7 @@ body.dimmed.dimmable > :not(.dimmer) {
 }
 
 .ui.dropdown .menu > .input {
-  margin: 0.75rem 1.25rem;
+  margin: 0.75rem 1.14285714em;
   min-width: 200px;
 }
 
@@ -24118,7 +24174,7 @@ body.dimmed.dimmable > :not(.dimmer) {
 .ui.dropdown .menu > .item > .flag,
 .ui.dropdown .menu > .item > .image,
 .ui.dropdown .menu > .item > img {
-  margin-top: 0.2em;
+  margin-top: 0em;
 }
 
 .ui.dropdown > .text > .icon,
@@ -24132,6 +24188,7 @@ body.dimmed.dimmable > :not(.dimmer) {
 .ui.dropdown .menu > .item > .image,
 .ui.dropdown .menu > .item > img {
   margin-left: 0em;
+  float: none;
   margin-right: 0.75em;
 }
 
@@ -24227,9 +24284,9 @@ body.dimmed.dimmable > :not(.dimmer) {
 
 select.ui.dropdown {
   height: 38px;
-  padding: 0em;
-  margin: 0em;
-  visibility: hidden;
+  padding: 0.5em;
+  border: 1px solid rgba(39, 41, 43, 0.15);
+  visibility: visible;
 }
 
 .ui.selection.dropdown > .text {
@@ -24285,32 +24342,32 @@ select.ui.dropdown {
 
 @media all and (-ms-high-contrast: none) {
   .ui.selection.dropdown .menu {
-    min-width: -webkit-calc(85%);
-    min-width: calc(85%);
+    min-width: -webkit-calc(100% -  15px );
+    min-width: calc(100% -  15px );
   }
 }
 
 @media only screen and (max-width: 767px) {
   .ui.selection.dropdown .menu {
-    max-height: 7.7142rem;
+    max-height: 7.49991429em;
   }
 }
 
 @media only screen and (min-width: 768px) {
   .ui.selection.dropdown .menu {
-    max-height: 10.2856rem;
+    max-height: 9.99988571em;
   }
 }
 
 @media only screen and (min-width: 992px) {
   .ui.selection.dropdown .menu {
-    max-height: 15.4284rem;
+    max-height: 14.99982857em;
   }
 }
 
 @media only screen and (min-width: 1920px) {
   .ui.selection.dropdown .menu {
-    max-height: 20.5712rem;
+    max-height: 19.99977143em;
   }
 }
 
@@ -24318,10 +24375,7 @@ select.ui.dropdown {
 
 .ui.selection.dropdown .menu > .item {
   border-top: 1px solid rgba(0, 0, 0, 0.05);
-  padding-left: 1.1em !important;
-  /* Add in spacing for scroll bar */
-  padding-right: -webkit-calc(2.1em) !important;
-  padding-right: calc(2.1em) !important;
+  padding: 0.71428571em 1.14285714em !important;
   white-space: normal;
   word-wrap: normal;
 }
@@ -24344,6 +24398,18 @@ select.ui.dropdown {
   opacity: 0.3 !important;
 }
 
+/* Visible */
+
+.ui.selection.dropdown.visible {
+  border-color: rgba(39, 41, 43, 0.3);
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+}
+
+.ui.selection.visible.dropdown .menu {
+  border-color: rgba(39, 41, 43, 0.3);
+  box-shadow: 0px 2px 6px 0px rgba(39, 41, 43, 0.15);
+}
+
 /* Visible Hover */
 
 .ui.selection.visible.dropdown:hover {
@@ -24351,16 +24417,9 @@ select.ui.dropdown {
   box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
 }
 
-.ui.selection.visible.dropdown:hover .menu {
-  border: 1px solid rgba(39, 41, 43, 0.3);
-  box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.1);
-}
-
-/* Visible */
-
-.ui.selection.dropdown.visible {
-  border-color: rgba(39, 41, 43, 0.15);
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+.ui.selection.visible.dropdown .menu {
+  border-color: rgba(39, 41, 43, 0.3);
+  box-shadow: 0px 2px 6px 0px rgba(39, 41, 43, 0.15);
 }
 
 /* Active Item */
@@ -24461,25 +24520,25 @@ select.ui.dropdown {
 
 @media only screen and (max-width: 767px) {
   .ui.search.dropdown .menu {
-    max-height: 7.7142rem;
+    max-height: 7.49991429em;
   }
 }
 
 @media only screen and (min-width: 768px) {
   .ui.search.dropdown .menu {
-    max-height: 10.2856rem;
+    max-height: 9.99988571em;
   }
 }
 
 @media only screen and (min-width: 992px) {
   .ui.search.dropdown .menu {
-    max-height: 15.4284rem;
+    max-height: 14.99982857em;
   }
 }
 
 @media only screen and (min-width: 1920px) {
   .ui.search.dropdown .menu {
-    max-height: 20.5712rem;
+    max-height: 19.99977143em;
   }
 }
 
@@ -24521,7 +24580,7 @@ select.ui.dropdown {
 .ui.dropdown .menu > .item:hover {
   background: rgba(0, 0, 0, 0.05);
   color: rgba(0, 0, 0, 0.8);
-  z-index: 12;
+  z-index: 13;
 }
 
 /*--------------------
@@ -24590,7 +24649,7 @@ select.ui.dropdown {
 }
 
 .ui.dropdown .filtered.item {
-  display: none;
+  display: none !important;
 }
 
 /*--------------------
@@ -24679,14 +24738,14 @@ select.ui.dropdown {
 .ui.dropdown .left.menu .item .dropdown.icon {
   width: auto;
   float: left;
-  margin: 0.2em 0.75em 0em 0em;
+  margin: 0em 0.75em 0em 0em;
 }
 
 .ui.dropdown .item .left.dropdown.icon,
 .ui.dropdown .left.menu .item .dropdown.icon {
   width: auto;
   float: left;
-  margin: 0.2em 0.75em 0em 0em;
+  margin: 0em 0.75em 0em 0em;
 }
 
 .ui.dropdown .item .left.dropdown.icon + .text,
@@ -25078,7 +25137,7 @@ select.ui.dropdown {
         User Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Modal
+ * # Semantic UI 1.12.0 - Modal
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -25334,13 +25393,15 @@ select.ui.dropdown {
     box-shadow: none;
   }
 
+  /* Let Buttons Stack */
+
   .ui.modal > .actions {
-    padding: 1rem 1rem -1rem !important;
+    padding: 1rem 1rem 0rem !important;
   }
 
   .ui.modal .actions > .buttons,
   .ui.modal .actions > .button {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
   }
 }
 
@@ -25546,7 +25607,7 @@ select.ui.dropdown {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Nag
+ * # Semantic UI 1.12.0 - Nag
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -25692,7 +25753,7 @@ a.ui.nag {
         User Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Popup
+ * # Semantic UI 1.12.0 - Popup
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -25994,7 +26055,7 @@ a.ui.nag {
         User Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Progress Bar
+ * # Semantic UI 1.12.0 - Progress Bar
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -26514,7 +26575,7 @@ a.ui.nag {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Rating
+ * # Semantic UI 1.12.0 - Rating
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -26783,7 +26844,7 @@ a.ui.nag {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Search
+ * # Semantic UI 1.12.0 - Search
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -27125,7 +27186,7 @@ a.ui.nag {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Shape
+ * # Semantic UI 1.12.0 - Shape
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -27282,7 +27343,7 @@ a.ui.nag {
         User Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Sidebar
+ * # Semantic UI 1.12.0 - Sidebar
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -27966,7 +28027,7 @@ html.ios {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Sticky
+ * # Semantic UI 1.12.0 - Sticky
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -28041,7 +28102,7 @@ html.ios {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Tab
+ * # Semantic UI 1.12.0 - Tab
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -28129,7 +28190,7 @@ html.ios {
         User Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Table
+ * # Semantic UI 1.12.0 - Table
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -29271,7 +29332,7 @@ html.ios {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Transition
+ * # Semantic UI 1.12.0 - Transition
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -31534,7 +31595,7 @@ html.ios {
          Site Overrides
 *******************************/
 /*!
- * # Semantic UI 1.11.0 - Video
+ * # Semantic UI 1.12.0 - Video
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -31651,974 +31712,6 @@ html.ios {
 
 /*******************************
         Video Overrides
-*******************************/
-
-/*******************************
-         Site Overrides
-*******************************/
-/*!
- * # Semantic UI 1.11.0 - Form
- * http://github.com/semantic-org/semantic-ui/
- *
- *
- * Copyright 2014 Contributors
- * Released under the MIT license
- * http://opensource.org/licenses/MIT
- *
- */
-
-/*******************************
-            Elements
-*******************************/
-
-/*--------------------
-        Form
----------------------*/
-
-.ui.form {
-  position: relative;
-  max-width: 100%;
-}
-
-/*--------------------
-        Content
----------------------*/
-
-.ui.form > p {
-  margin: 1em 0em;
-}
-
-/*--------------------
-        Field
----------------------*/
-
-.ui.form .fields .field,
-.ui.form .field {
-  clear: both;
-  margin: 0em 0em 1em;
-}
-
-.ui.form .fields:last-child,
-.ui.form .field:last-child {
-  margin-bottom: 0em;
-}
-
-/*--------------------
-        Labels
----------------------*/
-
-.ui.form .field > label {
-  display: block;
-  margin: 0em 0em 0.2857rem 0em;
-  color: rgba(0, 0, 0, 0.8);
-  font-size: 0.9285em;
-  font-weight: bold;
-  text-transform: none;
-}
-
-.ui.form .grouped.fields > label {
-  margin: 0em 0em 0.2857rem 0em;
-  color: rgba(0, 0, 0, 0.8);
-  font-size: 0.9285em;
-  font-weight: bold;
-  text-transform: none;
-}
-
-.ui.form .inline.fields > label {
-  display: inline-block;
-  vertical-align: middle;
-  margin: 0em 1em 0em 0em;
-  color: rgba(0, 0, 0, 0.8);
-  font-size: 0.9285em;
-  font-weight: bold;
-  text-transform: none;
-}
-
-/*--------------------
-    Standard Inputs
----------------------*/
-
-.ui.form textarea,
-.ui.form input:not([type]),
-.ui.form input[type="date"],
-.ui.form input[type="datetime-local"],
-.ui.form input[type="email"],
-.ui.form input[type="number"],
-.ui.form input[type="password"],
-.ui.form input[type="search"],
-.ui.form input[type="tel"],
-.ui.form input[type="time"],
-.ui.form input[type="text"],
-.ui.form input[type="url"],
-.ui.form .ui.input {
-  width: 100%;
-  vertical-align: top;
-}
-
-.ui.form input:not([type]),
-.ui.form input[type="date"],
-.ui.form input[type="datetime-local"],
-.ui.form input[type="email"],
-.ui.form input[type="number"],
-.ui.form input[type="password"],
-.ui.form input[type="search"],
-.ui.form input[type="tel"],
-.ui.form input[type="time"],
-.ui.form input[type="text"],
-.ui.form input[type="url"] {
-  font-family: 'Lato', 'Helvetica Neue', Arial, Helvetica, sans-serif;
-  margin: 0em;
-  outline: none;
-  -webkit-appearance: none;
-  tap-highlight-color: rgba(255, 255, 255, 0);
-  line-height: 1.2142em;
-  padding: 0.67861em 1em;
-  font-size: 1em;
-  background: #ffffff;
-  border: 1px solid rgba(39, 41, 43, 0.15);
-  color: rgba(0, 0, 0, 0.8);
-  border-radius: 0.2857rem;
-  box-shadow: 0em 0em 0em 0em transparent inset;
-  -webkit-transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.ui.textarea,
-.ui.form textarea {
-  margin: 0em;
-  -webkit-appearance: none;
-  tap-highlight-color: rgba(255, 255, 255, 0);
-  padding: 0.78571em 1em;
-  background: #ffffff;
-  border: 1px solid rgba(39, 41, 43, 0.15);
-  outline: none;
-  color: rgba(0, 0, 0, 0.8);
-  border-radius: 0.2857rem;
-  box-shadow: 0em 0em 0em 0em transparent inset;
-  -webkit-transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  font-size: 1em;
-  height: 12em;
-  min-height: 8em;
-  max-height: 24em;
-  line-height: 1.2857;
-  resize: vertical;
-}
-
-.ui.form textarea,
-.ui.form input[type="checkbox"] {
-  vertical-align: top;
-}
-
-/*--------------------------
-  Input w/ attached Button
----------------------------*/
-
-.ui.form input.attached {
-  width: auto;
-}
-
-/*--------------------
-     Basic Select
----------------------*/
-
-.ui.form select {
-  display: block;
-  height: auto;
-  width: 100%;
-  background: #ffffff;
-  border: 1px solid rgba(39, 41, 43, 0.15);
-  border-radius: 0.2857rem;
-  box-shadow: 0em 0em 0em 0em transparent inset;
-  padding: 0.62em 1em;
-  color: rgba(0, 0, 0, 0.8);
-  -webkit-transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-/*--------------------
-       Dropdown
----------------------*/
-
-.ui.form .field > .selection.dropdown {
-  width: 100%;
-}
-
-.ui.form .field > .selection.dropdown > .dropdown.icon {
-  float: right;
-}
-
-.ui.form .inline.field > .selection.dropdown {
-  width: auto;
-}
-
-.ui.form .inline.field > .selection.dropdown > .dropdown.icon {
-  float: none;
-}
-
-/*--------------------
-       Dividers
----------------------*/
-
-.ui.form .divider {
-  clear: both;
-  margin: 1em 0em;
-}
-
-/*--------------------
-   Types of Messages
----------------------*/
-
-.ui.form .success.message,
-.ui.form .warning.message,
-.ui.form .error.message {
-  display: none;
-}
-
-/* Assumptions */
-
-.ui.form .message:first-child {
-  margin-top: 0px;
-}
-
-/*--------------------
-   Validation Prompt
----------------------*/
-
-.ui.form .field .prompt.label {
-  white-space: nowrap;
-}
-
-.ui.form .inline.field .prompt {
-  margin: -0.5em 0em -0.5em 1em;
-}
-
-.ui.form .inline.field .prompt:before {
-  margin-top: -0.3em;
-  bottom: auto;
-  right: auto;
-  top: 50%;
-  left: 0em;
-}
-
-/*******************************
-            States
-*******************************/
-
-/*--------------------
-      Placeholder
----------------------*/
-
-/* browsers require these rules separate */
-
-.ui.form ::-webkit-input-placeholder {
-  color: rgba(140, 140, 140, 0.8);
-}
-
-.ui.form ::-moz-placeholder {
-  color: rgba(140, 140, 140, 0.8);
-}
-
-.ui.form :focus::-webkit-input-placeholder {
-  color: rgba(89, 89, 89, 0.8);
-}
-
-.ui.form :focus::-moz-placeholder {
-  color: rgba(89, 89, 89, 0.8);
-}
-
-/* Error Placeholder */
-
-.ui.form .error ::-webkit-input-placeholder {
-  color: #e38585;
-}
-
-.ui.form .error ::-moz-placeholder {
-  color: #e38585;
-}
-
-.ui.form .error :focus::-webkit-input-placeholder {
-  color: #de7171;
-}
-
-.ui.form .error :focus::-moz-placeholder {
-  color: #de7171;
-}
-
-/*--------------------
-        Focus
----------------------*/
-
-.ui.form input:not([type]):focus,
-.ui.form input[type="date"]:focus,
-.ui.form input[type="datetime-local"]:focus,
-.ui.form input[type="email"]:focus,
-.ui.form input[type="number"]:focus,
-.ui.form input[type="password"]:focus,
-.ui.form input[type="search"]:focus,
-.ui.form input[type="tel"]:focus,
-.ui.form input[type="time"]:focus,
-.ui.form input[type="text"]:focus,
-.ui.form input[type="url"]:focus {
-  color: rgba(0, 0, 0, 0.85);
-  border-color: rgba(39, 41, 43, 0.3);
-  border-radius: 0em 0.2857rem 0.2857rem 0em;
-  background: #ffffff;
-  box-shadow: 1px 0em 0em 0em rgba(39, 41, 43, 0.3) inset;
-}
-
-.ui.form textarea:focus {
-  color: rgba(0, 0, 0, 0.85);
-  border-color: rgba(39, 41, 43, 0.3);
-  border-radius: 0em 0.2857rem 0.2857rem 0em;
-  background: #ffffff;
-  box-shadow: 1px 0em 0em 0em rgba(39, 41, 43, 0.3) inset;
-  -webkit-appearance: none;
-}
-
-/*--------------------
-        Success
----------------------*/
-
-/* On Form */
-
-.ui.form.success .success.message {
-  display: block;
-}
-
-/*--------------------
-        Error
----------------------*/
-
-/* On Form */
-
-.ui.form.warning .warning.message {
-  display: block;
-}
-
-/*--------------------
-        Warning
----------------------*/
-
-/* On Form */
-
-.ui.form.error .error.message {
-  display: block;
-}
-
-/* On Field(s) */
-
-.ui.form .fields.error .field label,
-.ui.form .field.error label,
-.ui.form .fields.error .field .input,
-.ui.form .field.error .input {
-  color: #d95c5c;
-}
-
-.ui.form .fields.error .field .corner.label,
-.ui.form .field.error .corner.label {
-  border-color: #d95c5c;
-  color: #ffffff;
-}
-
-.ui.form .fields.error .field textarea,
-.ui.form .fields.error .field select,
-.ui.form .fields.error .field input:not([type]),
-.ui.form .fields.error .field input[type="date"],
-.ui.form .fields.error .field input[type="datetime-local"],
-.ui.form .fields.error .field input[type="email"],
-.ui.form .fields.error .field input[type="number"],
-.ui.form .fields.error .field input[type="password"],
-.ui.form .fields.error .field input[type="search"],
-.ui.form .fields.error .field input[type="tel"],
-.ui.form .fields.error .field input[type="time"],
-.ui.form .fields.error .field input[type="text"],
-.ui.form .fields.error .field input[type="url"],
-.ui.form .field.error textarea,
-.ui.form .field.error select,
-.ui.form .field.error input:not([type]),
-.ui.form .field.error input[type="date"],
-.ui.form .field.error input[type="datetime-local"],
-.ui.form .field.error input[type="email"],
-.ui.form .field.error input[type="number"],
-.ui.form .field.error input[type="password"],
-.ui.form .field.error input[type="search"],
-.ui.form .field.error input[type="tel"],
-.ui.form .field.error input[type="time"],
-.ui.form .field.error input[type="text"],
-.ui.form .field.error input[type="url"] {
-  background: #fff0f0;
-  border-color: #dbb1b1;
-  color: #d95c5c;
-  border-radius: 0em 0.2857rem 0.2857rem 0em;
-  box-shadow: 2px 0em 0em 0em #d95c5c inset;
-}
-
-.ui.form .field.error textarea:focus,
-.ui.form .field.error select:focus,
-.ui.form .field.error input:not([type]):focus,
-.ui.form .field.error input[type="date"]:focus,
-.ui.form .field.error input[type="datetime-local"]:focus,
-.ui.form .field.error input[type="email"]:focus,
-.ui.form .field.error input[type="number"]:focus,
-.ui.form .field.error input[type="password"]:focus,
-.ui.form .field.error input[type="search"]:focus,
-.ui.form .field.error input[type="tel"]:focus,
-.ui.form .field.error input[type="time"]:focus,
-.ui.form .field.error input[type="text"]:focus,
-.ui.form .field.error input[type="url"]:focus {
-  background: #fff0f0;
-  border-color: #dbb1b1;
-  color: #dc6868;
-  -webkit-appearance: none;
-  box-shadow: 2px 0em 0em 0em #dc6868 inset;
-}
-
-/* Preserve Native Select Stylings */
-
-.ui.form .field.error select {
-  -webkit-appearance: menulist-button;
-}
-
-/*------------------
-    Dropdown Error
---------------------*/
-
-.ui.form .fields.error .field .ui.dropdown,
-.ui.form .fields.error .field .ui.dropdown .item,
-.ui.form .field.error .ui.dropdown,
-.ui.form .field.error .ui.dropdown .text,
-.ui.form .field.error .ui.dropdown .item {
-  background: #fff0f0;
-  color: #d95c5c;
-}
-
-.ui.form .fields.error .field .ui.dropdown,
-.ui.form .field.error .ui.dropdown {
-  border-color: #dbb1b1 !important;
-}
-
-.ui.form .fields.error .field .ui.dropdown:hover,
-.ui.form .field.error .ui.dropdown:hover {
-  border-color: #dbb1b1 !important;
-}
-
-.ui.form .fields.error .field .ui.dropdown:hover .menu,
-.ui.form .field.error .ui.dropdown:hover .menu {
-  border-color: #dbb1b1;
-}
-
-/* Hover */
-
-.ui.form .fields.error .field .ui.dropdown .menu .item:hover,
-.ui.form .field.error .ui.dropdown .menu .item:hover {
-  background-color: #fbe7e7;
-}
-
-/* Active */
-
-.ui.form .fields.error .field .ui.dropdown .menu .active.item,
-.ui.form .field.error .ui.dropdown .menu .active.item {
-  background-color: #fdcfcf !important;
-}
-
-/*--------------------
-    Checkbox Error
----------------------*/
-
-.ui.form .fields.error .field .checkbox:not(.toggle):not(.slider) label,
-.ui.form .field.error .checkbox:not(.toggle):not(.slider) label,
-.ui.form .fields.error .field .checkbox:not(.toggle):not(.slider) .box,
-.ui.form .field.error .checkbox:not(.toggle):not(.slider) .box {
-  color: #d95c5c;
-}
-
-.ui.form .fields.error .field .checkbox:not(.toggle):not(.slider) label:before,
-.ui.form .field.error .checkbox:not(.toggle):not(.slider) label:before,
-.ui.form .fields.error .field .checkbox:not(.toggle):not(.slider) .box:before,
-.ui.form .field.error .checkbox:not(.toggle):not(.slider) .box:before {
-  background: #fff0f0;
-  border-color: #dbb1b1;
-}
-
-.ui.form .fields.error .field .checkbox label:after,
-.ui.form .field.error .checkbox label:after,
-.ui.form .fields.error .field .checkbox .box:after,
-.ui.form .field.error .checkbox .box:after {
-  color: #d95c5c;
-}
-
-/*--------------------
-       Disabled
----------------------*/
-
-.ui.form .field :disabled,
-.ui.form .field.disabled {
-  opacity: 0.5;
-}
-
-.ui.form .field.disabled label {
-  opacity: 0.5;
-}
-
-.ui.form .field.disabled :disabled {
-  opacity: 1;
-}
-
-/*--------------
-    Loading
----------------*/
-
-.ui.loading.form {
-  position: relative;
-  cursor: default;
-  point-events: none;
-  text-shadow: none !important;
-  color: transparent !important;
-  -webkit-transition: all 0s linear;
-  transition: all 0s linear;
-  z-index: 100;
-}
-
-.ui.loading.form:before {
-  position: absolute;
-  content: '';
-  top: 0%;
-  left: 0%;
-  background: rgba(255, 255, 255, 0.8);
-  width: 100%;
-  height: 100%;
-  z-index: 100;
-}
-
-.ui.loading.form:after {
-  position: absolute;
-  content: '';
-  top: 50%;
-  left: 50%;
-  margin: -1.5em 0em 0em -1.5em;
-  width: 3em;
-  height: 3em;
-  -webkit-animation: form-spin 0.6s linear;
-  animation: form-spin 0.6s linear;
-  -webkit-animation-iteration-count: infinite;
-  animation-iteration-count: infinite;
-  border-radius: 500rem;
-  border-color: #aaaaaa rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1);
-  border-style: solid;
-  border-width: 0.2em;
-  box-shadow: 0px 0px 0px 1px transparent;
-  visibility: visible;
-  z-index: 101;
-}
-
-@-webkit-keyframes form-spin {
-  from {
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-
-  to {
-    -webkit-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes form-spin {
-  from {
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-
-  to {
-    -webkit-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
-}
-
-/*******************************
-         Element Types
-*******************************/
-
-/*--------------------
-     Required Field
----------------------*/
-
-.ui.form .required.fields > .field > label:after,
-.ui.form .required.field > label:after,
-.ui.form .required.fields > .field > .checkbox:after,
-.ui.form .required.field > .checkbox:after {
-  margin: -0.2em 0em 0em 0.2em;
-  content: '*';
-  color: #d95c5c;
-}
-
-.ui.form .required.fields > .field > label:after,
-.ui.form .required.field > label:after {
-  display: inline-block;
-  vertical-align: top;
-}
-
-.ui.form .required.fields > .field > .checkbox:after,
-.ui.form .required.field > .checkbox:after {
-  position: absolute;
-  top: 0%;
-  left: 100%;
-}
-
-/*******************************
-           Variations
-*******************************/
-
-/*--------------------
-    Inverted Colors
----------------------*/
-
-.ui.inverted.form label,
-.ui.form .inverted.segment label,
-.ui.form .inverted.segment .ui.checkbox label,
-.ui.form .inverted.segment .ui.checkbox .box,
-.ui.inverted.form .ui.checkbox label,
-.ui.inverted.form .ui.checkbox .box {
-  color: #ffffff;
-}
-
-/*--------------------
-     Field Groups
----------------------*/
-
-/* Grouped Vertically */
-
-.ui.form .grouped.fields {
-  margin: 0em 0em 1em;
-}
-
-.ui.form .grouped.fields:last-child {
-  margin-bottom: 0em;
-}
-
-.ui.form .grouped.fields > label {
-  font-size: 0.9285em;
-}
-
-.ui.form .grouped.fields .field {
-  display: block;
-  float: none;
-  margin: 0.5em 0em;
-  padding: 0em;
-}
-
-/*--------------------
-        Fields
----------------------*/
-
-/* Split fields */
-
-.ui.form .fields {
-  clear: both;
-}
-
-.ui.form .fields:after {
-  content: ' ';
-  display: block;
-  clear: both;
-  visibility: hidden;
-  line-height: 0;
-  height: 0;
-}
-
-.ui.form .fields > .field {
-  clear: none;
-  float: left;
-  padding-left: 0.5em;
-  padding-right: 0.5em;
-}
-
-.ui.form .fields > .field:first-child {
-  border-left: none;
-  box-shadow: none;
-}
-
-/* Other Combinations */
-
-.ui.form .two.fields > .fields,
-.ui.form .two.fields > .field {
-  width: 50%;
-}
-
-.ui.form .three.fields > .fields,
-.ui.form .three.fields > .field {
-  width: 33.33333333%;
-}
-
-.ui.form .four.fields > .fields,
-.ui.form .four.fields > .field {
-  width: 25%;
-}
-
-.ui.form .five.fields > .fields,
-.ui.form .five.fields > .field {
-  width: 20%;
-}
-
-.ui.form .six.fields > .fields,
-.ui.form .six.fields > .field {
-  width: 16.66666667%;
-}
-
-.ui.form .seven.fields > .fields,
-.ui.form .seven.fields > .field {
-  width: 14.28571429%;
-}
-
-.ui.form .eight.fields > .fields,
-.ui.form .eight.fields > .field {
-  width: 12.5%;
-}
-
-.ui.form .nine.fields > .fields,
-.ui.form .nine.fields > .field {
-  width: 11.11111111%;
-}
-
-.ui.form .ten.fields > .fields,
-.ui.form .ten.fields > .field {
-  width: 10%;
-}
-
-/* Swap to full width on mobile */
-
-@media only screen and (max-width: 767px) {
-  .ui.form .two.fields > .fields,
-  .ui.form .two.fields > .field,
-  .ui.form .three.fields > .fields,
-  .ui.form .three.fields > .field,
-  .ui.form .four.fields > .fields,
-  .ui.form .four.fields > .field,
-  .ui.form .five.fields > .fields,
-  .ui.form .five.fields > .field,
-  .ui.form .six.fields > .fields,
-  .ui.form .six.fields > .field,
-  .ui.form .seven.fields > .fields,
-  .ui.form .seven.fields > .field,
-  .ui.form .eight.fields > .fields,
-  .ui.form .eight.fields > .field,
-  .ui.form .nine.fields > .fields,
-  .ui.form .nine.fields > .field,
-  .ui.form .ten.fields > .fields,
-  .ui.form .ten.fields > .field {
-    width: 100% !important;
-    margin: 0em 0em 1em;
-    padding-left: 0%;
-    padding-right: 0%;
-  }
-}
-
-.ui.form .fields .field:first-child {
-  padding-left: 0%;
-}
-
-.ui.form .fields .field:last-child {
-  padding-right: 0%;
-}
-
-/* Sizing Combinations */
-
-.ui.form .fields .wide.field {
-  width: 6.25%;
-  padding-left: 0.5em;
-  padding-right: 0.5em;
-}
-
-.ui.form .fields .wide.field:first-child {
-  padding-left: 0%;
-}
-
-.ui.form .fields .wide.field:last-child {
-  padding-right: 0%;
-}
-
-.ui.form .one.wide.field {
-  width: 6.25% !important;
-}
-
-.ui.form .two.wide.field {
-  width: 12.5% !important;
-}
-
-.ui.form .three.wide.field {
-  width: 18.75% !important;
-}
-
-.ui.form .four.wide.field {
-  width: 25% !important;
-}
-
-.ui.form .five.wide.field {
-  width: 31.25% !important;
-}
-
-.ui.form .six.wide.field {
-  width: 37.5% !important;
-}
-
-.ui.form .seven.wide.field {
-  width: 43.75% !important;
-}
-
-.ui.form .eight.wide.field {
-  width: 50% !important;
-}
-
-.ui.form .nine.wide.field {
-  width: 56.25% !important;
-}
-
-.ui.form .ten.wide.field {
-  width: 62.5% !important;
-}
-
-.ui.form .eleven.wide.field {
-  width: 68.75% !important;
-}
-
-.ui.form .twelve.wide.field {
-  width: 75% !important;
-}
-
-.ui.form .thirteen.wide.field {
-  width: 81.25% !important;
-}
-
-.ui.form .fourteen.wide.field {
-  width: 87.5% !important;
-}
-
-.ui.form .fifteen.wide.field {
-  width: 93.75% !important;
-}
-
-.ui.form .sixteen.wide.field {
-  width: 100% !important;
-}
-
-/* Swap to full width on mobile */
-
-@media only screen and (max-width: 767px) {
-  .ui.form .two.fields > .fields,
-  .ui.form .two.fields > .field,
-  .ui.form .three.fields > .fields,
-  .ui.form .three.fields > .field,
-  .ui.form .four.fields > .fields,
-  .ui.form .four.fields > .field,
-  .ui.form .five.fields > .fields,
-  .ui.form .five.fields > .field,
-  .ui.form .fields > .two.wide.field,
-  .ui.form .fields > .three.wide.field,
-  .ui.form .fields > .four.wide.field,
-  .ui.form .fields > .five.wide.field,
-  .ui.form .fields > .six.wide.field,
-  .ui.form .fields > .seven.wide.field,
-  .ui.form .fields > .eight.wide.field,
-  .ui.form .fields > .nine.wide.field,
-  .ui.form .fields > .ten.wide.field,
-  .ui.form .fields > .eleven.wide.field,
-  .ui.form .fields > .twelve.wide.field,
-  .ui.form .fields > .thirteen.wide.field,
-  .ui.form .fields > .fourteen.wide.field,
-  .ui.form .fields > .fifteen.wide.field,
-  .ui.form .fields > .sixteen.wide.field {
-    width: 100% !important;
-    margin: 0em 0em 1em;
-    padding-left: 0%;
-    padding-right: 0%;
-  }
-}
-
-/*--------------------
-    Inline Fields
----------------------*/
-
-.ui.form .inline.fields {
-  margin: 0em 0em 1em;
-}
-
-.ui.form .inline.fields .field {
-  display: inline-block;
-  float: none;
-  margin: 0em 1em 0em 0em;
-  padding: 0em;
-}
-
-.ui.form .inline.fields .field > label,
-.ui.form .inline.fields .field > p,
-.ui.form .inline.fields .field > input,
-.ui.form .inline.fields .field > .ui.input,
-.ui.form .inline.field > label,
-.ui.form .inline.field > p,
-.ui.form .inline.field > input,
-.ui.form .inline.field > .ui.input {
-  display: inline-block;
-  width: auto;
-  margin-top: 0em;
-  margin-bottom: 0em;
-  vertical-align: middle;
-  font-size: 0.9285em;
-}
-
-.ui.form .inline.fields .field > input,
-.ui.form .inline.fields .field > .ui.input,
-.ui.form .inline.field > input,
-.ui.form .inline.field > .ui.input {
-  font-size: 0.9285em;
-}
-
-.ui.form .inline.fields .field > .ui.checkbox label {
-  padding-left: 1.75em;
-}
-
-/* Label */
-
-.ui.form .inline.fields .field > :first-child,
-.ui.form .inline.field > :first-child {
-  margin: 0em 0.2857rem 0em 0em;
-}
-
-.ui.form .inline.fields .field > :only-child,
-.ui.form .inline.field > :only-child {
-  margin: 0em;
-}
-
-/*--------------------
-        Sizes
----------------------*/
-
-/* Standard */
-
-.ui.small.form {
-  font-size: 0.875em;
-}
-
-/* Medium */
-
-.ui.form {
-  font-size: auto;
-}
-
-/* Large */
-
-.ui.large.form {
-  font-size: 1.125em;
-}
-
-/* Huge */
-
-.ui.huge.form {
-  font-size: 1.2em;
-}
-
-/*******************************
-         Theme Overrides
 *******************************/
 
 /*******************************

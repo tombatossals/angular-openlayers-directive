@@ -63,7 +63,7 @@ module.exports = function(callback) {
     }
 
     var
-      component            = release.components[index]
+      component            = release.components[index],
       outputDirectory      = path.resolve(path.join(release.outputRoot, component)),
       capitalizedComponent = component.charAt(0).toUpperCase() + component.slice(1),
       repoName             = release.componentRepoRoot + capitalizedComponent,
@@ -116,7 +116,7 @@ module.exports = function(callback) {
     function commitFiles() {
       // commit files
       console.info('Committing ' + component + ' files', commitArgs);
-      gulp.src('**/*', gitOptions)
+      gulp.src('./', gitOptions)
         .pipe(git.add(gitOptions))
         .pipe(git.commit(commitMessage, commitOptions))
         .on('error', function(error) {
@@ -166,7 +166,7 @@ module.exports = function(callback) {
       console.log('Sleeping for 1 second...');
       // avoid rate throttling
       global.clearTimeout(timer);
-      timer = global.setTimeout(stepRepo, 500);
+      timer = global.setTimeout(stepRepo, 1000);
     }
 
 

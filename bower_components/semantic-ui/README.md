@@ -2,6 +2,8 @@
 
 # Semantic UI
 
+[![Join the chat at https://gitter.im/Semantic-Org/Semantic-UI](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Semantic-Org/Semantic-UI?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Semantic is a UI framework designed for theming.
 
 Key Features
@@ -28,6 +30,7 @@ Environment | Install Script | Repo
 --- | --- | --- | 
 CSS Only | `npm install semantic-ui-css` | [CSS Repo](https://github.com/Semantic-Org/Semantic-UI-CSS)
 [LESS](https://github.com/less/less.js/) Only | `npm install semantic-ui-less` | [LESS Repo](https://github.com/Semantic-Org/Semantic-UI-LESS)
+[LESS](https://github.com/less/less.js/) plugin | `npm install less-plugin-semantic-ui` | [LESS Plugin Repo](https://github.com/bassjobsen/less-plugin-semantic-ui/)
 [EmberJS](http://emberjs.com/) | `ember install:addon semantic-ui-ember` | [Ember Repo](https://github.com/Semantic-Org/Semantic-UI-Ember)
 |[Meteor](https://www.meteor.com/) - [LESS](https://github.com/less/less.js/) | `meteor add semantic:ui` | [LESS Repo](https://github.com/Semantic-Org/Semantic-UI-LESS) |
 |[Meteor](https://www.meteor.com/) - CSS | `meteor add semantic:ui-css` | [CSS Repo](https://github.com/Semantic-Org/Semantic-UI-CSS) |
@@ -49,7 +52,7 @@ Browser prefixes are present for Internet Explorer 9, but the browser is not off
 
 #### International
 
-* **Chinese** A Chinese mirror site is available at [http://www.semantic-ui.cn](http:/www.semantic-ui.cn)
+* **Chinese** A Chinese mirror site is available at [http://www.semantic-ui.cn](http://www.semantic-ui.cn)
 * **Right-to-Left (RTL)** An RTL version can be created using our build tools by selecting `rtl` from the install script
 * **Translation** To help translate see the [Wiki Guide](https://github.com/Semantic-Org/Semantic-UI/wiki/Translating-Semantic-UI-Docs) for translations
 
@@ -57,9 +60,9 @@ Browser prefixes are present for Internet Explorer 9, but the browser is not off
 
 Resource | Description
 --- | --- |
-Bugs & Feature Requests |  Make a test case by forking this [jsfiddle](http://jsfiddle.net/efp8z6Ln/), then submit a [bug on GitHub](https://github.com/Semantic-Org/Semantic-UI/issues)
-Live Chat | [Request an Invite](https://docs.google.com/forms/d/1hI1z136sXLkTQKtsv8SIvjjAvzpH77YzMQKrU-P8GAc/viewform?usp=send_form) to join [our Slack chatroom](http://semanticui.slack.com)
-Newsletter Updates | Sign up for updates at [semantic-ui.com](http:/www.semantic-ui.com)
+Bugs & Feature Requests |  All bug submission **require** a link to a test case, and a set of steps to reproduce the issue. You can make a test case by forking this [jsfiddle](http://jsfiddle.net/efp8z6Ln/), then submit your [bug report on GitHub Issues](https://github.com/Semantic-Org/Semantic-UI/issues)
+Live Chat | Join our [Gitter.im Room](https://gitter.im/Semantic-Org/Semantic-UI)
+Newsletter Updates | Sign up for updates at [semantic-ui.com](http://www.semantic-ui.com)
 Additional Resources  | Submit a question on [StackOverflow](http://www.stackoverflow.com) or ask our [Google Group](https://groups.google.com/forum/#!forum/semantic-ui)
 
 #### Places to Help
@@ -81,3 +84,4 @@ If you'd like to start a conversation about Semantic feel free to e-mail me at [
 
 [![Flattr This](https://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=jlukic&url=https%3A%2F%2Fgithub.com%2Fjlukic%2FSemantic-UI)
 
+<a href="http://packagequality.com/#?package=semantic-ui"><img src="http://npm.packagequality.com/badge/semantic-ui.png"/></a>

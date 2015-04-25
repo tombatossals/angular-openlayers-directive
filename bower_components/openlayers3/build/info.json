@@ -6367,6 +6367,19 @@
       ]
     },
     {
+      "name": "ol.source.ImageEvent#image",
+      "kind": "member",
+      "description": "The image related to the event.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/source/imagesource.js",
+      "types": [
+        "ol.Image"
+      ],
+      "provides": [
+        "ol.source.Image"
+      ]
+    },
+    {
       "name": "ol.source.ImageStatic",
       "kind": "class",
       "description": "A layer source for displaying a single, static image.",
@@ -8701,6 +8714,28 @@
       ]
     },
     {
+      "name": "ol.proj.Projection#setGlobal",
+      "kind": "function",
+      "description": "Set if the projection is a global projection which spans the whole world",
+      "stability": "stable",
+      "path": "/home/dave/dev/ol3/src/ol/proj/proj.js",
+      "params": [
+        {
+          "name": "global",
+          "types": [
+            "boolean"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.proj",
+        "ol.proj.METERS_PER_UNIT",
+        "ol.proj.Projection",
+        "ol.proj.ProjectionLike",
+        "ol.proj.Units"
+      ]
+    },
+    {
       "name": "ol.proj.Projection#setExtent",
       "kind": "function",
       "description": "Set the validity extent for this projection.",
@@ -8745,6 +8780,61 @@
       ]
     },
     {
+      "name": "ol.proj.Projection#setGetPointResolution",
+      "kind": "function",
+      "description": "Set the getPointResolution function for this projection.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/proj/proj.js",
+      "params": [
+        {
+          "name": "func",
+          "types": [
+            "Function"
+          ]
+        }
+      ],
+      "provides": [
+        "ol.proj",
+        "ol.proj.METERS_PER_UNIT",
+        "ol.proj.Projection",
+        "ol.proj.ProjectionLike",
+        "ol.proj.Units"
+      ]
+    },
+    {
+      "name": "ol.proj.Projection#getPointResolution",
+      "kind": "function",
+      "description": "Get the resolution of the point in degrees or distance units.\nFor projections with degrees as the unit this will simply return the\nprovided resolution. The default for other projections is to estimate\nthe point resolution by transforming the 'point' pixel to EPSG:4326,\nmeasuring its width and height on the normal sphere,\nand taking the average of the width and height.\nAn alternative implementation may be given when constructing a\nprojection. For many local projections,\nsuch a custom function will return the resolution unchanged.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/proj/proj.js",
+      "params": [
+        {
+          "name": "resolution",
+          "types": [
+            "number"
+          ]
+        },
+        {
+          "name": "point",
+          "types": [
+            "ol.Coordinate"
+          ]
+        }
+      ],
+      "returns": {
+        "types": [
+          "number"
+        ]
+      },
+      "provides": [
+        "ol.proj",
+        "ol.proj.METERS_PER_UNIT",
+        "ol.proj.Projection",
+        "ol.proj.ProjectionLike",
+        "ol.proj.Units"
+      ]
+    },
+    {
       "name": "ol.proj.addEquivalentProjections",
       "kind": "function",
       "description": "Registers transformation functions that don't alter coordinates. Those allow\nto transform between projections with equal meaning.",
@@ -8769,7 +8859,7 @@
     {
       "name": "ol.proj.addProjection",
       "kind": "function",
-      "description": "Add a Projection object to the list of supported projections.",
+      "description": "Add a Projection object to the list of supported projections that can be\nlooked up by their code.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/proj/proj.js",
       "params": [
@@ -11162,6 +11252,38 @@
       ]
     },
     {
+      "name": "ol.geom.LineString#forEachSegment",
+      "kind": "function",
+      "description": "Iterate over each segment, calling the provided callback.\nIf the callback returns a truthy value the function returns that\nvalue immediately. Otherwise the function returns `false`.",
+      "stability": "experimental",
+      "path": "/home/dave/dev/ol3/src/ol/geom/linestring.js",
+      "params": [
+        {
+          "name": "callback",
+          "types": [
+            "Function"
+          ]
+        },
+        {
+          "name": "opt_this",
+          "types": [
+            "S"
+          ],
+          "optional": true
+        }
+      ],
+      "returns": {
+        "types": [
+          "T",
+          "boolean"
+        ]
+      },
+      "template": "T,S",
+      "provides": [
+        "ol.geom.LineString"
+      ]
+    },
+    {
       "name": "ol.geom.LineString#getCoordinateAtM",
       "kind": "function",
       "description": "Returns the coordinate at `m` using linear interpolation, or `null` if no\nsuch coordinate exists.\n\n`opt_extrapolate` controls extrapolation beyond the range of Ms in the\nMultiLineString. If `opt_extrapolate` is `true` then Ms less than the first\nM will return the first coordinate and Ms greater than the last M will\nreturn the last coordinate.",
@@ -11676,8 +11798,18 @@
     {
       "name": "ol.geom.MultiPolygon#getCoordinates",
       "kind": "function",
+      "description": "Get the coordinate array for this geometry.  This array has the structure\nof a GeoJSON coordinate array for multi-polygons.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/geom/multipolygon.js",
+      "params": [
+        {
+          "name": "opt_right",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
       "returns": {
         "types": [
           "Array.<Array.<Array.<ol.Coordinate>>>"
@@ -11953,8 +12085,18 @@
     {
       "name": "ol.geom.Polygon#getCoordinates",
       "kind": "function",
+      "description": "Get the coordinate array for this geometry.  This array has the structure\nof a GeoJSON coordinate array for polygons.",
       "stability": "stable",
       "path": "/home/dave/dev/ol3/src/ol/geom/polygon.js",
+      "params": [
+        {
+          "name": "opt_right",
+          "types": [
+            "boolean"
+          ],
+          "optional": true
+        }
+      ],
       "returns": {
         "types": [
           "Array.<Array.<ol.Coordinate>>"
@@ -12396,10 +12538,11 @@
           ]
         },
         {
-          "name": "options",
+          "name": "opt_options",
           "types": [
             "olx.format.WriteOptions"
-          ]
+          ],
+          "optional": true
         }
       ],
       "returns": {
@@ -12455,10 +12598,11 @@
           ]
         },
         {
-          "name": "options",
+          "name": "opt_options",
           "types": [
             "olx.format.WriteOptions"
-          ]
+          ],
+          "optional": true
         }
       ],
       "returns": {
@@ -12514,10 +12658,11 @@
           ]
         },
         {
-          "name": "options",
+          "name": "opt_options",
           "types": [
             "olx.format.WriteOptions"
-          ]
+          ],
+          "optional": true
         }
       ],
       "returns": {
@@ -55250,7 +55395,7 @@
     {
       "name": "olx.ProjectionOptions",
       "types": [
-        "{code: (string), units: (ol.proj.Units|string), extent: (ol.Extent|undefined), axisOrientation: (string|undefined), global: (boolean|undefined), worldExtent: (ol.Extent|undefined)}"
+        "{code: (string), units: (ol.proj.Units|string|undefined), extent: (ol.Extent|undefined), axisOrientation: (string|undefined), global: (boolean|undefined), worldExtent: (ol.Extent|undefined), getPointResolution: (Function|undefined)}"
       ]
     },
     {
@@ -55358,7 +55503,7 @@
     {
       "name": "olx.format.WriteOptions",
       "types": [
-        "{dataProjection: (ol.proj.ProjectionLike), featureProjection: (ol.proj.ProjectionLike)}"
+        "{dataProjection: (ol.proj.ProjectionLike), featureProjection: (ol.proj.ProjectionLike), rightHanded: (boolean|undefined)}"
       ]
     },
     {
@@ -55370,7 +55515,7 @@
     {
       "name": "olx.format.PolylineOptions",
       "types": [
-        "{factor: (number)}"
+        "{factor: (number), geometryLayout: (ol.geom.GeometryLayout|undefined)}"
       ]
     },
     {
@@ -55394,7 +55539,7 @@
     {
       "name": "olx.format.GMLOptions",
       "types": [
-        "{featureNS: (string), featureType: (string), srsName: (string), surface: (boolean|undefined), curve: (boolean|undefined), multiCurve: (boolean|undefined), multiSurface: (boolean|undefined), schemaLocation: (string|undefined)}"
+        "{featureNS: (Object.<string, string>|string|undefined), featureType: (Array.<string>|string|undefined), srsName: (string), surface: (boolean|undefined), curve: (boolean|undefined), multiCurve: (boolean|undefined), multiSurface: (boolean|undefined), schemaLocation: (string|undefined)}"
       ]
     },
     {
@@ -55406,7 +55551,7 @@
     {
       "name": "olx.format.WFSOptions",
       "types": [
-        "{featureNS: (string), featureType: (string), gmlFormat: (ol.format.GMLBase|undefined), schemaLocation: (string|undefined)}"
+        "{featureNS: (Object.<string, string>|string|undefined), featureType: (Array.<string>|string|undefined), gmlFormat: (ol.format.GMLBase|undefined), schemaLocation: (string|undefined)}"
       ]
     },
     {
@@ -55616,7 +55761,7 @@
     {
       "name": "olx.source.TileImageOptions",
       "types": [
-        "{attributions: (Array.<ol.Attribution>|undefined), crossOrigin: (null|string|undefined), logo: (string|olx.LogoOptions|undefined), opaque: (boolean|undefined), projection: (ol.proj.ProjectionLike), state: (ol.source.State|string|undefined), tileClass: (Function|undefined), tileGrid: (ol.tilegrid.TileGrid|undefined), tileLoadFunction: (ol.TileLoadFunctionType|undefined), tilePixelRatio: (number|undefined), tileUrlFunction: (ol.TileUrlFunctionType|undefined)}"
+        "{attributions: (Array.<ol.Attribution>|undefined), crossOrigin: (null|string|undefined), logo: (string|olx.LogoOptions|undefined), opaque: (boolean|undefined), projection: (ol.proj.ProjectionLike), state: (ol.source.State|string|undefined), tileClass: (Function|undefined), tileGrid: (ol.tilegrid.TileGrid|undefined), tileLoadFunction: (ol.TileLoadFunctionType|undefined), tilePixelRatio: (number|undefined), tileUrlFunction: (ol.TileUrlFunctionType|undefined), wrapX: (boolean|undefined)}"
       ]
     },
     {
@@ -55712,7 +55857,7 @@
     {
       "name": "olx.source.TileArcGISRestOptions",
       "types": [
-        "{attributions: (Array.<ol.Attribution>|undefined), params: (Object.<string, *>|undefined), logo: (string|olx.LogoOptions|undefined), tileGrid: (ol.tilegrid.TileGrid|undefined), projection: (ol.proj.ProjectionLike), tileLoadFunction: (ol.TileLoadFunctionType|undefined), url: (string|undefined), urls: (Array.<string>|undefined)}"
+        "{attributions: (Array.<ol.Attribution>|undefined), params: (Object.<string, *>|undefined), logo: (string|olx.LogoOptions|undefined), tileGrid: (ol.tilegrid.TileGrid|undefined), projection: (ol.proj.ProjectionLike), tileLoadFunction: (ol.TileLoadFunctionType|undefined), url: (string|undefined), wrapX: (boolean|undefined), urls: (Array.<string>|undefined)}"
       ]
     },
     {
@@ -55724,7 +55869,7 @@
     {
       "name": "olx.source.TileWMSOptions",
       "types": [
-        "{attributions: (Array.<ol.Attribution>|undefined), params: (Object.<string, *>), crossOrigin: (null|string|undefined), gutter: (number|undefined), hidpi: (boolean|undefined), logo: (string|olx.LogoOptions|undefined), tileGrid: (ol.tilegrid.TileGrid|undefined), maxZoom: (number|undefined), projection: (ol.proj.ProjectionLike), serverType: (ol.source.wms.ServerType|string|undefined), tileLoadFunction: (ol.TileLoadFunctionType|undefined), url: (string|undefined), urls: (Array.<string>|undefined)}"
+        "{attributions: (Array.<ol.Attribution>|undefined), params: (Object.<string, *>), crossOrigin: (null|string|undefined), gutter: (number|undefined), hidpi: (boolean|undefined), logo: (string|olx.LogoOptions|undefined), tileGrid: (ol.tilegrid.TileGrid|undefined), maxZoom: (number|undefined), projection: (ol.proj.ProjectionLike), serverType: (ol.source.wms.ServerType|string|undefined), tileLoadFunction: (ol.TileLoadFunctionType|undefined), url: (string|undefined), urls: (Array.<string>|undefined), wrapX: (boolean|undefined)}"
       ]
     },
     {
@@ -55742,7 +55887,7 @@
     {
       "name": "olx.source.WMTSOptions",
       "types": [
-        "{attributions: (Array.<ol.Attribution>|undefined), crossOrigin: (string|null|undefined), logo: (string|olx.LogoOptions|undefined), tileGrid: (ol.tilegrid.WMTS), projection: (ol.proj.ProjectionLike), requestEncoding: (ol.source.WMTSRequestEncoding|string|undefined), layer: (string), style: (string), tileClass: (Function|undefined), tilePixelRatio: (number|undefined), version: (string|undefined), format: (string|undefined), matrixSet: (string), dimensions: (Object|undefined), url: (string|undefined), maxZoom: (number|undefined), tileLoadFunction: (ol.TileLoadFunctionType|undefined), urls: (Array.<string>|undefined)}"
+        "{attributions: (Array.<ol.Attribution>|undefined), crossOrigin: (string|null|undefined), logo: (string|olx.LogoOptions|undefined), tileGrid: (ol.tilegrid.WMTS), projection: (ol.proj.ProjectionLike), requestEncoding: (ol.source.WMTSRequestEncoding|string|undefined), layer: (string), style: (string), tileClass: (Function|undefined), tilePixelRatio: (number|undefined), version: (string|undefined), format: (string|undefined), matrixSet: (string), dimensions: (Object|undefined), url: (string|undefined), maxZoom: (number|undefined), tileLoadFunction: (ol.TileLoadFunctionType|undefined), urls: (Array.<string>|undefined), wrapX: (boolean|undefined)}"
       ]
     },
     {
@@ -55802,13 +55947,13 @@
     {
       "name": "olx.tilegrid.TileGridOptions",
       "types": [
-        "{minZoom: (number|undefined), origin: (ol.Coordinate|undefined), origins: (Array.<ol.Coordinate>|undefined), resolutions: (Array.<number>), tileSize: (number|undefined), tileSizes: (Array.<number>|undefined)}"
+        "{minZoom: (number|undefined), origin: (ol.Coordinate|undefined), origins: (Array.<ol.Coordinate>|undefined), resolutions: (Array.<number>), tileSize: (number|undefined), tileSizes: (Array.<number>|undefined), widths: (Array.<number>|undefined)}"
       ]
     },
     {
       "name": "olx.tilegrid.WMTSOptions",
       "types": [
-        "{origin: (ol.Coordinate|undefined), origins: (Array.<ol.Coordinate>|undefined), resolutions: (Array.<number>), matrixIds: (Array.<string>), tileSize: (number|undefined), tileSizes: (Array.<number>|undefined)}"
+        "{origin: (ol.Coordinate|undefined), origins: (Array.<ol.Coordinate>|undefined), resolutions: (Array.<number>), matrixIds: (Array.<string>), tileSize: (number|undefined), tileSizes: (Array.<number>|undefined), widths: (Array.<number>|undefined)}"
       ]
     },
     {

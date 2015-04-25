@@ -1,4 +1,5 @@
 var
+  console = require('better-console'),
   config  = require('../user'),
   release = require('./release')
 ;
@@ -76,6 +77,20 @@ module.exports = {
       url        : release.url
     },
 
+    plumber: {
+      less: {
+        errorHandler: function(error) {
+          if(error.filename.match(/theme.less/)) {
+            console.error('Looks like your theme.config is out of date. You will need to add new elements from theme.config.example');
+          }
+          else {
+            console.log(error);
+            this.emit('end');
+          }
+        }
+      }
+    },
+
     /* What Browsers to Prefix */
     prefix: {
       browsers: [
@@ -100,6 +115,7 @@ module.exports = {
     /* Minified CSS Concat */
     minify: {
       processImport       : false,
+      restructuring       : false,
       keepSpecialComments : 1
     },
 
@@ -112,6 +128,7 @@ module.exports = {
     /* Minified Concat CSS Settings */
     concatMinify: {
       processImport       : false,
+      restructuring       : false,
       keepSpecialComments : false
     },
 

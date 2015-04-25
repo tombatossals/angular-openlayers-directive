@@ -22,14 +22,13 @@
     "utopia.js",
     "code.js"
   ],
-  "_release": "b551696fbd",
+  "_release": "596fb1ee33",
   "_resolution": {
     "type": "branch",
     "branch": "gh-pages",
-    "commit": "b551696fbdf8905d52ca67e1a9ae50a3ccfeab92"
+    "commit": "596fb1ee3327b1a37380e3919c793dcc907a0d39"
   },
   "_source": "git@github.com:LeaVerou/prism.git",
   "_target": "gh-pages",
-  "_originalSource": "git@github.com:LeaVerou/prism.git",
-  "_direct": true
+  "_originalSource": "git@github.com:LeaVerou/prism.git"
 }
