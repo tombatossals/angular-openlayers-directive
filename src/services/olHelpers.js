@@ -204,7 +204,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
                 oSource = new ol.source.ImageWMS({
                     url: source.url,
-                    crossOrigin: source.crossOrigin ? source.crossOrigin : null,
+                    crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
                     params: source.params
                 });
                 break;
@@ -216,7 +216,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 var wmsConfiguration = {
-                    crossOrigin: source.crossOrigin ? source.crossOrigin : null,
+                    crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
                     params: source.params
                 };
 
