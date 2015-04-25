@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+  <head>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+      var app = angular.module("demoapp", ["openlayers-directive"]);
+      app.controller("ClusteringController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
+          function createPointStyle(color, text) {
+          var options = {
+            image: new ol.style.Circle({
+              radius: 10,
+              fill: new ol.style.Fill({
+                color: color,
+                opacity: 0.6
+              }),
+              stroke: new ol.style.Stroke({
+                color: 'white',
+                opacity: 0.4
+              })
+            })
+          };
+
+          if ( text ) {
+            options.text = new ol.style.Text({
+              text: text,
+              fill: new ol.style.Fill({
+                color: 'white'
+              })
+            });
+          }
+          return new ol.style.Style(options);
+        }
+
+        function createIconStyle() {
+          return new ol.style.Style({
+              image: new ol.style.Icon({
+                  anchor: [0.5, 1],
+                  anchorXUnits: 'fraction',
+                  anchorYUnits: 'fraction',
+                  opacity: 0.90,
+                  src: 'images/map-marker.png'
+              })
+          });
+        }
+
+        function getStyle(feature) {
+          // Take car we use clustering, thus possibly have multiple features in one
+          var features = feature.get('features');
+          var style = null;
+          // Icon base style ?
+          if ( $scope.icon ) {
+            style = createIconStyle();
+          }
+          // Circle + txt base style
+          // Add number of clustered item in this case
+          else if ( features && features.length > 1 ) {
+            style = createPointStyle('blue', features.length.toFixed());
+          } else {
+            style = createPointStyle('blue');
+          }
+
+          return [ style ];
+        }
+
+        angular.extend($scope, {
+            center: {
+                lat: 43.88,
+                lon: 7.57,
+                zoom: 2
+            },
+            clusters: {
+                clustering: true,
+                clusteringDistance: 40,
+                source: {
+                    type: 'KML',
+                    projection: 'EPSG:3857',
+                    url: 'kml/earthquakes.kml'
+                },
+                style: getStyle
+            },
+            // Default to circles
+            icon: false
+        });
+
+      } ]);
+      </script>
+  </head>
+  <body ng-controller="ClusteringController">
+     <openlayers ol-center="center" height="400px">
+         <ol-layer ol-layer-properties="clusters"></ol-layer>
+     </openlayers>
+     <h1>Layer clustering example</h1>
+     <input type="button" ng-click="icon = !icon" value="Circles/Icons" />
+     <p>You can activate clustering on a layer easily, look at the source of the <strong>layers</strong>:</p>
+     <pre ng-bind="clusters | json">
+     </pre>
+  </body>
+</html>
