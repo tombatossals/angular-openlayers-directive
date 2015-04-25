@@ -220,7 +220,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     params: source.params
                 };
 
-                if (wmsConfiguration.url) {
+                if (source.url) {
                     wmsConfiguration.url = source.url;
                 }
 
