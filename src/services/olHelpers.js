@@ -203,9 +203,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                                'valid server url and params properties');
                 }
                 oSource = new ol.source.ImageWMS({
-                  url: source.url,
-                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
-                  params: source.params
+                    url: source.url,
+                    crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
+                    params: source.params
                 });
                 break;
 
@@ -216,8 +216,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 var wmsConfiguration = {
-                  crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
-                  params: source.params
+                    crossOrigin: source.crossOrigin ? source.crossOrigin : 'anonymous',
+                    params: source.params
                 };
 
                 if (wmsConfiguration.url) {
@@ -254,11 +254,16 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     return;
                 }
 
-                oSource = new ol.source.BingMaps({
+                var bingConfiguration = {
                     key: source.key,
                     imagerySet: source.imagerySet ? source.imagerySet : bingImagerySets[0]
-                });
+                };
 
+                if (source.maxZoom) {
+                    bingConfiguration.maxZoom = source.maxZoom;
+                }
+
+                oSource = new ol.source.BingMaps(bingConfiguration);
                 break;
 
             case 'MapQuest':
@@ -374,7 +379,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         origin: source.tileGrid.origin, // top left corner of the pixel projection's extent
                         resolutions: source.tileGrid.resolutions
                     }),
-                  tileUrlFunction: function(tileCoord/*, pixelRatio, projection*/) {
+                    tileUrlFunction: function(tileCoord/*, pixelRatio, projection*/) {
                         var z = tileCoord[0];
                         var x = tileCoord[1];
                         var y = -tileCoord[2] - 1;
@@ -584,7 +589,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
         detectLayerType: detectLayerType,
 
-        createLayer: function(layer, projection) {
+        createLayer: function(layer, projection, name) {
             var oLayer;
             var type = detectLayerType(layer);
             var oSource = createSource(layer.source, projection);
@@ -593,7 +598,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             }
 
             // Manage clustering
-            if ( (type === 'Vector') && layer.clustering ) {
+            if ((type === 'Vector') && layer.clustering) {
                 oSource = new ol.source.Cluster({
                     source: oSource,
                     distance: layer.clusteringDistance,
@@ -613,6 +618,13 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 case 'Vector':
                     oLayer = new ol.layer.Vector({ source: oSource });
                     break;
+            }
+
+            // set a layer name if given
+            if (isDefined(name)) {
+                oLayer.set('name', name);
+            } else if (isDefined(layer.name)) {
+                oLayer.set('name', layer.name);
             }
 
             return oLayer;

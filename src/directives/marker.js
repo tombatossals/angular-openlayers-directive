@@ -126,7 +126,7 @@ angular.module('openlayers-directive')
                     }
 
                     scope.$watch('properties', function(properties) {
-                        function showLabelOnEvent(evt) {
+                        function handleInteraction(evt) {
                             if (properties.label.show) {
                                 return;
                             }
@@ -149,6 +149,12 @@ angular.module('openlayers-directive')
                                     }
                                     label = createOverlay(element, pos);
                                     map.addOverlay(label);
+                                }
+
+                                if (properties.onClick && (evt.type === 'click' || evt.type === 'touchend')) {
+                                    scope.$apply(function() {
+                                        properties.onClick.call(marker, evt, properties);
+                                    });
                                 }
                                 map.getTarget().style.cursor = 'pointer';
                             }
@@ -217,14 +223,15 @@ angular.module('openlayers-directive')
 
                         if (properties.label && properties.label.show === false &&
                             properties.label.showOnMouseOver) {
-                            map.getViewport().addEventListener('mousemove', showLabelOnEvent);
+                            map.getViewport().addEventListener('mousemove', handleInteraction);
                         }
 
-                        if (properties.label && properties.label.show === false &&
-                            properties.label.showOnMouseClick) {
-                            map.getViewport().addEventListener('click', showLabelOnEvent);
+                        if ((properties.label && properties.label.show === false &&
+                            properties.label.showOnMouseClick) ||
+                            properties.onClick) {
+                            map.getViewport().addEventListener('click', handleInteraction);
                             map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
-                                'touchend', showLabelOnEvent);
+                                'touchend', handleInteraction);
                         }
                     }, true);
                 });

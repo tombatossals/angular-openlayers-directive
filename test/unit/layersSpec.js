@@ -77,12 +77,12 @@ describe('Directive: openlayers layers', function() {
     it('should add no layers if no ol-layer is defined', function() {
         var layers = {
             mapbox: {
-              active: true,
-              name: 'mapbox',
-              source: {
-                type: 'TileJSON',
-                url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
-              }
+                active: true,
+                name: 'mapbox',
+                source: {
+                    type: 'TileJSON',
+                    url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
+                }
             }
         };
         angular.extend(scope, { layers: layers });
