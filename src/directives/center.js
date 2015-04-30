@@ -1,4 +1,5 @@
 angular.module('openlayers-directive').directive('olCenter', function($log, $location, olMapDefaults, olHelpers) {
+
     return {
         restrict: 'A',
         scope: false,

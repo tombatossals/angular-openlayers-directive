@@ -1,4 +1,5 @@
 angular.module('openlayers-directive').service('olData', function($log, $q, olHelpers) {
+
     var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
 
     var maps = {};
