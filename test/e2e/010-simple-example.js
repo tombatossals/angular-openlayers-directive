@@ -1,5 +1,4 @@
 'use strict';
-
 describe('Loading 010-simple-example.html', function() {
 
     beforeEach(function() {
