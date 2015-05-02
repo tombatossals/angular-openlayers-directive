@@ -896,9 +896,9 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 });
             }
             scope.$emit('openlayers.map.' + eventType, {
-                coord: coord,
-                projection: proj,
-                event: event
+                'coord': coord,
+                'projection': proj,
+                'event': event
             });
         });
     };
