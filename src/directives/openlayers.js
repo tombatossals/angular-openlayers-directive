@@ -1,5 +1,4 @@
-angular.module('openlayers-directive', ['ngSanitize'])
-    .directive('openlayers', function($log, $q, $compile, olHelpers,
+angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', function($log, $q, $compile, olHelpers,
         olMapDefaults, olData) {
         return {
             restrict: 'EA',
