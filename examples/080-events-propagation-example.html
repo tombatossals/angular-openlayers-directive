@@ -25,12 +25,12 @@
                 projection: 'EPSG:3857'
             });
 
-            $scope.$on('openlayers.map.pointermove', function(event, coord) {
+            $scope.$on('openlayers.map.pointermove', function(event, data) {
                 $scope.$apply(function() {
-                    if ($scope.projection === coord.projection) {
-                        $scope.mouseposition = coord;
+                    if ($scope.projection === data.projection) {
+                        $scope.mouseposition = data.coord;
                     } else {
-                        var p = ol.proj.transform([ coord.lon, coord.lat ], coord.projection, $scope.projection);
+                        var p = ol.proj.transform([ data.coord[0], data.coord[1] ], data.projection, $scope.projection);
                         $scope.mouseposition = {
                             lat: p[1],
                             lon: p[0],
@@ -40,12 +40,12 @@
                 });
             });
 
-            $scope.$on('openlayers.map.singleclick', function(event, coord) {
+            $scope.$on('openlayers.map.singleclick', function(event, data) {
                 $scope.$apply(function() {
-                    if ($scope.projection === coord.projection) {
-                        $scope.mouseclickposition = coord;
+                    if ($scope.projection === data.projection) {
+                        $scope.mouseclickposition = data.coord;
                     } else {
-                        var p = ol.proj.transform([ coord.lon, coord.lat ], coord.projection, $scope.projection);
+                        var p = ol.proj.transform([ data.coord[0], data.coord[1] ], data.projection, $scope.projection);
                         $scope.mouseclickposition = {
                             lat: p[1],
                             lon: p[0],
