@@ -32,15 +32,15 @@
             }
         });
 
-        $scope.$on('openlayers.map.pointermove', function(event, coord) {
+        $scope.$on('openlayers.map.pointermove', function(event, data) {
             $scope.$apply(function() {
-                $scope.mouseposition = coord;
+                $scope.mouseposition = data.coord;
             });
         });
 
-        $scope.$on('openlayers.map.singleclick', function(event, coord) {
+        $scope.$on('openlayers.map.singleclick', function(event, data) {
             $scope.$apply(function() {
-                $scope.mouseclickposition = coord;
+                $scope.mouseclickposition = data.coord;
             });
         });
 
