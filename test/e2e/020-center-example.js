@@ -1,5 +1,4 @@
 'use strict';
-
 describe('Loading 020-center-example.html', function() {
 
     beforeEach(function() {
