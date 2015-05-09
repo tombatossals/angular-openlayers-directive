@@ -11,12 +11,25 @@
         var app = angular.module("demoapp", ["openlayers-directive"]);
         app.controller("DemoController", [ '$scope', function($scope) {
 
+            var custom_style = {
+                image: {
+                    icon: {
+                        anchor: [0.5, 1],
+                        anchorXUnits: 'fraction',
+                        anchorYUnits: 'fraction',
+                        opacity: 0.90,
+                        src: 'images/map-marker.png'
+                    }
+                }
+            };
+            
             angular.extend($scope, {
                 center: {
                     lat: 42.9515,
                     lon: -8.6619,
                     zoom: 9
                 },
+                custom_style : custom_style,
                 santiago: {
                     lat: 42.880596200000010000,
                     lon: -8.544641200000001000,
@@ -25,17 +38,11 @@
                         show: true,
                         showOnMouseOver: true
                     },
-                    style: {
-                        image: {
-                            icon: {
-                                anchor: [0.5, 1],
-                                anchorXUnits: 'fraction',
-                                anchorYUnits: 'fraction',
-                                opacity: 0.90,
-                                src: 'images/map-marker.png'
-                            }
-                        }
-                    }
+                    style: custom_style
+                },
+                zas: {
+                    lat: 43.099490,
+                    lon:  -8.915453,
                 }
             });
         } ]);
@@ -45,6 +52,7 @@
   <body ng-controller="DemoController">
       <openlayers ol-center="center" height="400px" width="100%">
           <ol-marker ol-marker-properties="santiago" ></ol-marker>
+          <ol-marker lat="zas.lat" lon="zas.lon" ol-style="custom_style" ></ol-marker>
       </openlayers>
   </body>
 </html>

@@ -68,7 +68,8 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
             lat: '=lat',
             lon: '=lon',
             label: '=label',
-            properties: '=olMarkerProperties'
+            properties: '=olMarkerProperties',
+            style: '=olStyle'
         },
         transclude: true,
         require: '^openlayers',
@@ -105,7 +106,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                     data.lat = scope.lat ? scope.lat : data.lat;
                     data.lon = scope.lon ? scope.lon : data.lon;
                     data.message = attrs.message;
-                    data.style = mapDefaults.styles.marker;
+                    data.style = scope.style ? scope.style : mapDefaults.styles.marker;
 
                     marker = createFeature(data, viewProjection);
                     if (!isDefined(marker)) {
