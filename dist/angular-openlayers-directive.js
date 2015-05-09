@@ -348,7 +348,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                     return;
                 }
 
-                scope.$watch('properties', function(properties, oldProperties) {
+                scope.$watchCollection('properties', function(properties, oldProperties) {
                     if (!isDefined(properties.source) || !isDefined(properties.source.type)) {
                         return;
                     }
