@@ -656,7 +656,8 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
             lat: '=lat',
             lon: '=lon',
             label: '=label',
-            properties: '=olMarkerProperties'
+            properties: '=olMarkerProperties',
+            style: '=olStyle'
         },
         transclude: true,
         require: '^openlayers',
@@ -693,7 +694,7 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                     data.lat = scope.lat ? scope.lat : data.lat;
                     data.lon = scope.lon ? scope.lon : data.lon;
                     data.message = attrs.message;
-                    data.style = mapDefaults.styles.marker;
+                    data.style = scope.style ? scope.style : mapDefaults.styles.marker;
 
                     marker = createFeature(data, viewProjection);
                     if (!isDefined(marker)) {
@@ -1304,6 +1305,11 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                     imageLoadFunction: source.imageLoadFunction
                 });
                 break;
+        }
+
+        // log a warning when no source could be created for the given type
+        if (!oSource) {
+            $log.warn('[AngularJS - Openlayers] - No source could be found for type "' + source.type + '"');
         }
 
         return oSource;
