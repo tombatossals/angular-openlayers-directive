@@ -426,6 +426,11 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 break;
         }
 
+        // log a warning when no source could be created for the given type
+        if(!oSource){
+          $log.warn('[AngularJS - Openlayers] - No source could be found for type "' + source.type + '"');
+        }
+
         return oSource;
     };
 
