@@ -141,6 +141,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     return 'Vector';
                 case 'KML':
                     return 'Vector';
+                case 'TileVector':
+                    return 'Vector';
                 default:
                     return 'Tile';
             }
@@ -343,6 +345,20 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 oSource = new ol.source.TileJSON({
                     url: source.url,
                     crossOrigin: 'anonymous'
+                });
+                break;
+
+            case 'TileVector':
+                if (!source.url || !source.format) {
+                    $log.error('[AngularJS - Openlayers] - TileVector Layer needs valid url and format properties');
+                }
+                oSource = new ol.source.TileVector({
+                    url: source.url,
+                    projection: projection,
+                    format: source.format,
+                    tileGrid: new ol.tilegrid.XYZ({
+                        maxZoom: source.maxZoom || 19
+                    })
                 });
                 break;
 
