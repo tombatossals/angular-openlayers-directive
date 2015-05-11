@@ -348,7 +348,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                     return;
                 }
 
-                scope.$watch('properties', function(properties, oldProperties) {
+                scope.$watchCollection('properties', function(properties, oldProperties) {
                     if (!isDefined(properties.source) || !isDefined(properties.source.type)) {
                         return;
                     }
@@ -656,7 +656,8 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
             lat: '=lat',
             lon: '=lon',
             label: '=label',
-            properties: '=olMarkerProperties'
+            properties: '=olMarkerProperties',
+            style: '=olStyle'
         },
         transclude: true,
         require: '^openlayers',
@@ -693,7 +694,7 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                     data.lat = scope.lat ? scope.lat : data.lat;
                     data.lon = scope.lon ? scope.lon : data.lon;
                     data.message = attrs.message;
-                    data.style = mapDefaults.styles.marker;
+                    data.style = scope.style ? scope.style : mapDefaults.styles.marker;
 
                     marker = createFeature(data, viewProjection);
                     if (!isDefined(marker)) {
@@ -1021,6 +1022,8 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                     return 'Vector';
                 case 'KML':
                     return 'Vector';
+                case 'TileVector':
+                    return 'Vector';
                 default:
                     return 'Tile';
             }
@@ -1226,6 +1229,20 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 });
                 break;
 
+            case 'TileVector':
+                if (!source.url || !source.format) {
+                    $log.error('[AngularJS - Openlayers] - TileVector Layer needs valid url and format properties');
+                }
+                oSource = new ol.source.TileVector({
+                    url: source.url,
+                    projection: projection,
+                    format: source.format,
+                    tileGrid: new ol.tilegrid.XYZ({
+                        maxZoom: source.maxZoom || 19
+                    })
+                });
+                break;
+
             case 'TileTMS':
                 if (!source.url || !source.tileGrid) {
                     $log.error('[AngularJS - Openlayers] - TileTMS Layer needs valid url and tileGrid properties');
@@ -1304,6 +1321,11 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                     imageLoadFunction: source.imageLoadFunction
                 });
                 break;
+        }
+
+        // log a warning when no source could be created for the given type
+        if (!oSource) {
+            $log.warn('[AngularJS - Openlayers] - No source could be found for type "' + source.type + '"');
         }
 
         return oSource;
