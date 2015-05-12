@@ -147,13 +147,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 case 'ImageStatic':
                     return 'Image';
                 case 'GeoJSON':
-                    return 'Vector';
                 case 'JSONP':
-                    return 'Vector';
                 case 'TopoJSON':
-                    return 'Vector';
                 case 'KML':
-                    return 'Vector';
                 case 'TileVector':
                     return 'Vector';
                 default:
@@ -349,15 +345,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 if (isDefined(source.url)) {
-                    oSource = new ol.source.GeoJSON({
-                        projection: projection,
+                    oSource = new ol.source.Vector({
+                        format: new ol.format.GeoJSON(),
                         url: source.url
                     });
                 } else {
                     if (!isDefined(source.geojson.projection)) {
                         source.geojson.projection = projection;
                     }
-                    oSource = new ol.source.GeoJSON(source.geojson);
+                    oSource = new ol.source.Vector(angular.extend(source.geojson, {
+                        format: new ol.format.GeoJSON()
+                    }));
                 }
 
                 break;
@@ -368,20 +366,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 if (isDefined(source.url)) {
-                    oSource = new ol.source.ServerVector({
+                    oSource = new ol.source.Vector({
                         format: new ol.format.GeoJSON(),
                         loader: function(/*extent, resolution, projection*/) {
                             var url = source.url +
                                       '&outputFormat=text/javascript&format_options=callback:JSON_CALLBACK';
-                            $http.jsonp(url, { cache: source.cache})
-                                .success(function(response) {
-                                    oSource.addFeatures(oSource.readFeatures(response));
-                                })
-                                .error(function(response) {
-                                    $log(response);
-                                });
-                        },
-                        projection: projection
+                            $http.jsonp(url, { cache: source.cache}).success(function(response) {
+                                oSource.addFeatures(oSource.readFeatures(response));
+                            }).error(function(response) {
+                                $log(response);
+                            });
+                        }
                     });
                 }
                 break;
@@ -393,12 +388,14 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 if (source.url) {
-                    oSource = new ol.source.TopoJSON({
-                        projection: projection,
+                    oSource = new ol.source.Vector({
+                        format: new ol.format.TopoJSON(),
                         url: source.url
                     });
                 } else {
-                    oSource = new ol.source.TopoJSON(source.topojson);
+                    oSource = new ol.source.Vector(angular.extend(source.topojson, {
+                        format: new ol.format.TopoJSON()
+                    }));
                 }
                 break;
             case 'TileJSON':
@@ -474,9 +471,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 break;
             case 'KML':
                 var extractStyles = source.extractStyles || false;
-                oSource = new ol.source.KML({
+                oSource = new ol.source.Vector({
                     url: source.url,
-                    projection: source.projection,
+                    format: new ol.format.KML(),
                     radius: source.radius,
                     extractStyles: extractStyles
                 });
