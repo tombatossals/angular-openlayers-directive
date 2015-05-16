@@ -99,6 +99,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                 var marker;
 
                 scope.$on('$destroy', function() {
+                    markerLayer.getSource().removeFeature(marker);
                     markerLayerManager.deregisterScope(scope, map);
                 });
 
