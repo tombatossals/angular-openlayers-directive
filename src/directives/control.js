@@ -16,7 +16,7 @@ angular.module('openlayers-directive').directive('olControl', function($log, $q,
                 var getControlClasses = olHelpers.getControlClasses;
                 var controlClasses = getControlClasses();
 
-                if (!isDefined(scope.properties)) {
+                if (!isDefined(scope.properties) || isDefined(scope.properties.control)) {
                     if (attrs.name) {
                         olControl = new controlClasses[attrs.name]();
                         map.addControl(olControl);
