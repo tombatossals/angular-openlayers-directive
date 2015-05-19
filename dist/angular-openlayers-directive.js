@@ -560,6 +560,7 @@ angular.module('openlayers-directive').directive('olControl', ["$log", "$q", "ol
             var isDefined   = olHelpers.isDefined;
             var olScope   = controller.getOpenlayersScope();
             var olControl;
+            var olControlOps;
 
             olScope.getMap().then(function(map) {
                 var getControlClasses = olHelpers.getControlClasses;
@@ -567,7 +568,10 @@ angular.module('openlayers-directive').directive('olControl', ["$log", "$q", "ol
 
                 if (!isDefined(scope.properties) || !isDefined(scope.properties.control)) {
                     if (attrs.name) {
-                        olControl = new controlClasses[attrs.name]();
+                        if (isDefined(scope.properties)) {
+                            olControlOps = scope.properties;
+                        }
+                        olControl = new controlClasses[attrs.name](olControlOps);
                         map.addControl(olControl);
                     }
                     return;
