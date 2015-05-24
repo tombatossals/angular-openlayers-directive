@@ -156,6 +156,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                             }
                         };
                     })();
+
                     function handleInteraction(evt) {
                         if (properties.label.show) {
                             return;
@@ -220,6 +221,14 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                                 'the marker.');
                         }
                         markerLayer.getSource().addFeature(marker);
+                    } else {
+                        var requestedPosition = ol.proj.transform([properties.lon, properties.lat], data.projection,
+                                                     map.getView().getProjection());
+
+                        if (!angular.equals(marker.getGeometry().getCoordinates(), requestedPosition)) {
+                            var geometry = new ol.geom.Point(requestedPosition);
+                            marker.setGeometry(geometry);
+                        }
                     }
 
                     if (isDefined(label)) {
@@ -239,7 +248,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                         if (data.projection === 'pixel') {
                             pos = data.coord;
                         } else {
-                            pos = ol.proj.transform([data.lon, data.lat], data.projection,
+                            pos = ol.proj.transform([properties.lon, properties.lat], data.projection,
                                 viewProjection);
                         }
                         label = createOverlay(element, pos);
