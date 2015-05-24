@@ -7,6 +7,16 @@
     <p>You can change dinamically the markers properties. Try with these two markers:</p>
     <div class="ui form" ng-repeat="marker in markers" ng-show="styleCheckboxes()">
         <h3 ng-bind="marker.name"></h3>
+        <div class="two fields">
+          <div class="field">
+            <label>Latitude</label>
+            <input type="number" ng-model="marker.lat" placeholder="Latitude"/>
+          </div>
+          <div class="field">
+            <label>Longitude</label>
+            <input type="number" ng-model="marker.lon" placeholder="Longitude"/>
+          </div>
+        </div>
         <div class="field">
             <label>Message</label>
             <input type="text" ng-model="marker.label.message" />
