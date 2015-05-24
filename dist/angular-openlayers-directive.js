@@ -560,14 +560,18 @@ angular.module('openlayers-directive').directive('olControl', ["$log", "$q", "ol
             var isDefined   = olHelpers.isDefined;
             var olScope   = controller.getOpenlayersScope();
             var olControl;
+            var olControlOps;
 
             olScope.getMap().then(function(map) {
                 var getControlClasses = olHelpers.getControlClasses;
                 var controlClasses = getControlClasses();
 
-                if (!isDefined(scope.properties)) {
+                if (!isDefined(scope.properties) || !isDefined(scope.properties.control)) {
                     if (attrs.name) {
-                        olControl = new controlClasses[attrs.name]();
+                        if (isDefined(scope.properties)) {
+                            olControlOps = scope.properties;
+                        }
+                        olControl = new controlClasses[attrs.name](olControlOps);
                         map.addControl(olControl);
                     }
                     return;
@@ -687,6 +691,7 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                 var marker;
 
                 scope.$on('$destroy', function() {
+                    markerLayer.getSource().removeFeature(marker);
                     markerLayerManager.deregisterScope(scope, map);
                 });
 
@@ -714,6 +719,35 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                 }
 
                 scope.$watch('properties', function(properties) {
+
+                    // Made to filter out click/tap events if both are being triggered on this platform
+                    var handleTapInteraction = (function() {
+                        var cooldownActive = false;
+                        var prevTimeout;
+
+                        // Sets the cooldown flag to filter out any subsequent events within 500 ms
+                        function activateCooldown() {
+                            cooldownActive = true;
+                            if (prevTimeout) {
+                                clearTimeout(prevTimeout);
+                            }
+                            prevTimeout = setTimeout(function() {
+                                cooldownActive = false;
+                                prevTimeout = null;
+                            }, 500);
+                        }
+
+                        // Preventing from 'touchend' to be considered a tap, if fired immediately after 'touchmove'
+                        map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
+                            'touchmove', activateCooldown);
+
+                        return function() {
+                            if (!cooldownActive) {
+                                handleInteraction.apply(null, arguments);
+                                activateCooldown();
+                            }
+                        };
+                    })();
                     function handleInteraction(evt) {
                         if (properties.label.show) {
                             return;
@@ -817,9 +851,9 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                     if ((properties.label && properties.label.show === false &&
                         properties.label.showOnMouseClick) ||
                         properties.onClick) {
-                        map.getViewport().addEventListener('click', handleInteraction);
+                        map.getViewport().addEventListener('click', handleTapInteraction);
                         map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
-                            'touchend', handleInteraction);
+                            'touchend', handleTapInteraction);
                     }
                 }, true);
             });
