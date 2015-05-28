@@ -692,6 +692,9 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
 
                 scope.$on('$destroy', function() {
                     markerLayer.getSource().removeFeature(marker);
+                    if (isDefined(label)) {
+                        map.removeOverlay(label);
+                    }
                     markerLayerManager.deregisterScope(scope, map);
                 });
 
@@ -1157,6 +1160,26 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
                 oSource = new ol.source.TileWMS(wmsConfiguration);
                 break;
+
+            case 'WMTS':
+                if (!source.url || !source.tileGrid) {
+                    $log.error('[AngularJS - Openlayers] - WMTS Layer needs valid url and tileGrid properties');
+                }
+                oSource = new ol.source.WMTS({
+                    url: source.url,
+                    projection: projection,
+                    matrixSet: (source.matrixSet === 'undefined') ? projection : source.matrixSet,
+                    format: (source.format === 'undefined') ? 'image/jpeg' : source.format,
+                    requestEncoding: (source.requestEncoding === 'undefined') ?
+                        'KVP' : source.requestEncoding,
+                    tileGrid: new ol.tilegrid.WMTS({
+                        origin: source.tileGrid.origin,
+                        resolutions: source.tileGrid.resolutions,
+                        matrixIds: source.tileGrid.matrixIds
+                    })
+                });
+                break;
+
             case 'OSM':
                 if (source.attribution) {
                     var attributions = [];
