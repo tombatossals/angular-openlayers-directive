@@ -399,8 +399,7 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
 
                     } else {
 
-                        if (isDefined(oldProperties) &&
-                           !(equals(properties, oldProperties) && equals(properties.style, oldProperties.style))) {
+                        if (isDefined(oldProperties) && !equals(properties.source, oldProperties.source)) {
 
                             if (!equals(properties.source, oldProperties.source)) {
                                 var idx = olLayer.index;
@@ -413,6 +412,15 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                                         setVectorLayerEvents(defaults.events, map, scope, properties.name);
                                     }
                                 }
+                            }
+
+                            if (properties.style) {
+                                if (!angular.isFunction(properties.style)) {
+                                    style = createStyle(properties.style);
+                                } else {
+                                    style = properties.style;
+                                }
+                                olLayer.setStyle(style);
                             }
 
                             if (isDefined(properties.index) && properties.index !== olLayer.index) {
@@ -429,15 +437,15 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                                     olLayer.setOpacity(properties.opacity);
                                 }
                             }
+                        }
 
-                            if (isDefined(properties.style) && !equals(properties.style, oldProperties.style)) {
-                                if (!angular.isFunction(properties.style)) {
-                                    style = createStyle(properties.style);
-                                } else {
-                                    style = properties.style;
-                                }
-                                olLayer.setStyle(style);
+                        if (isDefined(properties.style) && !equals(properties.style, oldProperties.style)) {
+                            if (!angular.isFunction(properties.style)) {
+                                style = createStyle(properties.style);
+                            } else {
+                                style = properties.style;
                             }
+                            olLayer.setStyle(style);
                         }
                     }
                 }, true);
