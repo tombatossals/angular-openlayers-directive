@@ -1275,7 +1275,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                         loader: function(/*extent, resolution, projection*/) {
                             var url = source.url +
                                       '&outputFormat=text/javascript&format_options=callback:JSON_CALLBACK';
-                            $http.jsonp(url, { cache: source.cache })
+                            $http.jsonp(url, { cache: source.cache})
                                 .success(function(response) {
                                     oSource.addFeatures(oSource.readFeatures(response));
                                 })
@@ -1678,7 +1678,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
         },
         addLayerBeforeMarkers: function(layers, layer) {
             var markersIndex;
-            for (var i = 0; i < layers.getLength() ; i++) {
+            for (var i = 0; i < layers.getLength(); i++) {
                 var l = layers.item(i);
 
                 if (l.get('markers')) {
@@ -1702,7 +1702,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
         removeLayer: function(layers, index) {
             layers.removeAt(index);
-            for (var i = index; i < layers.getLength() ; i++) {
+            for (var i = index; i < layers.getLength(); i++) {
                 var l = layers.item(i);
                 if (l === null) {
                     layers.insertAt(i, null);
@@ -1723,7 +1723,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
             } else {
                 layer.index = index;
                 layers.insertAt(layer.index, layer);
-                for (var i = index + 1; i < layers.getLength() ; i++) {
+                for (var i = index + 1; i < layers.getLength(); i++) {
                     var l = layers.item(i);
                     if (l === null) {
                         layers.removeAt(i);
