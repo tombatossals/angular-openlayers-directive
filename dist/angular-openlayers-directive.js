@@ -589,10 +589,8 @@ angular.module('openlayers-directive').directive('olControl', ["$log", "$q", "ol
                     return;
                 }
 
-                if (isDefined(scope.properties.control)) {
-                    olControl = scope.properties.control;
-                    map.addControl(olControl);
-                }
+                olControl = scope.properties.control;
+                map.addControl(olControl);
             });
         }
     };
