@@ -17,6 +17,10 @@ angular.module('openlayers-directive').directive('olControl', function($log, $q,
                 var getControlClasses = olHelpers.getControlClasses;
                 var controlClasses = getControlClasses();
 
+                scope.$on('$destroy', function() {
+                    map.removeControl(olControl);
+                });
+
                 if (!isDefined(scope.properties) || !isDefined(scope.properties.control)) {
                     if (attrs.name) {
                         if (isDefined(scope.properties)) {
@@ -32,10 +36,6 @@ angular.module('openlayers-directive').directive('olControl', function($log, $q,
                     olControl = scope.properties.control;
                     map.addControl(olControl);
                 }
-
-                scope.$on('$destroy', function() {
-                    map.removeControl(olControl);
-                });
             });
         }
     };
