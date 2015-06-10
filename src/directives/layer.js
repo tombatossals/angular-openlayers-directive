@@ -101,7 +101,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
 
                     } else {
 
-                        if (isDefined(oldProperties) && !equals(properties.source, oldProperties.source)) {
+                        if (isDefined(oldProperties)) {
 
                             if (!equals(properties.source, oldProperties.source)) {
                                 var idx = olLayer.index;
@@ -114,15 +114,15 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                                         setVectorLayerEvents(defaults.events, map, scope, properties.name);
                                     }
                                 }
-                            }
 
-                            if (properties.style) {
-                                if (!angular.isFunction(properties.style)) {
-                                    style = createStyle(properties.style);
-                                } else {
-                                    style = properties.style;
+                                if (properties.style) {
+                                    if (!angular.isFunction(properties.style)) {
+                                        style = createStyle(properties.style);
+                                    } else {
+                                        style = properties.style;
+                                    }
+                                    olLayer.setStyle(style);
                                 }
-                                olLayer.setStyle(style);
                             }
 
                             if (isDefined(properties.index) && properties.index !== olLayer.index) {
