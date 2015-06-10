@@ -17,6 +17,7 @@
       var app = angular.module("demoapp", ["openlayers-directive"]);
       app.controller("DemoController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
         angular.extend($scope, {
+            // override defaults controls
             defaults : {
                 controls: {
                     zoom: false,
@@ -32,8 +33,9 @@
             view: {
                 rotation: -1
             },
+            // add custom controls settings
             controls: [
-                { name: 'zoom', active: false },
+                { name: 'zoom', active: true },
                 { name: 'rotate', active: false },
                 { name: 'attribution', active: false }
             ]
