@@ -979,6 +979,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
     var mapQuestLayers = ['osm', 'sat', 'hyb'];
 
+    var esriBaseLayers = ['World_Imagery', 'World_Street_Map', 'World_Topo_Map',
+                          'World_Physical_Map', 'World_Terrain_Base',
+                          'Ocean_Basemap', 'NatGeo_World_Map'];
+
     var styleMap = {
         'style': ol.style.Style,
         'fill': ol.style.Fill,
@@ -1233,6 +1237,19 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 oSource = new ol.source.MapQuest({
                     layer: source.layer
                 });
+
+                break;
+
+            case 'EsriBaseMaps':
+                if (!source.layer || esriBaseLayers.indexOf(source.layer) === -1) {
+                    $log.error('[AngularJS - Openlayers] - ESRI layers needs a valid \'layer\' property.');
+                    return;
+                }
+
+                var _urlBase = 'http://services.arcgisonline.com/ArcGIS/rest/services/';
+                var _url = _urlBase + source.layer + '/MapServer/tile/{z}/{y}/{x}';
+
+                oSource = new ol.source.XYZ({ url: _url });
 
                 break;
 
