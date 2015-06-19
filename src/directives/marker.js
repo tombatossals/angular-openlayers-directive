@@ -8,7 +8,8 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
             coord: [],
             show: true,
             showOnMouseOver: false,
-            showOnMouseClick: false
+            showOnMouseClick: false,
+            keepOneOverlayVisible: false
         };
     };
 
@@ -205,6 +206,54 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                         }
                     }
 
+                    function showAtLeastOneOverlay(evt) {
+                        if (properties.label.show) {
+                            return;
+                        }
+                        var found = false;
+                        var pixel = map.getEventPixel(evt);
+                        var feature = map.forEachFeatureAtPixel(pixel, function (feature) {
+                            return feature;
+                        });
+
+                        var actionTaken = false;
+                        if (feature === marker) {
+                            actionTaken = true;
+                            found = true;
+                            if (!isDefined(label)) {
+                                if (data.projection === 'pixel') {
+                                    pos = data.coord;
+                                } else {
+                                    pos = ol.proj.transform([data.lon, data.lat],
+                                        data.projection, viewProjection);
+                                }
+                                label = createOverlay(element, pos);
+                                angular.forEach(map.getOverlays(), function (value, key) {
+                                    map.removeOverlay(value);
+                                });
+                                map.addOverlay(label);
+                            }
+                            map.getTarget().style.cursor = 'pointer';
+                        }
+
+                        if (!found && label) {
+                            actionTaken = true;
+                            label = undefined;
+                            map.getTarget().style.cursor = '';
+                        }
+
+                        if (actionTaken) {
+                            evt.preventDefault();
+                        }
+                    }
+                    
+                    function removeAllOverlays(evt) {
+                        angular.forEach(map.getOverlays(), function (value, key) {
+                            map.removeOverlay(value);
+                        });
+                        evt.preventDefault();
+                    }
+                    
                     if (!isDefined(marker)) {
                         data.projection = properties.projection ? properties.projection :
                             data.projection;
@@ -274,6 +323,12 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                         map.getViewport().addEventListener('click', handleTapInteraction);
                         map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
                             'touchend', handleTapInteraction);
+                    }
+                    
+                    if ((properties.label && properties.label.show === false &&
+                        properties.label.keepOneOverlayVisible)) {
+                        map.getViewport().addEventListener('mousemove', showAtLeastOneOverlay);
+                        map.getViewport().addEventListener('click', removeAllOverlays);
                     }
                 }, true);
             });
