@@ -17,6 +17,14 @@
       var app = angular.module("demoapp", ["openlayers-directive"]);
       app.controller("DemoController", [ '$scope', '$http', 'olData', function($scope, $http, olData) {
         angular.extend($scope, {
+            // override defaults controls
+            defaults : {
+                controls: {
+                    zoom: false,
+                    rotate: false,
+                    attribution: false
+                }
+            },
             center: {
                 lat: 43.88,
                 lon: 7.57,
@@ -25,10 +33,11 @@
             view: {
                 rotation: -1
             },
+            // add custom controls settings
             controls: [
                 { name: 'zoom', active: true },
-                { name: 'rotate', active: true },
-                { name: 'attribution', active: true }
+                { name: 'rotate', active: false },
+                { name: 'attribution', active: false }
             ]
         });
 
@@ -44,7 +53,7 @@
       </script>
   </head>
   <body ng-controller="DemoController">
-     <openlayers ol-center="center" ol-controls="controls" ol-view="view">
+     <openlayers ol-center="center" ol-defaults="defaults" ol-controls="controls" ol-view="view">
          <ol-control name="{{ control.name }}" ng-repeat="control in controls|filter: {active: true}"></ol-control>
      </openlayers>
      <h1>Controls example</h1>

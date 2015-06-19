@@ -574,6 +574,10 @@ angular.module('openlayers-directive').directive('olControl', ["$log", "$q", "ol
                 var getControlClasses = olHelpers.getControlClasses;
                 var controlClasses = getControlClasses();
 
+                scope.$on('$destroy', function() {
+                    map.removeControl(olControl);
+                });
+
                 if (!isDefined(scope.properties) || !isDefined(scope.properties.control)) {
                     if (attrs.name) {
                         if (isDefined(scope.properties)) {
@@ -585,14 +589,8 @@ angular.module('openlayers-directive').directive('olControl', ["$log", "$q", "ol
                     return;
                 }
 
-                if (isDefined(scope.properties.control)) {
-                    olControl = scope.properties.control;
-                    map.addControl(olControl);
-                }
-
-                scope.$on('$destroy', function() {
-                    map.removeControl(olControl);
-                });
+                olControl = scope.properties.control;
+                map.addControl(olControl);
             });
         }
     };
@@ -608,7 +606,8 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
             coord: [],
             show: true,
             showOnMouseOver: false,
-            showOnMouseClick: false
+            showOnMouseClick: false,
+            keepOneOverlayVisible: false
         };
     };
 
@@ -805,6 +804,54 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                         }
                     }
 
+                    function showAtLeastOneOverlay(evt) {
+                        if (properties.label.show) {
+                            return;
+                        }
+                        var found = false;
+                        var pixel = map.getEventPixel(evt);
+                        var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+                            return feature;
+                        });
+
+                        var actionTaken = false;
+                        if (feature === marker) {
+                            actionTaken = true;
+                            found = true;
+                            if (!isDefined(label)) {
+                                if (data.projection === 'pixel') {
+                                    pos = data.coord;
+                                } else {
+                                    pos = ol.proj.transform([data.lon, data.lat],
+                                        data.projection, viewProjection);
+                                }
+                                label = createOverlay(element, pos);
+                                angular.forEach(map.getOverlays(), function(value) {
+                                    map.removeOverlay(value);
+                                });
+                                map.addOverlay(label);
+                            }
+                            map.getTarget().style.cursor = 'pointer';
+                        }
+
+                        if (!found && label) {
+                            actionTaken = true;
+                            label = undefined;
+                            map.getTarget().style.cursor = '';
+                        }
+
+                        if (actionTaken) {
+                            evt.preventDefault();
+                        }
+                    }
+
+                    function removeAllOverlays(evt) {
+                        angular.forEach(map.getOverlays(), function(value) {
+                            map.removeOverlay(value);
+                        });
+                        evt.preventDefault();
+                    }
+
                     if (!isDefined(marker)) {
                         data.projection = properties.projection ? properties.projection :
                             data.projection;
@@ -874,6 +921,12 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                         map.getViewport().addEventListener('click', handleTapInteraction);
                         map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
                             'touchend', handleTapInteraction);
+                    }
+
+                    if ((properties.label && properties.label.show === false &&
+                        properties.label.keepOneOverlayVisible)) {
+                        map.getViewport().addEventListener('mousemove', showAtLeastOneOverlay);
+                        map.getViewport().addEventListener('click', removeAllOverlays);
                     }
                 }, true);
             });
