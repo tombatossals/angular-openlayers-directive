@@ -212,7 +212,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                         }
                         var found = false;
                         var pixel = map.getEventPixel(evt);
-                        var feature = map.forEachFeatureAtPixel(pixel, function (feature) {
+                        var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
                             return feature;
                         });
 
@@ -228,7 +228,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                                         data.projection, viewProjection);
                                 }
                                 label = createOverlay(element, pos);
-                                angular.forEach(map.getOverlays(), function (value, key) {
+                                angular.forEach(map.getOverlays(), function(value) {
                                     map.removeOverlay(value);
                                 });
                                 map.addOverlay(label);
@@ -246,14 +246,14 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                             evt.preventDefault();
                         }
                     }
-                    
+
                     function removeAllOverlays(evt) {
-                        angular.forEach(map.getOverlays(), function (value, key) {
+                        angular.forEach(map.getOverlays(), function(value) {
                             map.removeOverlay(value);
                         });
                         evt.preventDefault();
                     }
-                    
+
                     if (!isDefined(marker)) {
                         data.projection = properties.projection ? properties.projection :
                             data.projection;
@@ -324,7 +324,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                         map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
                             'touchend', handleTapInteraction);
                     }
-                    
+
                     if ((properties.label && properties.label.show === false &&
                         properties.label.keepOneOverlayVisible)) {
                         map.getViewport().addEventListener('mousemove', showAtLeastOneOverlay);
