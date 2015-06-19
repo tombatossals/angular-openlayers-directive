@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+<head>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css" />
+    <script>
+        var app = angular.module("demoapp", ["openlayers-directive"]);
+        app.controller('DemoController', ['$scope', function ($scope) {
+            angular.extend($scope, {
+                quebec: {
+                    lat: 46.823,
+                    lon: -71.205,
+                    zoom: 3
+                },
+                esribasemaps: {
+                    source: {
+                        layer: 'Ocean_Basemap',//['World_Imagery', 'World_Street_Map', 'World_Topo_Map', 'World_Physical_Map', 'World_Terrain_Base', 'Ocean_Basemap', 'World_Light_Gray_Base', 'NatGeo_World_Map']
+                        type: 'EsriBaseMaps'
+                    }
+                }
+            });
+        }]);
+    </script>
+</head>
+<body ng-controller="DemoController">
+    <openlayers ol-center="quebec" custom-layers="true" height="400px">
+        <ol-layer ol-layer-properties="esribasemaps"></ol-layer>
+    </openlayers>
+
+    <h1>ESRI BaseMaps</h1>
+    <p>This map uses ESRI BaseMaps.</p>
+
+    <ul>
+        <li style="display: inline" ng-repeat="layer in ['World_Imagery', 'World_Street_Map', 'World_Topo_Map', 'World_Physical_Map', 'World_Terrain_Base', 'Ocean_Basemap', 'NatGeo_World_Map']">
+            <button ng-click="esribasemaps.source.layer=layer" class="btn btn-default" ng-bind="layer"></button>
+        </li>
+    </ul>
+
+    <p>
+        Current TileLayer Url:
+        <pre>{{ esribasemaps.source.layer | json }}</pre>
+    </p>
+
+</body>
+</html>
