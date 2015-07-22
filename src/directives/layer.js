@@ -134,8 +134,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                         }
 
                         // set index
-                        if (isDefined(properties.index) &&
-                            properties.index !== olLayer.index || isNewLayer(olLayer)) {
+                        if (isDefined(properties.index) && properties.index !== olLayer.index) {
                             removeLayer(layerCollection, olLayer.index);
                             insertLayer(layerCollection, properties.index, olLayer);
                         }
