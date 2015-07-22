@@ -245,6 +245,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 oSource = new ol.source.WMTS({
                     url: source.url,
                     projection: projection,
+                    layer: source.layer,
                     matrixSet: (source.matrixSet === 'undefined') ? projection : source.matrixSet,
                     format: (source.format === 'undefined') ? 'image/jpeg' : source.format,
                     requestEncoding: (source.requestEncoding === 'undefined') ?
