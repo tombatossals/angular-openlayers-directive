@@ -50,6 +50,44 @@ describe('Directive: openlayers layers', function() {
         expect(layers.item(1).getSource() instanceof ol.source.TileJSON).toBe(true);
     });
 
+    it('should properly render a GeoJSON layer containing the GeoJSON object', function(){
+        scope.geoJsonLayer = {
+            source: {
+                type: 'GeoJSON',
+                geojson: {
+                    object: {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [
+                                11.32436509382857,
+                                46.50874575613664
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+
+        var element = angular.element('<openlayers>' +
+                                       '<ol-layer ol-layer-properties="geoJsonLayer"></ol-layer>' +
+                                       '</openlayers>');
+        element = $compile(element)(scope);
+
+        var layers;
+        olData.getMap().then(function(olMap) {
+            layers = olMap.getLayers();
+        });
+
+        scope.$digest();
+        expect(layers.item(0).getSource() instanceof ol.source.OSM).toBe(true);
+        expect(layers.getLength()).toBe(2);
+
+        var geoJsonLayer = layers.item(1);
+        expect(geoJsonLayer.getSource() instanceof ol.source.Vector).toBe(true);
+        expect(geoJsonLayer.getSource().getFeatures().length).not.toBe(0);
+    });
+
     it('should have one layer if custom-layers is used', function() {
         scope.mapbox = {
             source: {

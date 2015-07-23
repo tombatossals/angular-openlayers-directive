@@ -350,12 +350,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         url: source.url
                     });
                 } else {
-                    if (!isDefined(source.geojson.projection)) {
-                        source.geojson.projection = projection;
+                    oSource = new ol.source.Vector();
+
+                    var projectionToUse = projection;
+                    if (isDefined(source.geojson.projection)) {
+                        projectionToUse = source.geojson.projection;
                     }
-                    oSource = new ol.source.Vector(angular.extend(source.geojson, {
-                        format: new ol.format.GeoJSON()
-                    }));
+
+                    var geojsonFormat = new ol.format.GeoJSON();
+                    var features = geojsonFormat.readFeatures(source.geojson.object, { featureProjection: projectionToUse });
+
+                    oSource.addFeatures(features);
                 }
 
                 break;
