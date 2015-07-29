@@ -97,4 +97,104 @@ describe('Directive: openlayers layers', function() {
         scope.$digest();
         expect(olLayers.getLength()).toBe(0);
     });
+
+    it('should update the visibility of a layer', function() {
+        var layers = [
+            {
+                name: 'mapbox',
+                source: {
+                    type: 'TileJSON',
+                    url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.jsonp'
+                },
+                visible: true
+            }
+        ];
+        angular.extend(scope, { layers: layers });
+        var element = angular.element('<openlayers custom-layers="true">' +
+                                        '<ol-layer name="{{ layer.name }}" ol-layer-properties="layer" ' +
+                                                'ng-repeat="layer in layers">',
+                                      '</openlayers>');
+        $compile(element)(scope);
+        scope.$digest();
+
+        // act
+        layers[0].visible = false;
+
+        // assert
+        var mapboxLayer;
+        olData.getMap().then(function(olMap) {
+            var olLayers = olMap.getLayers();
+            olLayers.forEach(function(layer) {
+                if (layer.get('name') === 'mapbox') {
+                    mapboxLayer = layer;
+                }
+            });
+        });
+
+        scope.$digest();
+        expect(mapboxLayer).toBeDefined();
+        expect(mapboxLayer.getVisible()).toBeFalsy();
+    });
+
+    it('should keep the style changes across layer updates', function() {
+        var layers = [
+            {
+                name: 'mapbox',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'http://api.tiles.mapbox.com/v3/mapbox.geography-class.json'
+                },
+                style: {
+                    fill: {
+                        color: 'rgba(255, 0, 255, 0.6)'
+                    },
+                    stroke: {
+                        color: 'white',
+                        width: 3
+                    }
+                }
+            }
+        ];
+        angular.extend(scope, { layers: layers });
+        var element = angular
+                        .element('<openlayers custom-layers="true">' +
+                                    '<ol-layer name="{{ layer.name }}" ol-layer-properties="layer" ' +
+                                        'ng-repeat="layer in layers">',
+                                  '</openlayers>');
+        $compile(element)(scope);
+        scope.$digest();
+
+        var style;
+        olData.getMap().then(function(olMap) {
+            var olLayers = olMap.getLayers();
+            olLayers.forEach(function(layer) {
+                if (layer.get('name') === 'mapbox') {
+                    style = layer.getStyle();
+                }
+            });
+        });
+
+        scope.$digest();
+        expect(style).toBeDefined();
+
+        // act
+        layers[0].source.url = 'http://api.tiles.mapbox.com/v3/mapbox.satellite-class.json';
+        scope.$digest();
+
+        // assert
+        var styleAfter;
+        olData.getMap().then(function(olMap) {
+            var olLayers = olMap.getLayers();
+            olLayers.forEach(function(layer) {
+                if (layer.get('name') === 'mapbox') {
+                    styleAfter = layer.getStyle();
+                }
+            });
+        });
+
+        scope.$digest();
+        expect(styleAfter).toBeDefined();
+        expect(style).toEqual(styleAfter);
+    });
+
 });

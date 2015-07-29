@@ -239,12 +239,13 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 break;
 
             case 'WMTS':
-                if (!source.url || !source.tileGrid) {
-                    $log.error('[AngularJS - Openlayers] - WMTS Layer needs valid url and tileGrid properties');
+                if ((!source.url && !source.urls) || !source.tileGrid) {
+                    $log.error('[AngularJS - Openlayers] - WMTS Layer needs valid url (or urls) and tileGrid properties');
                 }
-                oSource = new ol.source.WMTS({
-                    url: source.url,
+
+                var wmtsConfiguration = {
                     projection: projection,
+                    layer: source.layer,
                     matrixSet: (source.matrixSet === 'undefined') ? projection : source.matrixSet,
                     format: (source.format === 'undefined') ? 'image/jpeg' : source.format,
                     requestEncoding: (source.requestEncoding === 'undefined') ?
@@ -254,7 +255,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         resolutions: source.tileGrid.resolutions,
                         matrixIds: source.tileGrid.matrixIds
                     })
-                });
+                };
+
+                if(source.url){
+                  wmtsConfiguration.url = source.url;
+                }
+
+                if(source.urls){
+                  wmtsConfiguration.urls = source.urls;
+                }
+
+                oSource = new ol.source.WMTS(wmtsConfiguration);
                 break;
 
             case 'OSM':
@@ -635,8 +646,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 angular.forEach(events.layers, function(eventType) {
                     angular.element(map.getViewport()).on(eventType, function(evt) {
                         var pixel = map.getEventPixel(evt);
-                        var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
-                            return feature;
+                        var feature = map.forEachFeatureAtPixel(pixel, function(feature, olLayer) {
+                            // only return the feature if it is in this layer (based on the name)
+                            return (olLayer.get('name') === layerName) ? feature : null;
                         });
                         if (isDefined(feature)) {
                             scope.$emit('openlayers.layers.' + layerName + '.' + eventType, feature, evt);
