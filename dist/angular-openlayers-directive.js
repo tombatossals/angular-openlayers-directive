@@ -398,48 +398,55 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                         }
 
                     } else {
+                        var isNewLayer = (function(olLayer) {
+                            // this function can be used to verify whether a new layer instance has
+                            // been created. This is needed in order to re-assign styles, opacity
+                            // etc...
+                            return function(layer) {
+                                return layer !== olLayer;
+                            };
+                        })(olLayer);
 
+                        // set source properties
                         if (isDefined(oldProperties) && !equals(properties.source, oldProperties.source)) {
+                            var idx = olLayer.index;
+                            layerCollection.removeAt(idx);
 
-                            if (!equals(properties.source, oldProperties.source)) {
-                                var idx = olLayer.index;
-                                layerCollection.removeAt(idx);
-                                olLayer = createLayer(properties, projection);
-                                if (isDefined(olLayer)) {
-                                    insertLayer(layerCollection, idx, olLayer);
+                            olLayer = createLayer(properties, projection);
 
-                                    if (detectLayerType(properties) === 'Vector') {
-                                        setVectorLayerEvents(defaults.events, map, scope, properties.name);
-                                    }
-                                }
-                            }
+                            if (isDefined(olLayer)) {
+                                insertLayer(layerCollection, idx, olLayer);
 
-                            if (properties.style) {
-                                if (!angular.isFunction(properties.style)) {
-                                    style = createStyle(properties.style);
-                                } else {
-                                    style = properties.style;
-                                }
-                                olLayer.setStyle(style);
-                            }
-
-                            if (isDefined(properties.index) && properties.index !== olLayer.index) {
-                                removeLayer(layerCollection, olLayer.index);
-                                insertLayer(layerCollection, properties.index, olLayer);
-                            }
-
-                            if (isBoolean(properties.visible) && properties.visible !== oldProperties.visible) {
-                                olLayer.setVisible(properties.visible);
-                            }
-
-                            if (properties.opacity !== oldProperties.opacity) {
-                                if (isNumber(properties.opacity) || isNumber(parseFloat(properties.opacity))) {
-                                    olLayer.setOpacity(properties.opacity);
+                                if (detectLayerType(properties) === 'Vector') {
+                                    setVectorLayerEvents(defaults.events, map, scope, properties.name);
                                 }
                             }
                         }
 
-                        if (isDefined(properties.style) && !equals(properties.style, oldProperties.style)) {
+                        // set opacity
+                        if (isDefined(oldProperties) &&
+                            properties.opacity !== oldProperties.opacity || isNewLayer(olLayer)) {
+                            if (isNumber(properties.opacity) || isNumber(parseFloat(properties.opacity))) {
+                                olLayer.setOpacity(properties.opacity);
+                            }
+                        }
+
+                        // set index
+                        if (isDefined(properties.index) && properties.index !== olLayer.index) {
+                            removeLayer(layerCollection, olLayer.index);
+                            insertLayer(layerCollection, properties.index, olLayer);
+                        }
+
+                        // set visibility
+                        if (isDefined(oldProperties) &&
+                            isBoolean(properties.visible) &&
+                            properties.visible !== oldProperties.visible || isNewLayer(olLayer)) {
+                            olLayer.setVisible(properties.visible);
+                        }
+
+                        // set style
+                        if (isDefined(properties.style) &&
+                            !equals(properties.style, oldProperties.style) || isNewLayer(olLayer)) {
                             if (!angular.isFunction(properties.style)) {
                                 style = createStyle(properties.style);
                             } else {
@@ -1227,12 +1234,14 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 break;
 
             case 'WMTS':
-                if (!source.url || !source.tileGrid) {
-                    $log.error('[AngularJS - Openlayers] - WMTS Layer needs valid url and tileGrid properties');
+                if ((!source.url && !source.urls) || !source.tileGrid) {
+                    $log.error('[AngularJS - Openlayers] - WMTS Layer needs valid url ' +
+                               '(or urls) and tileGrid properties');
                 }
-                oSource = new ol.source.WMTS({
-                    url: source.url,
+
+                var wmtsConfiguration = {
                     projection: projection,
+                    layer: source.layer,
                     matrixSet: (source.matrixSet === 'undefined') ? projection : source.matrixSet,
                     format: (source.format === 'undefined') ? 'image/jpeg' : source.format,
                     requestEncoding: (source.requestEncoding === 'undefined') ?
@@ -1242,7 +1251,17 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                         resolutions: source.tileGrid.resolutions,
                         matrixIds: source.tileGrid.matrixIds
                     })
-                });
+                };
+
+                if (isDefined(source.url)) {
+                    wmtsConfiguration.url = source.url;
+                }
+
+                if (isDefined(source.urls)) {
+                    wmtsConfiguration.urls = source.urls;
+                }
+
+                oSource = new ol.source.WMTS(wmtsConfiguration);
                 break;
 
             case 'OSM':
