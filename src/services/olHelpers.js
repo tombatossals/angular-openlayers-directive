@@ -488,6 +488,16 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     imageLoadFunction: source.imageLoadFunction
                 });
                 break;
+            case 'XYZ':
+                if (!source.url) {
+                    $log.error('[AngularJS - Openlayers] - XYZ Layer needs valid url and params properties');
+                }
+                oSource = new ol.source.XYZ({
+                    url: source.url,
+                    minZoom: source.minZoom,
+                    maxZoom: source.maxZoom
+                });
+                break;
         }
 
         // log a warning when no source could be created for the given type
