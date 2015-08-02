@@ -240,7 +240,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
             case 'WMTS':
                 if ((!source.url && !source.urls) || !source.tileGrid) {
-                    $log.error('[AngularJS - Openlayers] - WMTS Layer needs valid url (or urls) and tileGrid properties');
+                    $log.error('[AngularJS - Openlayers] - WMTS Layer needs valid url ' +
+                               '(or urls) and tileGrid properties');
                 }
 
                 var wmtsConfiguration = {
@@ -257,12 +258,12 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     })
                 };
 
-                if(source.url){
-                  wmtsConfiguration.url = source.url;
+                if (isDefined(source.url)) {
+                    wmtsConfiguration.url = source.url;
                 }
 
-                if(source.urls){
-                  wmtsConfiguration.urls = source.urls;
+                if (isDefined(source.urls)) {
+                    wmtsConfiguration.urls = source.urls;
                 }
 
                 oSource = new ol.source.WMTS(wmtsConfiguration);
