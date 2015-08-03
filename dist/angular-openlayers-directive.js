@@ -1114,7 +1114,12 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                     return optionalFactory(styleObject, valConstructor);
                 } else {
                     styleObject[val] = recursiveStyle(style, val);
-                    styleObject[val] = optionalFactory(styleObject[val], styleMap[val]);
+
+                    // if the value is 'text' and it contains a String, then it should be interpreted
+                    // as such, 'cause the text style might effectively contain a text to display
+                    if(val !== 'text' && typeof styleObject[val] !== 'string') {
+                       styleObject[val] = optionalFactory(styleObject[val], styleMap[val]);
+                    }
                 }
             });
         } else {
