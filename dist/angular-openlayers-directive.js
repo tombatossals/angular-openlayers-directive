@@ -1,4 +1,14 @@
-(function() {
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD.
+        define(['ol'], function (ol) {
+            return root.angularOpenlayersDirective = factory(ol);
+        });
+    } else {
+        // Browser globals
+        root.angularOpenlayersDirective = factory(root.ol);
+    }
+}(this, function (ol) {
 
 "use strict";
 
@@ -1981,4 +1991,4 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
     };
 }]);
 
-}());
+}));
