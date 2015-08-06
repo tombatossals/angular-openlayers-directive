@@ -14,6 +14,8 @@ angular.module('openlayers-directive').directive('olPath', function($log, $q, ol
             var createFeature = olHelpers.createFeature;
             var createOverlay = olHelpers.createOverlay;
             var createVectorLayer = olHelpers.createVectorLayer;
+            var insertLayer = olHelpers.insertLayer;
+            var removeLayer = olHelpers.removeLayer;
             var olScope = controller.getOpenlayersScope();
 
             olScope.getMap().then(function(map) {
@@ -21,7 +23,14 @@ angular.module('openlayers-directive').directive('olPath', function($log, $q, ol
                 var viewProjection = mapDefaults.view.projection;
 
                 var layer = createVectorLayer();
-                map.addLayer(layer);
+                var layerCollection = map.getLayers();
+
+                insertLayer(layerCollection, layerCollection.getLength(), layer);
+
+                scope.$on('$destroy', function() {
+                    removeLayer(layerCollection, layer.index);
+                });
+
                 if (isDefined(attrs.coords)) {
                     var proj = attrs.proj || 'EPSG:4326';
                     var coords = JSON.parse(attrs.coords);
