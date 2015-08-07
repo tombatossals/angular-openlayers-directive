@@ -1,7 +1,14 @@
-(function() {
-
-"use strict";
-
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD.
+        define(['ol'], function (ol) {
+            return root.angularOpenlayersDirective = factory(ol);
+        });
+    } else {
+        // Browser globals
+        root.angularOpenlayersDirective = factory(root.ol);
+    }
+}(this, function (ol) {
 angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', ["$log", "$q", "$compile", "olHelpers", "olMapDefaults", "olData", function($log, $q, $compile, olHelpers,
         olMapDefaults, olData) {
         return {
@@ -477,6 +484,8 @@ angular.module('openlayers-directive').directive('olPath', ["$log", "$q", "olMap
             var createFeature = olHelpers.createFeature;
             var createOverlay = olHelpers.createOverlay;
             var createVectorLayer = olHelpers.createVectorLayer;
+            var insertLayer = olHelpers.insertLayer;
+            var removeLayer = olHelpers.removeLayer;
             var olScope = controller.getOpenlayersScope();
 
             olScope.getMap().then(function(map) {
@@ -484,7 +493,14 @@ angular.module('openlayers-directive').directive('olPath', ["$log", "$q", "olMap
                 var viewProjection = mapDefaults.view.projection;
 
                 var layer = createVectorLayer();
-                map.addLayer(layer);
+                var layerCollection = map.getLayers();
+
+                insertLayer(layerCollection, layerCollection.getLength(), layer);
+
+                scope.$on('$destroy', function() {
+                    removeLayer(layerCollection, layer.index);
+                });
+
                 if (isDefined(attrs.coords)) {
                     var proj = attrs.proj || 'EPSG:4326';
                     var coords = JSON.parse(attrs.coords);
@@ -1117,8 +1133,8 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
                     // if the value is 'text' and it contains a String, then it should be interpreted
                     // as such, 'cause the text style might effectively contain a text to display
-                    if(val !== 'text' && typeof styleObject[val] !== 'string') {
-                       styleObject[val] = optionalFactory(styleObject[val], styleMap[val]);
+                    if (val !== 'text' && typeof styleObject[val] !== 'string') {
+                        styleObject[val] = optionalFactory(styleObject[val], styleMap[val]);
                     }
                 }
             });
@@ -1487,6 +1503,16 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                     projection: projection,
                     imageExtent: projection.getExtent(),
                     imageLoadFunction: source.imageLoadFunction
+                });
+                break;
+            case 'XYZ':
+                if (!source.url) {
+                    $log.error('[AngularJS - Openlayers] - XYZ Layer needs valid url and params properties');
+                }
+                oSource = new ol.source.XYZ({
+                    url: source.url,
+                    minZoom: source.minZoom,
+                    maxZoom: source.maxZoom
                 });
                 break;
         }
@@ -1981,4 +2007,4 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
     };
 }]);
 
-}());
+}));

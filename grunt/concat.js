@@ -1,15 +1,15 @@
 'use strict';
 
-var banner = '+(function (root, factory) {\n' +
+var banner = '(function (root, factory) {\n' +
              '    if (typeof define === \'function\' && define.amd) {\n' +
              '        // AMD.\n' +
-             '        define([\'ol\'], function (ol) {' +
-             '            return root.angularOpenlayersDirective = factory(ol);' +
-             '        });'
-             '    } else {' +
-             '        // Browser globals' +
-             '        root.angularOpenlayersDirective = factory(root.ol);' +
-             '    }' +
+             '        define([\'ol\'], function (ol) {\n' +
+             '            return root.angularOpenlayersDirective = factory(ol);\n' +
+             '        });\n' +
+             '    } else {\n' +
+             '        // Browser globals\n' +
+             '        root.angularOpenlayersDirective = factory(root.ol);\n' +
+             '    }\n' +
              '}(this, function (ol) {\n';
 
 module.exports = function (grunt, options) {
@@ -17,7 +17,7 @@ module.exports = function (grunt, options) {
         dist: {
             options: {
                 banner: banner,
-                footer: '\n});'
+                footer: '\n}));'
             },
             src: [
                 'src/directives/openlayers.js',
