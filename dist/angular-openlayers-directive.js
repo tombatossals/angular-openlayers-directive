@@ -1217,6 +1217,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
                 oSource = new ol.source.XYZ({
                     url: url,
+                    attributions: createAttribution(source),
                     tilePixelRatio: pixelRatio > 1 ? 2 : 1
                 });
                 break;
@@ -1227,6 +1228,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 }
                 oSource = new ol.source.ImageWMS({
                     url: source.url,
+                    attributions: createAttribution(source),
                     crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
                     params: source.params
                 });
@@ -1240,7 +1242,8 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
                 var wmsConfiguration = {
                     crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
-                    params: source.params
+                    params: source.params,
+                    attributions: createAttribution(source)
                 };
 
                 if (source.url) {
@@ -1263,6 +1266,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 var wmtsConfiguration = {
                     projection: projection,
                     layer: source.layer,
+                    attributions: createAttribution(source),
                     matrixSet: (source.matrixSet === 'undefined') ? projection : source.matrixSet,
                     format: (source.format === 'undefined') ? 'image/jpeg' : source.format,
                     requestEncoding: (source.requestEncoding === 'undefined') ?
@@ -1286,17 +1290,9 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 break;
 
             case 'OSM':
-                if (source.attribution) {
-                    var attributions = [];
-                    if (isDefined(source.attribution)) {
-                        attributions.unshift(new ol.Attribution({ html: source.attribution }));
-                    }
-                    oSource = new ol.source.OSM({
-                        attributions: attributions
-                    });
-                } else {
-                    oSource = new ol.source.OSM();
-                }
+                oSource = new ol.source.OSM({
+                    attributions: createAttribution(source)
+                });
 
                 if (source.url) {
                     oSource.setUrl(source.url);
@@ -1311,6 +1307,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
                 var bingConfiguration = {
                     key: source.key,
+                    attributions: createAttribution(source),
                     imagerySet: source.imagerySet ? source.imagerySet : bingImagerySets[0]
                 };
 
@@ -1328,6 +1325,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 }
 
                 oSource = new ol.source.MapQuest({
+                    attributions: createAttribution(source),
                     layer: source.layer
                 });
 
@@ -1342,7 +1340,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 var _urlBase = 'http://services.arcgisonline.com/ArcGIS/rest/services/';
                 var _url = _urlBase + source.layer + '/MapServer/tile/{z}/{y}/{x}';
 
-                oSource = new ol.source.XYZ({ url: _url });
+                oSource = new ol.source.XYZ({
+                    attributions: createAttribution(source),
+                    url: _url
+                });
 
                 break;
 
@@ -1409,6 +1410,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
             case 'TileJSON':
                 oSource = new ol.source.TileJSON({
                     url: source.url,
+                    attributions: createAttribution(source),
                     crossOrigin: 'anonymous'
                 });
                 break;
@@ -1420,6 +1422,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 oSource = new ol.source.TileVector({
                     url: source.url,
                     projection: projection,
+                    attributions: createAttribution(source),
                     format: source.format,
                     tileGrid: new ol.tilegrid.XYZ({
                         maxZoom: source.maxZoom || 19
@@ -1434,6 +1437,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 oSource = new ol.source.TileImage({
                     url: source.url,
                     maxExtent: source.maxExtent,
+                    attributions: createAttribution(source),
                     tileGrid: new ol.tilegrid.TileGrid({
                         origin: source.tileGrid.origin,
                         resolutions: source.tileGrid.resolutions
@@ -1457,6 +1461,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
             case 'TileImage':
                 oSource = new ol.source.TileImage({
                     url: source.url,
+                    attributions: createAttribution(source),
                     tileGrid: new ol.tilegrid.TileGrid({
                         origin: source.tileGrid.origin, // top left corner of the pixel projection's extent
                         resolutions: source.tileGrid.resolutions
@@ -1499,6 +1504,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
                 oSource = new ol.source.ImageStatic({
                     url: source.url,
+                    attributions: createAttribution(source),
                     imageSize: source.imageSize,
                     projection: projection,
                     imageExtent: projection.getExtent(),
@@ -1511,6 +1517,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 }
                 oSource = new ol.source.XYZ({
                     url: source.url,
+                    attributions: createAttribution(source),
                     minZoom: source.minZoom,
                     maxZoom: source.maxZoom
                 });
@@ -1523,6 +1530,14 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
         }
 
         return oSource;
+    };
+
+    var createAttribution = function(source) {
+        var attributions = [];
+        if (isDefined(source.attribution)) {
+            attributions.unshift(new ol.Attribution({html: source.attribution}));
+        }
+        return attributions;
     };
 
     return {

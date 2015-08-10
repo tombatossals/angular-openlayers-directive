@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+<head>
+    <script src="../bower_components/openlayers3/build/ol.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css"/>
+    <script>
+        var projection = ol.proj.get('EPSG:3857');
+        var projectionExtent = projection.getExtent();
+        var size = ol.extent.getWidth(projectionExtent) / 256;
+        var resolutions = new Array(14);
+        var matrixIds = new Array(14);
+        for (var z = 0; z < 14; ++z) {
+            // generate resolutions and matrixIds arrays for this WMTS
+            resolutions[z] = size / Math.pow(2, z);
+            matrixIds[z] = z;
+        }
+        var app = angular.module("demoapp", ["openlayers-directive"]);
+        app.controller('DemoController', ['$scope', function ($scope) {
+            angular.extend($scope, {
+                usa: {
+                    lat: 37.7,
+                    lon: -96.67,
+                    zoom: 5
+                },
+                wms: {
+                    source: {
+                        type: 'ImageWMS',
+                        url: 'http://demo.opengeo.org/geoserver/wms',
+                        params: {LAYERS: 'topp:states'},
+                        attribution: 'State Boundaries &copy; <a href="http://www.dummyurl.com/" target="_blank">Data Provider1</a>'
+                    }
+                },
+                wmts: {
+                    source: {
+                        type: 'WMTS',
+                        url: 'http://services.arcgisonline.com/arcgis/rest/' +
+                        'services/Demographics/USA_Population_Density/MapServer/WMTS/',
+                        attribution: 'Population density &copy; <a href="http://www.esri.com/" target="_blank">Esri</a>',
+                        tileGrid: {
+                            origin: ol.extent.getTopLeft(projectionExtent),
+                            resolutions: resolutions,
+                            matrixIds: matrixIds
+                        }
+                    }
+                }
+            });
+        }]);
+    </script>
+</head>
+<body ng-controller="DemoController">
+<openlayers ol-center="usa" height="400px">
+    <ol-layer ol-layer-properties="wms"></ol-layer>
+    <ol-layer ol-layer-properties="wmts"></ol-layer>
+</openlayers>
+
+<h1>WMS Image Layer with Attribution</h1>
+
+<p>This map uses a WMS image layer from a geoserver with custom annotation defined in the layer object.</p>
+</div>
+
+</body>
+</html>
