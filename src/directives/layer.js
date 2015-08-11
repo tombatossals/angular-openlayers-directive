@@ -96,7 +96,10 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                             } else {
                                 style = properties.style;
                             }
-                            olLayer.setStyle(style);
+                            // not every layer has a setStyle method
+                            if (olLayer.setStyle && angular.isFunction(olLayer.setStyle)) {
+                                olLayer.setStyle(style);
+                            }
                         }
 
                     } else {
@@ -154,7 +157,10 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                             } else {
                                 style = properties.style;
                             }
-                            olLayer.setStyle(style);
+                            // not every layer has a setStyle method
+                            if (olLayer.setStyle && angular.isFunction(olLayer.setStyle)) {
+                                olLayer.setStyle(style);
+                            }
                         }
                     }
                 }, true);
