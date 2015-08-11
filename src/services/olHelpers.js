@@ -679,7 +679,11 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         var pixel = map.getEventPixel(evt);
                         var feature = map.forEachFeatureAtPixel(pixel, function(feature, olLayer) {
                             // only return the feature if it is in this layer (based on the name)
-                            return (olLayer.get('name') === layerName) ? feature : null;
+                            // return undefined if layer is null or name does not match so event is not dispatched
+                            if(angular.isDefined(olLayer) && olLayer != null){
+                                return (olLayer.get('name') === layerName) ? feature : undefined;
+                            }
+                            return undefined;
                         });
                         if (isDefined(feature)) {
                             scope.$emit('openlayers.layers.' + layerName + '.' + eventType, feature, evt);
