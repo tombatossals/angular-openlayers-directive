@@ -689,6 +689,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             }
         },
 
+        setViewEvents: function (events, map, scope) {
+            if (isDefined(events) && angular.isArray(events.view)) {
+                var view = map.getView();
+                angular.forEach(events.view, function(eventType){
+                    view.on(eventType, function (event) {
+                        scope.$emit('openlayers.view.' + eventType, view, event);
+                    });
+                });
+            }
+        },
+
         detectLayerType: detectLayerType,
 
         createLayer: function(layer, projection, name) {
