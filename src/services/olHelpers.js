@@ -5,7 +5,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
     };
 
     var isDefinedAndNotNull = function(value){
-        return angular.isDefined(value) && value != null;
+        return angular.isDefined(value) && value !== null;
     };
 
     var setEvent = function(map, eventType, scope) {
