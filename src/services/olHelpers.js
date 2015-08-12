@@ -554,9 +554,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         },
 
         // Determine if a reference is defined and not null
-        isDefinedAndNotNull: function(value) {
-            return angular.isDefined(value) && value !== null;
-        },
+        isDefinedAndNotNull: isDefinedAndNotNull,
 
         // Determine if a reference is a string
         isString: function(value) {
