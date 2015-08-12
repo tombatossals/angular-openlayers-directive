@@ -40,6 +40,7 @@ angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', [
                 var isDefined = olHelpers.isDefined;
                 var createLayer = olHelpers.createLayer;
                 var setMapEvents = olHelpers.setMapEvents;
+                var setViewEvents = olHelpers.setViewEvents;
                 var createView = olHelpers.createView;
                 var defaults = olMapDefaults.setDefaults(scope);
 
@@ -110,6 +111,9 @@ angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', [
 
                 // Set the Default events for the map
                 setMapEvents(defaults.events, map, scope);
+
+                //Set the Default events for the map view
+                setViewEvents(defaults.events, map, scope);
 
                 // Resolve the map object to the promises
                 scope.setMap(map);
@@ -401,7 +405,10 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                             } else {
                                 style = properties.style;
                             }
-                            olLayer.setStyle(style);
+                            // not every layer has a setStyle method
+                            if (olLayer.setStyle && angular.isFunction(olLayer.setStyle)) {
+                                olLayer.setStyle(style);
+                            }
                         }
 
                     } else {
@@ -459,7 +466,10 @@ angular.module('openlayers-directive').directive('olLayer', ["$log", "$q", "olMa
                             } else {
                                 style = properties.style;
                             }
-                            olLayer.setStyle(style);
+                            // not every layer has a setStyle method
+                            if (olLayer.setStyle && angular.isFunction(olLayer.setStyle)) {
+                                olLayer.setStyle(style);
+                            }
                         }
                     }
                 }, true);
@@ -1695,6 +1705,17 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                         if (isDefined(feature)) {
                             scope.$emit('openlayers.layers.' + layerName + '.' + eventType, feature, evt);
                         }
+                    });
+                });
+            }
+        },
+
+        setViewEvents: function(events, map, scope) {
+            if (isDefined(events) && angular.isArray(events.view)) {
+                var view = map.getView();
+                angular.forEach(events.view, function(eventType) {
+                    view.on(eventType, function(event) {
+                        scope.$emit('openlayers.view.' + eventType, view, event);
                     });
                 });
             }
