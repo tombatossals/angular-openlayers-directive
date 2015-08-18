@@ -301,7 +301,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 var bingConfiguration = {
                     key: source.key,
                     attributions: createAttribution(source),
-                    imagerySet: source.imagerySet ? source.imagerySet : bingImagerySets[0]
+                    imagerySet: source.imagerySet ? source.imagerySet : bingImagerySets[0],
+                    culture: source.culture
                 };
 
                 if (source.maxZoom) {
