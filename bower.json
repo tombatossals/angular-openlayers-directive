@@ -1,7 +1,7 @@
 {
   "name": "angular-openlayers-directive",
   "description": "AngularJS directive to embed an interact with maps managed by OpenLayers library",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "keywords": [
     "angularjs",
     "javascript",
