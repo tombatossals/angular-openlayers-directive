@@ -18,3 +18,4 @@ dist/app.js
 dist/app.min.js
 dist/app.pre.js
 dist/app.min.no-header.js
+*.log
