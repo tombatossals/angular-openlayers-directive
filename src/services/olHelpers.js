@@ -4,7 +4,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         return angular.isDefined(value);
     };
 
-    var isDefinedAndNotNull = function(value){
+    var isDefinedAndNotNull = function(value) {
         return angular.isDefined(value) && value !== null;
     };
 
