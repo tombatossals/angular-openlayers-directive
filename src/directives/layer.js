@@ -20,6 +20,9 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
             var isNumber    = olHelpers.isNumber;
             var insertLayer = olHelpers.insertLayer;
             var removeLayer = olHelpers.removeLayer;
+            var addLayerToGroup = olHelpers.addLayerToGroup;
+            var removeLayerFromGroup = olHelpers.removeLayerFromGroup;
+            var getGroup = olHelpers.getGroup;
 
             olScope.getMap().then(function(map) {
                 var projection = map.getView().getProjection();
@@ -28,7 +31,12 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                 var olLayer;
 
                 scope.$on('$destroy', function() {
-                    removeLayer(layerCollection, olLayer.index);
+                    if (scope.properties.group) {
+                        removeLayerFromGroup(layerCollection, olLayer, scope.properties.group);
+                    } else {
+                        removeLayer(layerCollection, olLayer.index);
+                    }
+
                     map.removeLayer(olLayer);
                 });
 
@@ -65,10 +73,12 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                         return;
                     }
 
-                    var style;
+                    var style, group, collection;
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
-                        if (isDefined(properties.index)) {
+                        if (isDefined(properties.group)) {
+                            addLayerToGroup(layerCollection, olLayer, properties.group);
+                        } else if (isDefined(properties.index)) {
                             insertLayer(layerCollection, properties.index, olLayer);
                         } else {
                             addLayerBeforeMarkers(layerCollection, olLayer);
@@ -115,12 +125,20 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                         // set source properties
                         if (isDefined(oldProperties) && !equals(properties.source, oldProperties.source)) {
                             var idx = olLayer.index;
-                            layerCollection.removeAt(idx);
+                            collection = layerCollection;
+                            group = olLayer.get('group');
+
+                            if (group) {
+                                collection = getGroup(layerCollection, group).getLayers();
+                            }
+
+                            collection.removeAt(idx);
 
                             olLayer = createLayer(properties, projection);
+                            olLayer.set('group', group);
 
                             if (isDefined(olLayer)) {
-                                insertLayer(layerCollection, idx, olLayer);
+                                insertLayer(collection, idx, olLayer);
 
                                 if (detectLayerType(properties) === 'Vector') {
                                     setVectorLayerEvents(defaults.events, map, scope, properties.name);
@@ -138,8 +156,21 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
 
                         // set index
                         if (isDefined(properties.index) && properties.index !== olLayer.index) {
-                            removeLayer(layerCollection, olLayer.index);
-                            insertLayer(layerCollection, properties.index, olLayer);
+                            collection = layerCollection;
+                            group = olLayer.get('group');
+
+                            if (group) {
+                                collection = getGroup(layerCollection, group).getLayers();
+                            }
+
+                            removeLayer(collection, olLayer.index);
+                            insertLayer(collection, properties.index, olLayer);
+                        }
+
+                        // set group
+                        if (isDefined(properties.group) && properties.group !== oldProperties.group) {
+                            removeLayerFromGroup(layerCollection, olLayer, oldProperties.group);
+                            addLayerToGroup(layerCollection, olLayer, properties.group);
                         }
 
                         // set visibility

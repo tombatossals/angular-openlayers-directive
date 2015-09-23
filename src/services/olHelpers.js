@@ -536,6 +536,63 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         return attributions;
     };
 
+    var createGroup = function(name) {
+        var olGroup = new ol.layer.Group();
+        olGroup.set('name', name);
+
+        return olGroup;
+    };
+
+    var getGroup = function(layers, name) {
+        var layer;
+
+        angular.forEach(layers, function(l) {
+            if (l instanceof ol.layer.Group && l.get('name') === name) {
+                layer = l;
+                return;
+            }
+        });
+
+        return layer;
+    };
+
+    var addLayerBeforeMarkers = function(layers, layer) {
+        var markersIndex;
+        for (var i = 0; i < layers.getLength(); i++) {
+            var l = layers.item(i);
+
+            if (l.get('markers')) {
+                markersIndex = i;
+                break;
+            }
+        }
+
+        if (isDefined(markersIndex)) {
+            var markers = layers.item(markersIndex);
+            layer.index = markersIndex;
+            layers.setAt(markersIndex, layer);
+            markers.index = layers.getLength();
+            layers.push(markers);
+        } else {
+            layer.index = layers.getLength();
+            layers.push(layer);
+        }
+
+    };
+
+    var removeLayer = function(layers, index) {
+        layers.removeAt(index);
+        for (var i = index; i < layers.getLength(); i++) {
+            var l = layers.item(i);
+            if (l === null) {
+                layers.insertAt(i, null);
+                break;
+            } else {
+                l.index = i;
+            }
+        }
+    };
+
     return {
         // Determine if a reference is defined
         isDefined: isDefined,
@@ -810,42 +867,30 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             }
             return feature;
         },
-        addLayerBeforeMarkers: function(layers, layer) {
-            var markersIndex;
-            for (var i = 0; i < layers.getLength(); i++) {
-                var l = layers.item(i);
 
-                if (l.get('markers')) {
-                    markersIndex = i;
-                    break;
-                }
+        addLayerBeforeMarkers: addLayerBeforeMarkers,
+
+        getGroup: getGroup,
+
+        addLayerToGroup: function(layers, layer, name) {
+            var groupLayer = getGroup(layers, name);
+
+            if (!isDefined(groupLayer)) {
+                groupLayer = createGroup(name);
+                addLayerBeforeMarkers(layers,groupLayer);
             }
 
-            if (isDefined(markersIndex)) {
-                var markers = layers.item(markersIndex);
-                layer.index = markersIndex;
-                layers.setAt(markersIndex, layer);
-                markers.index = layers.getLength();
-                layers.push(markers);
-            } else {
-                layer.index = layers.getLength();
-                layers.push(layer);
-            }
-
+            layer.set('group', name);
+            addLayerBeforeMarkers(groupLayer.getLayers(), layer);
         },
 
-        removeLayer: function(layers, index) {
-            layers.removeAt(index);
-            for (var i = index; i < layers.getLength(); i++) {
-                var l = layers.item(i);
-                if (l === null) {
-                    layers.insertAt(i, null);
-                    break;
-                } else {
-                    l.index = i;
-                }
-            }
+        removeLayerFromGroup: function(layers, layer, name) {
+            var groupLayer = getGroup(layers, name);
+            layer.set('group');
+            removeLayer(groupLayer.getLayers(), layer.index);
         },
+
+        removeLayer: removeLayer,
 
         insertLayer: function(layers, index, layer) {
             if (layers.getLength() < index) {

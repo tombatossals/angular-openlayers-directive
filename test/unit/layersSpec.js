@@ -235,4 +235,106 @@ describe('Directive: openlayers layers', function() {
         expect(style).toEqual(styleAfter);
     });
 
+    it('should create a group layer', function() {
+        var layers = [
+            {
+                name: 'Italy',
+                group: 'GeoJSON',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/ITA.geo.json'
+                }
+            },
+            {
+                name: 'France',
+                group: 'GeoJSON',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/FRA.geo.json'
+                }
+            },
+            {
+                name: 'Spain',
+                group: 'GeoJSON',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/ESP.geo.json'
+                }
+            },
+            {
+                name: 'Lisbon',
+                group: 'GeoJSON',
+                source: {
+                    type: 'GeoJSON',
+                    url: 'json/LIS.geo.json'
+                }
+            },
+            {
+                //No Group so should be top level
+                name: 'OSM',
+                source: {
+                    type: 'OSM'
+                }
+            }
+        ];
+        angular.extend(scope, { layers: layers });
+        var element = angular.element('<openlayers custom-layers="true">' +
+            '<ol-layer ol-layer-properties="layer" ng-repeat="layer in layers">' +
+            '</openlayers>');
+        $compile(element)(scope);
+        scope.$digest();
+
+        // assert
+        var olLayers;
+        var groupLayer;
+        olData.getMap().then(function(olMap) {
+            olLayers = olMap.getLayers();
+            olLayers.forEach(function(layer) {
+                if (layer.get('name') === 'GeoJSON') {
+                    groupLayer = layer;
+                }
+            });
+        });
+
+        scope.$digest();
+        expect(olLayers.get('length')).toEqual(2);
+
+        //Check the GeoJSON layer
+        expect(groupLayer).toBeDefined();
+        expect(groupLayer).toEqual(jasmine.any(ol.layer.Group));
+        expect(groupLayer.getVisible()).toBeTruthy();
+        expect(groupLayer.getLayers().get('length')).toEqual(4);
+
+        // changing group properties should rearrange layers
+        scope.layers[0].group = 'Other';
+        scope.$digest();
+        var otherLayer;
+        olData.getMap().then(function(olMap) {
+            olLayers = olMap.getLayers();
+            olLayers.forEach(function(layer) {
+                if (layer.get('name') === 'GeoJSON') {
+                    groupLayer = layer;
+                }
+
+                if (layer.get('name') === 'Other') {
+                    otherLayer = layer;
+                }
+            });
+        });
+        scope.$digest();
+        expect(olLayers.get('length')).toEqual(3);
+
+        //Check the GeoJSON layer
+        expect(groupLayer).toBeDefined();
+        expect(groupLayer).toEqual(jasmine.any(ol.layer.Group));
+        expect(groupLayer.getLayers().get('length')).toEqual(3);
+        expect(groupLayer.getLayers().getArray()[0].get('group')).toEqual('GeoJSON');
+
+        //Check the other layer
+        expect(otherLayer).toBeDefined();
+        expect(otherLayer).toEqual(jasmine.any(ol.layer.Group));
+        expect(otherLayer.getLayers().get('length')).toEqual(1);
+        expect(otherLayer.getLayers().getArray()[0].get('group')).toEqual('Other');
+
+    });
 });
