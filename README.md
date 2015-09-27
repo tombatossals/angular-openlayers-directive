@@ -61,6 +61,21 @@ You can take a look at the current documentation go get a more detailed explanat
 - [Defaults attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/03-defaults-attribute.md)
 - [Layers attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/04-layers-attribute.md)
 
+Install
+--------
+
+Build the files yourself, download from bower
+
+```
+$ bower install angular-openlayers-directive --save
+```
+
+or from npm
+
+```
+$ npm install angular-openlayers-directive --save
+```
+
 Quick start: How to use it
 --------------------------
 
