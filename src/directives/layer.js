@@ -73,7 +73,9 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                         return;
                     }
 
-                    var style, group, collection;
+                    var style;
+                    var group;
+                    var collection;
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
                         if (isDefined(properties.group)) {

@@ -50,7 +50,7 @@ describe('Directive: openlayers layers', function() {
         expect(layers.item(1).getSource() instanceof ol.source.TileJSON).toBe(true);
     });
 
-    it('should properly render a GeoJSON layer containing the GeoJSON object', function(){
+    it('should properly render a GeoJSON layer containing the GeoJSON object', function() {
         scope.geoJsonLayer = {
             source: {
                 type: 'GeoJSON',

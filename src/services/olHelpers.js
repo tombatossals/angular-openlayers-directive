@@ -358,7 +358,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     }
 
                     var geojsonFormat = new ol.format.GeoJSON();
-                    var features = geojsonFormat.readFeatures(source.geojson.object, { featureProjection: projectionToUse });
+                    var features = geojsonFormat.readFeatures(
+                        source.geojson.object, { featureProjection: projectionToUse });
 
                     oSource.addFeatures(features);
                 }
