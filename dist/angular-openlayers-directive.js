@@ -763,6 +763,55 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                 var pos;
                 var marker;
 
+                // This function handles dragging a marker
+                var pickOffset = null;
+                var pickProperties = null;
+                function handleDrag(evt) {
+                    var coord = evt.coordinate;
+                    var proj = map.getView().getProjection().getCode();
+                    if (proj === 'pixel') {
+                        coord = coord.map(function(v) {
+                            return parseInt(v, 10);
+                        });
+                    }
+                    coord = ol.proj.transform(coord, proj, 'EPSG:4326');
+
+                    if (evt.type === 'pointerdown') {
+                        // Get feature under mouse if any
+                        var feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) {
+                            return feature;
+                        });
+                        // Get associated marker properties
+                        pickProperties = (feature ? feature.get('marker') : null);
+                        if (!pickProperties || !pickProperties.draggable) {
+                            pickProperties = null;
+                            return;
+                        }
+                        map.getTarget().style.cursor = 'pointer';
+                        pickOffset = [coord[0] - pickProperties.lon, coord[1] - pickProperties.lat];
+                        evt.preventDefault();
+                    } else if (pickOffset && pickProperties) {
+                        if (evt.type === 'pointerup') {
+                            map.getTarget().style.cursor = '';
+                            pickOffset = null;
+                            pickProperties = null;
+                            evt.preventDefault();
+                        } else if (evt.type === 'pointerdrag') {
+                            evt.preventDefault();
+                            scope.$apply(function() {
+                                // Add current delta to marker initial position
+                                pickProperties.lon = coord[0] - pickOffset[0];
+                                pickProperties.lat = coord[1] - pickOffset[1];
+                            });
+                        }
+                    }
+                }
+
+                // Setup generic handlers for marker drag
+                map.on('pointerdown', handleDrag);
+                map.on('pointerup', handleDrag);
+                map.on('pointerdrag', handleDrag);
+
                 scope.$on('$destroy', function() {
                     markerLayer.getSource().removeFeature(marker);
                     if (isDefined(label)) {
@@ -782,6 +831,8 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                         $log.error('[AngularJS - Openlayers] Received invalid data on ' +
                             'the marker.');
                     }
+                    // Add a link between the feature and the marker properties
+                    marker.set('marker', scope);
                     markerLayer.getSource().addFeature(marker);
 
                     if (data.message || hasTranscluded) {
@@ -796,36 +847,16 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
 
                 scope.$watch('properties', function(properties) {
 
-                    // Made to filter out click/tap events if both are being triggered on this platform
-                    var handleTapInteraction = (function() {
-                        var cooldownActive = false;
-                        var prevTimeout;
+                    // Remove previous listeners if any
+                    map.getViewport().removeEventListener('mousemove', properties.handleInteraction);
+                    map.getViewport().removeEventListener('click', properties.handleTapInteraction);
+                    map.getViewport().querySelector('canvas.ol-unselectable').removeEventListener(
+                        'touchend', properties.handleTapInteraction);
+                    map.getViewport().removeEventListener('mousemove', properties.showAtLeastOneOverlay);
+                    map.getViewport().removeEventListener('click', properties.removeAllOverlays);
 
-                        // Sets the cooldown flag to filter out any subsequent events within 500 ms
-                        function activateCooldown() {
-                            cooldownActive = true;
-                            if (prevTimeout) {
-                                clearTimeout(prevTimeout);
-                            }
-                            prevTimeout = setTimeout(function() {
-                                cooldownActive = false;
-                                prevTimeout = null;
-                            }, 500);
-                        }
-
-                        // Preventing from 'touchend' to be considered a tap, if fired immediately after 'touchmove'
-                        map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
-                            'touchmove', activateCooldown);
-
-                        return function() {
-                            if (!cooldownActive) {
-                                handleInteraction.apply(null, arguments);
-                                activateCooldown();
-                            }
-                        };
-                    })();
-
-                    function handleInteraction(evt) {
+                    // This function handles popup on mouse over/click
+                    properties.handleInteraction = function(evt) {
                         if (properties.label.show) {
                             return;
                         }
@@ -841,9 +872,9 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                             found = true;
                             if (!isDefined(label)) {
                                 if (data.projection === 'pixel') {
-                                    pos = data.coord;
+                                    pos = properties.coord;
                                 } else {
-                                    pos = ol.proj.transform([data.lon, data.lat],
+                                    pos = ol.proj.transform([properties.lon, properties.lat],
                                         data.projection, viewProjection);
                                 }
                                 label = createOverlay(element, pos);
@@ -868,9 +899,38 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                         if (actionTaken) {
                             evt.preventDefault();
                         }
-                    }
+                    };
 
-                    function showAtLeastOneOverlay(evt) {
+                    // Made to filter out click/tap events if both are being triggered on this platform
+                    properties.handleTapInteraction = (function() {
+                        var cooldownActive = false;
+                        var prevTimeout;
+
+                        // Sets the cooldown flag to filter out any subsequent events within 500 ms
+                        function activateCooldown() {
+                            cooldownActive = true;
+                            if (prevTimeout) {
+                                clearTimeout(prevTimeout);
+                            }
+                            prevTimeout = setTimeout(function() {
+                                cooldownActive = false;
+                                prevTimeout = null;
+                            }, 500);
+                        }
+
+                        // Preventing from 'touchend' to be considered a tap, if fired immediately after 'touchmove'
+                        map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
+                            'touchmove', activateCooldown);
+
+                        return function() {
+                            if (!cooldownActive) {
+                                properties.handleInteraction.apply(null, arguments);
+                                activateCooldown();
+                            }
+                        };
+                    })();
+
+                    properties.showAtLeastOneOverlay = function(evt) {
                         if (properties.label.show) {
                             return;
                         }
@@ -909,14 +969,14 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                         if (actionTaken) {
                             evt.preventDefault();
                         }
-                    }
+                    };
 
-                    function removeAllOverlays(evt) {
+                    properties.removeAllOverlays = function(evt) {
                         angular.forEach(map.getOverlays(), function(value) {
                             map.removeOverlay(value);
                         });
                         evt.preventDefault();
-                    }
+                    };
 
                     if (!isDefined(marker)) {
                         data.projection = properties.projection ? properties.projection :
@@ -936,6 +996,8 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                             $log.error('[AngularJS - Openlayers] Received invalid data on ' +
                                 'the marker.');
                         }
+                        // Add a link between the feature and the marker properties
+                        marker.set('marker', properties);
                         markerLayer.getSource().addFeature(marker);
                     } else {
                         var requestedPosition = ol.proj.transform([properties.lon, properties.lat], data.projection,
@@ -976,23 +1038,24 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                         label = undefined;
                     }
 
+                    // Then setup new ones according to properties
                     if (properties.label && properties.label.show === false &&
                         properties.label.showOnMouseOver) {
-                        map.getViewport().addEventListener('mousemove', handleInteraction);
+                        map.getViewport().addEventListener('mousemove', properties.handleInteraction);
                     }
 
                     if ((properties.label && properties.label.show === false &&
                         properties.label.showOnMouseClick) ||
                         properties.onClick) {
-                        map.getViewport().addEventListener('click', handleTapInteraction);
+                        map.getViewport().addEventListener('click', properties.handleTapInteraction);
                         map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
-                            'touchend', handleTapInteraction);
+                            'touchend', properties.handleTapInteraction);
                     }
 
                     if ((properties.label && properties.label.show === false &&
                         properties.label.keepOneOverlayVisible)) {
-                        map.getViewport().addEventListener('mousemove', showAtLeastOneOverlay);
-                        map.getViewport().addEventListener('click', removeAllOverlays);
+                        map.getViewport().addEventListener('mousemove', properties.showAtLeastOneOverlay);
+                        map.getViewport().addEventListener('click', properties.removeAllOverlays);
                     }
                 }, true);
             });
