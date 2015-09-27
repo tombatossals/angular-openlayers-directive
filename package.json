@@ -1,6 +1,9 @@
 {
-  "author": "https://github.com/tombatossals/angular-openlayers-directive/graphs/contributors",
   "name": "angular-openlayers-directive",
+  "author": "David Rubert <a@a.com>",
+  "contributors": [
+    "Juri Strumpflohner <juri.strumpflohner@gmail.com>"
+  ],
   "description": "angular-openlayers-directive - An AngularJS directive to easily interact with Openlayers maps",
   "homepage": "http://tombatossals.github.io/angular-openlayers-directive/",
   "repository": {
@@ -47,10 +50,14 @@
     "matchdep": "~0.3.0",
     "phantomjs": "^1.9.18",
     "protractor": "^2.0.0",
-    "semantic-release": "^4.1.0"
+    "publish-latest": "^1.1.2",
+    "semantic-release": "^4.3.5"
   },
   "scripts": {
-    "test": "grunt travis --verbose",
+    "test": "grunt build && grunt karma:unit",
+    "build": "grunt build",
+    "prepublish": "npm run build",
+    "postpublish": "publish-latest",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "main": "dist/angular-openlayers-directive"
