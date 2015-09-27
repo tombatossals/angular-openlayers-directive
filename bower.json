@@ -1,7 +1,6 @@
 {
   "name": "angular-openlayers-directive",
   "description": "AngularJS directive to embed an interact with maps managed by OpenLayers library",
-  "version": "0.1.0",
   "keywords": [
     "angularjs",
     "javascript",
@@ -25,11 +24,14 @@
     "**/.*",
     "src",
     "doc",
+    "grunt",
     "examples",
     "test",
     "*.md",
     "Gruntfile.js",
     "package.json",
-    "bower.json"
+    "bower.json",
+    "node_modules",
+    "bower_components"
   ]
 }
