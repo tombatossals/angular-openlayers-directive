@@ -111,7 +111,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                         });
                     }
                     coord = ol.proj.transform(coord, proj, 'EPSG:4326');
-                    
+
                     if (evt.type === 'pointerdown') {
                         // Get feature under mouse if any
                         var feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) {
