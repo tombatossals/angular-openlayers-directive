@@ -421,7 +421,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     projection: projection,
                     attributions: createAttribution(source),
                     format: source.format,
-                    tileGrid: new ol.tilegrid.XYZ({
+                    tileGrid: new ol.tilegrid.createXYZ({
                         maxZoom: source.maxZoom || 19
                     })
                 });
