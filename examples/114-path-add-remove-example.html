@@ -28,7 +28,7 @@
             $scope.pathList = angular.copy(pathList);
           $scope.deleteLastPath = function () {
              if ($scope.pathList.length > 0){
-               $scope.pathList.pop();
+               $scope.pathList = [];
              } else {
                $scope.pathList = angular.copy(pathList);
              }
@@ -44,7 +44,7 @@
       </openlayers>
       <h1>Adding a path to the map</h1>
       <p>You can add a path to the map easily with the <strong>ol-path</strong> sub-directive.</p>
-      <input type="button" value="Add/remove path" ng-click="deleteLastPath()">
+      <input id="add-remove-btn" type="button" value="Add/remove path" ng-click="deleteLastPath()">
      <pre ng-bind="pathList | json"></pre>
   </body>
 </html>
