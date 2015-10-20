@@ -20,7 +20,7 @@ describe('Loading 114-path-add-remove-example.html', function() {
         browser.get('/examples/114-path-add-remove-example.html');
     }, 30000);
 
-    it('add should display label on map', function() {
+    it('add path should display label on map', function() {
         var displayPath = element.all(by.className('popup-label'));
         
         var displayLabels = displayPath.map(function(elem){
@@ -34,7 +34,7 @@ describe('Loading 114-path-add-remove-example.html', function() {
         expect(displayLabels).toEqual(expectedLabels.reverse());
     });
 
-    it('add should display path on map', function() {
+    it('add path should display path on map', function() {
         var displayPath = element.all(by.className('path'));
         
         var displayCoords = displayPath.map(function(elem){
@@ -48,7 +48,7 @@ describe('Loading 114-path-add-remove-example.html', function() {
         expect(displayCoords).toEqual(expectedCoordinate.reverse());
     });
 
-    it('remove should clear path on map', function() {
+    it('remove path should clear path on map', function() {
 
         var removeButton = element(by.id('add-remove-btn'));
         removeButton.click();
