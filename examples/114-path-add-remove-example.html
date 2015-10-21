@@ -11,6 +11,12 @@
         var app = angular.module("demoapp", ["openlayers-directive"]);
         app.controller("DemoController", [ '$scope', function($scope) {
 
+            var markers = [
+                {lon: -58.38, lat: -34.60},
+                {lon: -58.58,lat: -34.60}
+            ];
+            $scope.markers = angular.copy(markers);
+
             var pathList = [
                 {
                     message: "This is a path",
@@ -27,9 +33,11 @@
             ];
             $scope.pathList = angular.copy(pathList);
             $scope.deleteLastPath = function () {
-                if ($scope.pathList.length > 0){
+                if ($scope.markers.length > 0){
+                    $scope.markers = [];
                     $scope.pathList = [];
                 } else {
+                    $scope.markers = angular.copy(markers);
                     $scope.pathList = angular.copy(pathList);
                 }
             };
@@ -38,9 +46,8 @@
 </head>
 <body ng-controller="DemoController">
 <openlayers lat="-34.60" lon="-58.38" zoom="10" height="400px" width="100%">
-    <div ng-repeat="path in pathList">
-        <ol-path message="{{path.message}}" coords="{{path.coords}}"></ol-path>
-    </div>
+    <ol-marker ng-repeat="marker in markers" lat="marker.lat" lon="marker.lon"></ol-marker>'
+    <ol-path message="{{path.message}}" coords="{{path.coords}}" ng-repeat="path in pathList"></ol-path>
 </openlayers>
 <h1>Adding a path to the map</h1>
 <p>You can add a path to the map easily with the <strong>ol-path</strong> sub-directive.</p>

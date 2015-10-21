@@ -21,7 +21,7 @@ describe('Loading 114-path-add-remove-example.html', function() {
     }, 30000);
 
     it('add path should display label on map', function() {
-        var displayPath = element.all(by.className('popup-label'));
+        var displayPath = $$('.popup-label.path');
 
         var displayLabels = displayPath.map(function(elem) {
             return elem.getAttribute('message');
@@ -35,7 +35,7 @@ describe('Loading 114-path-add-remove-example.html', function() {
     });
 
     it('add path should display path on map', function() {
-        var displayPath = element.all(by.className('path'));
+        var displayPath = $$('.popup-label.path');
 
         var displayCoords = displayPath.map(function(elem) {
             return elem.getAttribute('coords');
