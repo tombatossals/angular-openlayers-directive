@@ -33,11 +33,9 @@
             ];
             $scope.pathList = angular.copy(pathList);
             $scope.deleteLastPath = function () {
-                if ($scope.markers.length > 0){
-                    $scope.markers = [];
+                if ($scope.pathList.length > 0){
                     $scope.pathList = [];
                 } else {
-                    $scope.markers = angular.copy(markers);
                     $scope.pathList = angular.copy(pathList);
                 }
             };

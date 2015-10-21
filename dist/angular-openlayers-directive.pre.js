@@ -539,12 +539,22 @@ angular.module('openlayers-directive').directive('olPath', function($log, $q, ol
                 var layerCollection = map.getLayers();
 
                 insertLayer(layerCollection, layerCollection.getLength(), layer);
+                var label;
 
                 scope.$on('$destroy', function() {
+                    /*
                     angular.forEach(map.getOverlays(), function(value) {
                         map.removeOverlay(value);
                     });
+                    */
+                    //var overlays = map.getOverlays();
+                    if (label) {
+                        map.removeOverlay(label);
+                    }
+                    //var index = layer.index;
+                    map.removeLayer(layer);
                     removeLayer(layerCollection, layer.index);
+
                 });
 
                 if (isDefined(attrs.coords)) {
@@ -562,7 +572,7 @@ angular.module('openlayers-directive').directive('olPath', function($log, $q, ol
                     if (attrs.message) {
                         scope.message = attrs.message;
                         var extent = feature.getGeometry().getExtent();
-                        var label = createOverlay(element, extent);
+                        label = createOverlay(element, extent);
                         map.addOverlay(label);
                     }
                     return;
