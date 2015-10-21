@@ -112,5 +112,30 @@ describe('Method: olHelpers.createStyle', function() {
                 })
             }));
     });
+});
+
+describe('Method: olHelpers.removeLayer', function() {
+    var _olHelpers;
+
+    beforeEach(module('openlayers-directive'));
+    beforeEach(inject(function(olHelpers) {
+        _olHelpers = olHelpers;
+    }));
+    it('should remove layer at index', function() {
+        var layers = [
+            {data: 'some-layer-data-0', index: 0},
+            {data: 'some-layer-data-1', index: 1},
+            {data: 'some-layer-data-2', index: 2},
+            {data: 'some-layer-data-3', index: 3}
+        ];
+        var layersCollection = new ol.Collection(layers);
+        _olHelpers.removeLayer(layersCollection, 2);
+
+        expect(layers).toEqual([
+            {data: 'some-layer-data-0', index: 0},
+            {data: 'some-layer-data-1', index: 1},
+            {data: 'some-layer-data-3', index: 2}
+        ]);
+    });
 
 });
