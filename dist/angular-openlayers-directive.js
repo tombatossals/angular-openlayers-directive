@@ -542,16 +542,9 @@ angular.module('openlayers-directive').directive('olPath', ["$log", "$q", "olMap
                 var label;
 
                 scope.$on('$destroy', function() {
-                    /*
-                    angular.forEach(map.getOverlays(), function(value) {
-                        map.removeOverlay(value);
-                    });
-                    */
-                    //var overlays = map.getOverlays();
                     if (label) {
                         map.removeOverlay(label);
                     }
-                    //var index = layer.index;
                     map.removeLayer(layer);
                     removeLayer(layerCollection, layer.index);
 
