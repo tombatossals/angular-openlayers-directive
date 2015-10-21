@@ -96,7 +96,7 @@ exports.config = {
         }
     },
 
-    // Define test framework for protractor. 
+    // Define test framework for protractor.
     // default value is 'jasmine1'
     framework: 'jasmine2',
 

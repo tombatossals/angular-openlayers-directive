@@ -1,19 +1,19 @@
 'use strict';
 describe('Loading 114-path-add-remove-example.html', function() {
 
-  var expectedPathList = [
-      {
-         message: "This is a path",
-         coords: "[[[-58.38,-34.6],[-58.58,-34.6]]]"
-      },
-      {
-         message: "And this is another path",
-         coords: "[[[-58.38,-34.7],[-58.38,-34.8]]]"
-      },
-      {
-         message: "Hello there",
-         coords: "[[[-58.48,-34.4],[-58.58,-34.5]]]"
-      }
+    var expectedPathList = [
+        {
+            message: 'This is a path',
+            coords: '[[[-58.38,-34.6],[-58.58,-34.6]]]'
+        },
+        {
+            message: 'And this is another path',
+            coords: '[[[-58.38,-34.7],[-58.38,-34.8]]]'
+        },
+        {
+            message: 'Hello there',
+            coords: '[[[-58.48,-34.4],[-58.58,-34.5]]]'
+        }
     ];
 
     beforeAll(function() {
@@ -22,13 +22,13 @@ describe('Loading 114-path-add-remove-example.html', function() {
 
     it('add path should display label on map', function() {
         var displayPath = element.all(by.className('popup-label'));
-        
-        var displayLabels = displayPath.map(function(elem){
-        	return elem.getAttribute('message');
+
+        var displayLabels = displayPath.map(function(elem) {
+            return elem.getAttribute('message');
         });
 
-        var expectedLabels = expectedPathList.map(function(elem){
-          return elem.message;
+        var expectedLabels = expectedPathList.map(function(elem) {
+            return elem.message;
         });
 
         expect(displayLabels).toEqual(expectedLabels.reverse());
@@ -36,13 +36,13 @@ describe('Loading 114-path-add-remove-example.html', function() {
 
     it('add path should display path on map', function() {
         var displayPath = element.all(by.className('path'));
-        
-        var displayCoords = displayPath.map(function(elem){
-          return elem.getAttribute('coords');
+
+        var displayCoords = displayPath.map(function(elem) {
+            return elem.getAttribute('coords');
         });
 
-        var expectedCoordinate = expectedPathList.map(function(elem){
-          return elem.coords;
+        var expectedCoordinate = expectedPathList.map(function(elem) {
+            return elem.coords;
         });
 
         expect(displayCoords).toEqual(expectedCoordinate.reverse());
