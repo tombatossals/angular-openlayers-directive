@@ -773,8 +773,9 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                         coord = coord.map(function(v) {
                             return parseInt(v, 10);
                         });
+                    } else {
+                        coord = ol.proj.transform(coord, proj, 'EPSG:4326');
                     }
-                    coord = ol.proj.transform(coord, proj, 'EPSG:4326');
 
                     if (evt.type === 'pointerdown') {
                         // Get feature under mouse if any
@@ -788,7 +789,11 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                             return;
                         }
                         map.getTarget().style.cursor = 'pointer';
-                        pickOffset = [coord[0] - pickProperties.lon, coord[1] - pickProperties.lat];
+                        if (proj === 'pixel') {
+                            pickOffset = [coord[0] - pickProperties.coord[0], coord[1] - pickProperties.coord[1]];
+                        } else {
+                            pickOffset = [coord[0] - pickProperties.lon, coord[1] - pickProperties.lat];
+                        }
                         evt.preventDefault();
                     } else if (pickOffset && pickProperties) {
                         if (evt.type === 'pointerup') {
@@ -800,8 +805,13 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                             evt.preventDefault();
                             scope.$apply(function() {
                                 // Add current delta to marker initial position
-                                pickProperties.lon = coord[0] - pickOffset[0];
-                                pickProperties.lat = coord[1] - pickOffset[1];
+                                if (proj === 'pixel') {
+                                    pickProperties.coord[0] = coord[0] - pickOffset[0];
+                                    pickProperties.coord[1] = coord[1] - pickOffset[1];
+                                } else {
+                                    pickProperties.lon = coord[0] - pickOffset[0];
+                                    pickProperties.lat = coord[1] - pickOffset[1];
+                                }
                             });
                         }
                     }
@@ -1000,8 +1010,13 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                         marker.set('marker', properties);
                         markerLayer.getSource().addFeature(marker);
                     } else {
-                        var requestedPosition = ol.proj.transform([properties.lon, properties.lat], data.projection,
-                                                     map.getView().getProjection());
+                        var requestedPosition;
+                        if (properties.projection === 'pixel') {
+                            requestedPosition = properties.coord;
+                        } else {
+                            requestedPosition = ol.proj.transform([properties.lon, properties.lat], data.projection,
+                                map.getView().getProjection());
+                        }
 
                         if (!angular.equals(marker.getGeometry().getCoordinates(), requestedPosition)) {
                             var geometry = new ol.geom.Point(requestedPosition);
