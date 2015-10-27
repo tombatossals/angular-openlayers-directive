@@ -54,7 +54,7 @@ describe('Loading 114-path-add-remove-example.html', function() {
         removeButton.click();
         browser.waitForAngular();
 
-        var displayPath = element.all(by.className('popup-label'));
+        var displayPath = $$('.popup-label.path');
 
         expect(displayPath.count()).toBe(0);
     });
