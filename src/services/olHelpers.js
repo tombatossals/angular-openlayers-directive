@@ -208,7 +208,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     url: url,
                     attributions: createAttribution(source),
                     tilePixelRatio: pixelRatio > 1 ? 2 : 1,
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 });
                 break;
             case 'ImageWMS':
@@ -221,7 +221,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     attributions: createAttribution(source),
                     crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
                     params: source.params,
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: source.wrapX ? 0 : 1
                 });
                 break;
 
@@ -235,7 +235,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
                     params: source.params,
                     attributions: createAttribution(source),
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: source.wrapX ? 0 : 1
                 };
 
                 if (source.url) {
@@ -268,7 +268,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         resolutions: source.tileGrid.resolutions,
                         matrixIds: source.tileGrid.matrixIds
                     }),
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: source.wrapX ? 0 : 1
                 };
 
                 if (isDefined(source.url)) {
@@ -285,7 +285,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             case 'OSM':
                 oSource = new ol.source.OSM({
                     attributions: createAttribution(source),
-                    wrapX: source.wrapX ? source.wrapX : true 
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 });
 
                 if (source.url) {
@@ -304,7 +304,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     attributions: createAttribution(source),
                     imagerySet: source.imagerySet ? source.imagerySet : bingImagerySets[0],
                     culture: source.culture,
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 };
 
                 if (source.maxZoom) {
@@ -323,7 +323,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 oSource = new ol.source.MapQuest({
                     attributions: createAttribution(source),
                     layer: source.layer,
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 });
 
                 break;
@@ -340,7 +340,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 oSource = new ol.source.XYZ({
                     attributions: createAttribution(source),
                     url: _url,
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 });
 
                 break;
@@ -356,7 +356,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     oSource = new ol.source.Vector({
                         format: new ol.format.GeoJSON(),
                         url: source.url,
-                        wrapX: source.wrapX ? source.wrapX : true
+                        wrapX: (source.wrapX === true) ? 1 : 0
                     });
                 } else {
                     oSource = new ol.source.Vector();
@@ -392,7 +392,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                                 $log(response);
                             });
                         },
-                        wrapX: source.wrapX ? source.wrapX : true
+                        wrapX: (source.wrapX === true) ? 1 : 0
                     });
                 }
                 break;
@@ -407,12 +407,12 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     oSource = new ol.source.Vector({
                         format: new ol.format.TopoJSON(),
                         url: source.url,
-                        wrapX: source.wrapX ? source.wrapX : true
+                        wrapX: (source.wrapX === true) ? 1 : 0
                     });
                 } else {
                     oSource = new ol.source.Vector(angular.extend(source.topojson, {
                         format: new ol.format.TopoJSON(),
-                        wrapX: source.wrapX ? source.wrapX : true
+                        wrapX: (source.wrapX === true) ? 1 : 0
                     }));
                 }
                 break;
@@ -421,7 +421,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     url: source.url,
                     attributions: createAttribution(source),
                     crossOrigin: 'anonymous',
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 });
                 break;
 
@@ -437,7 +437,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     tileGrid: new ol.tilegrid.createXYZ({
                         maxZoom: source.maxZoom || 19
                     }),
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 });
                 break;
 
@@ -467,7 +467,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
                         return url;
                     },
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 });
                 break;
             case 'TileImage':
@@ -488,7 +488,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                             .replace('{y}', y.toString());
                         return url;
                     },
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 });
                 break;
             case 'KML':
@@ -498,7 +498,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     format: new ol.format.KML(),
                     radius: source.radius,
                     extractStyles: extractStyles,
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 });
                 break;
             case 'Stamen':
@@ -508,7 +508,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
                 oSource = new ol.source.Stamen({
                     layer: source.layer,
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 });
                 break;
             case 'ImageStatic':
@@ -524,7 +524,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     projection: projection,
                     imageExtent: projection.getExtent(),
                     imageLoadFunction: source.imageLoadFunction,
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 });
                 break;
             case 'XYZ':
@@ -536,7 +536,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     attributions: createAttribution(source),
                     minZoom: source.minZoom,
                     maxZoom: source.maxZoom,
-                    wrapX: source.wrapX ? source.wrapX : true
+                    wrapX: (source.wrapX === true) ? 1 : 0
                 });
                 break;
         }
