@@ -1955,6 +1955,13 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 oLayer.set('name', layer.name);
             }
 
+            // set custom layer properties if given
+            if (isDefined(layer.customAttributes)) {
+                for (var key in layer.customAttributes) {
+                    oLayer.set(key, layer.customAttributes[key]);
+                }
+            }
+
             return oLayer;
         },
 
