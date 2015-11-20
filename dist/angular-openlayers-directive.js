@@ -2054,8 +2054,11 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
         insertLayer: function(layers, index, layer) {
             if (layers.getLength() < index) {
+                // fill up with "null layers" till we get to the desired index
                 while (layers.getLength() < index) {
-                    layers.push(null);
+                    var nullLayer = new ol.layer.Image();
+                    nullLayer.index = layers.getLength(); // add index which will be equal to the length in this case
+                    layers.push(nullLayer);
                 }
                 layer.index = index;
                 layers.push(layer);

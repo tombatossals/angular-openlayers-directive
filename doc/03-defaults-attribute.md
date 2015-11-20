@@ -4,7 +4,7 @@
 This sub-directive needs the **openlayers** main directive, so it is normaly used as an attribute of the *openlayers* tag, like this:
 
 ```
-<openlayers defaults="defaults"></openlayers>
+<openlayers ol-defaults="defaults"></openlayers>
 ```
 
 It will define the default parameters from which we want to initialize our map. It's not used as a bi-directional attribute, so it will only apply the initial map parameters and nothing more. Let's see its possibilities.
@@ -20,8 +20,8 @@ angular.extend($scope, {
         layer: {
             url: "http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png"
         },
-        map: {
-            scrollWheelZoom: false
+        interactions: {
+            mouseWheelZoom: false
         },
         controls: {
             zoom: {
@@ -34,7 +34,7 @@ angular.extend($scope, {
 
 And after that, in our HTML code we will define our openlayers directive like this:
 ```
-<openlayers defaults="defaults"></openlayers>
+<openlayers ol-defaults="defaults"></openlayers>
 ```
 
-And that's all. A full example of using this attribute can be found [here](http://tombatossals.github.io/angular-openlayers-directive/examples/custom-parameters-example.html).
+And that's all. A full example of using this attribute can be found [here](http://tombatossals.github.io/angular-openlayers-directive/examples/030-custom-parameters-example.html).
