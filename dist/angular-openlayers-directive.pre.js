@@ -514,15 +514,17 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                         }
 
                         //set min resolution
-                        if (isDefined(properties.minResolution) &&
-                            !equals(properties.minResolution, oldProperties.minResolution) || isNewLayer(olLayer)) {
-                            olLayer.setMinResolution(properties.minResolution);
+                        if (!equals(properties.minResolution, oldProperties.minResolution) || isNewLayer(olLayer)) {
+                            if (isDefined(properties.minResolution)) {
+                                olLayer.setMinResolution(properties.minResolution);
+                            }
                         }
 
                         //set max resolution
-                        if (isDefined(properties.maxResolution) &&
-                            !equals(properties.maxResolution, oldProperties.maxResolution) || isNewLayer(olLayer)) {
-                            olLayer.setMaxResolution(properties.maxResolution);
+                        if (!equals(properties.maxResolution, oldProperties.maxResolution) || isNewLayer(olLayer)) {
+                            if (isDefined(properties.maxResolution)) {
+                                olLayer.setMaxResolution(properties.maxResolution);
+                            }
                         }
                     }
                 }, true);
