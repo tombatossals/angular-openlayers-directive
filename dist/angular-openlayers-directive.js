@@ -1389,6 +1389,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                     attributions: createAttribution(source)
                 };
 
+                if (source.serverType) {
+                    wmsConfiguration.serverType = source.serverType;
+                }
+
                 if (source.url) {
                     wmsConfiguration.url = source.url;
                 }
@@ -1760,12 +1764,23 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
         createView: function(view) {
             var projection = createProjection(view);
 
-            return new ol.View({
+            var viewConfig = {
                 projection: projection,
                 maxZoom: view.maxZoom,
-                minZoom: view.minZoom,
-                extent: view.extent
-            });
+                minZoom: view.minZoom
+            };
+
+            if (view.center) {
+                viewConfig.center = view.center;
+            }
+            if (view.extent) {
+                viewConfig.extent = view.extent;
+            }
+            if (view.zoom) {
+                viewConfig.zoom = view.zoom;
+            }
+
+            return new ol.View(viewConfig);
         },
 
         // Determine if a reference is defined and not null
@@ -1931,7 +1946,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
             if ((type === 'Vector') && layer.clustering) {
                 oSource = new ol.source.Cluster({
                     source: oSource,
-                    distance: layer.clusteringDistance,
+                    distance: layer.clusteringDistance
                 });
             }
 
