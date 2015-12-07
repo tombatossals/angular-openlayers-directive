@@ -38,6 +38,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             attribution: ol.control.Attribution,
             fullscreen: ol.control.FullScreen,
             mouseposition: ol.control.MousePosition,
+            overviewmap: ol.control.OverviewMap,
             rotate: ol.control.Rotate,
             scaleline: ol.control.ScaleLine,
             zoom: ol.control.Zoom,
