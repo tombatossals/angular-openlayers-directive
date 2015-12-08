@@ -328,14 +328,15 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 if (isDefined(source.url)) {
+                    var geojsonFormat = new ol.format.GeoJSON();
                     oSource = new ol.source.ServerVector({
-                        format: new ol.format.GeoJSON(),
+                        format: geojsonFormat,
                         loader: function(/*extent, resolution, projection*/) {
                             var url = source.url +
                                       '&outputFormat=text/javascript&format_options=callback:JSON_CALLBACK';
                             $http.jsonp(url, { cache: source.cache})
                                 .success(function(response) {
-                                    oSource.addFeatures(oSource.readFeatures(response));
+                                    oSource.addFeatures(geojsonFormat.readFeatures(response));
                                 })
                                 .error(function(response) {
                                     $log(response);
