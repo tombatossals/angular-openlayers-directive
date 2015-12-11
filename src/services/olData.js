@@ -1,6 +1,4 @@
-angular.module('openlayers-directive').service('olData', function($log, $q, olHelpers) {
-
-    var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
+angular.module('openlayers-directive').service('olData', function($log, $q) {
 
     var maps = {};
 
@@ -47,5 +45,27 @@ angular.module('openlayers-directive').service('olData', function($log, $q, olHe
         var defer = getDefer(maps, scopeId);
         return defer.promise;
     };
+
+    function obtainEffectiveMapId(d, mapId) {
+        var id;
+        var i;
+        if (!angular.isDefined(mapId)) {
+            if (Object.keys(d).length === 1) {
+                for (i in d) {
+                    if (d.hasOwnProperty(i)) {
+                        id = i;
+                    }
+                }
+            } else if (Object.keys(d).length === 0) {
+                id = 'main';
+            } else {
+                $log.error('[AngularJS - Openlayers] - You have more than 1 map on the DOM, ' +
+                           'you must provide the map ID to the olData.getXXX call');
+            }
+        } else {
+            id = mapId;
+        }
+        return id;
+    }
 
 });
