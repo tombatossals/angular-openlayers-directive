@@ -1100,9 +1100,7 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
     };
 }]);
 
-angular.module('openlayers-directive').service('olData', ["$log", "$q", "olHelpers", function($log, $q, olHelpers) {
-
-    var obtainEffectiveMapId = olHelpers.obtainEffectiveMapId;
+angular.module('openlayers-directive').service('olData', ["$log", "$q", function($log, $q) {
 
     var maps = {};
 
@@ -1150,6 +1148,28 @@ angular.module('openlayers-directive').service('olData', ["$log", "$q", "olHelpe
         return defer.promise;
     };
 
+    function obtainEffectiveMapId(d, mapId) {
+        var id;
+        var i;
+        if (!angular.isDefined(mapId)) {
+            if (Object.keys(d).length === 1) {
+                for (i in d) {
+                    if (d.hasOwnProperty(i)) {
+                        id = i;
+                    }
+                }
+            } else if (Object.keys(d).length === 0) {
+                id = 'main';
+            } else {
+                $log.error('[AngularJS - Openlayers] - You have more than 1 map on the DOM, ' +
+                           'you must provide the map ID to the olData.getXXX call');
+            }
+        } else {
+            id = mapId;
+        }
+        return id;
+    }
+
 }]);
 
 angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$http", function($q, $log, $http) {
@@ -1192,6 +1212,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
             attribution: ol.control.Attribution,
             fullscreen: ol.control.FullScreen,
             mouseposition: ol.control.MousePosition,
+            overviewmap: ol.control.OverviewMap,
             rotate: ol.control.Rotate,
             scaleline: ol.control.ScaleLine,
             zoom: ol.control.Zoom,
@@ -1869,28 +1890,6 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
         isBoolean: function(value) {
             return typeof value === 'boolean';
-        },
-
-        obtainEffectiveMapId: function(d, mapId) {
-            var id;
-            var i;
-            if (!angular.isDefined(mapId)) {
-                if (Object.keys(d).length === 1) {
-                    for (i in d) {
-                        if (d.hasOwnProperty(i)) {
-                            id = i;
-                        }
-                    }
-                } else if (Object.keys(d).length === 0) {
-                    id = 'main';
-                } else {
-                    $log.error('[AngularJS - Openlayers] - You have more than 1 map on the DOM, ' +
-                               'you must provide the map ID to the olData.getXXX call');
-                }
-            } else {
-                id = mapId;
-            }
-            return id;
         },
 
         createStyle: createStyle,
