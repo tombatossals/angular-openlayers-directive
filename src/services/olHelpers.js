@@ -718,28 +718,6 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             return typeof value === 'boolean';
         },
 
-        obtainEffectiveMapId: function(d, mapId) {
-            var id;
-            var i;
-            if (!angular.isDefined(mapId)) {
-                if (Object.keys(d).length === 1) {
-                    for (i in d) {
-                        if (d.hasOwnProperty(i)) {
-                            id = i;
-                        }
-                    }
-                } else if (Object.keys(d).length === 0) {
-                    id = 'main';
-                } else {
-                    $log.error('[AngularJS - Openlayers] - You have more than 1 map on the DOM, ' +
-                               'you must provide the map ID to the olData.getXXX call');
-                }
-            } else {
-                id = mapId;
-            }
-            return id;
-        },
-
         createStyle: createStyle,
 
         setMapEvents: function(events, map, scope) {
