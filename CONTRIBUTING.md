@@ -139,7 +139,7 @@ Running "jshint:grunt" (jshint) task
 Running "concat:dist" (concat) task
 File "dist/angular-openlayers-directive.js" created.
 
-Running "ngmin:directives" (ngmin) task
+Running "ngAnnotate" (ngAnnotate) task
 ngminifying dist/angular-openlayers-directive.js
 
 Running "uglify:dist" (uglify) task
