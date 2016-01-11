@@ -780,18 +780,40 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 });
             }
 
+            var layerConfig = { source: oSource };
+
+            // ol.layer.Layer configuration options
+            if (isDefinedAndNotNull(layer.opacity)) {
+                layerConfig.opacity = layer.opacity;
+            }
+            if (isDefinedAndNotNull(layer.visible)) {
+                layerConfig.visible = layer.visible;
+            }
+            if (isDefinedAndNotNull(layer.extent)) {
+                layerConfig.extent = layer.extent;
+            }
+            if (isDefinedAndNotNull(layer.zIndex)) {
+                layerConfig.zIndex = layer.zIndex;
+            }
+            if (isDefinedAndNotNull(layer.minResolution)) {
+                layerConfig.minResolution = layer.minResolution;
+            }
+            if (isDefinedAndNotNull(layer.maxResolution)) {
+                layerConfig.maxResolution = layer.maxResolution;
+            }
+
             switch (type) {
                 case 'Image':
-                    oLayer = new ol.layer.Image({ source: oSource });
+                    oLayer = new ol.layer.Image(layerConfig);
                     break;
                 case 'Tile':
-                    oLayer = new ol.layer.Tile({ source: oSource });
+                    oLayer = new ol.layer.Tile(layerConfig);
                     break;
                 case 'Heatmap':
-                    oLayer = new ol.layer.Heatmap({ source: oSource });
+                    oLayer = new ol.layer.Heatmap(layerConfig);
                     break;
                 case 'Vector':
-                    oLayer = new ol.layer.Vector({ source: oSource });
+                    oLayer = new ol.layer.Vector(layerConfig);
                     break;
             }
 
