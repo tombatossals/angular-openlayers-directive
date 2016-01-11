@@ -906,7 +906,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
             if (!isDefined(groupLayer)) {
                 groupLayer = createGroup(name);
-                addLayerBeforeMarkers(layers,groupLayer);
+                addLayerBeforeMarkers(layers, groupLayer);
             }
 
             layer.set('group', name);
