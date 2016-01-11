@@ -628,6 +628,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             if (view.zoom) {
                 viewConfig.zoom = view.zoom;
             }
+            if (view.resolutions) {
+                viewConfig.resolutions = view.resolutions;
+            }
 
             return new ol.View(viewConfig);
         },
