@@ -2,7 +2,8 @@
     if (typeof require === 'function' && typeof exports === 'object') {
         // CommonJS
         var ol = require('openlayers');
-        exports.angularOpenlayersDirective = factory(ol);
+        var ngSanitize = require('angular-sanitize');
+        exports.angularOpenlayersDirective = factory(ol).name;
     } else if (typeof define === 'function' && define.amd) {
         // AMD.
         define(['ol'], function (ol) {
@@ -2274,5 +2275,5 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
         }
     };
 }]);
-
+return angular.module('openlayers-directive')
 }));

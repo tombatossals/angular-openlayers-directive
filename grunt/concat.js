@@ -17,7 +17,7 @@ var banner = '(function (root, factory) {\n' +
              '    }\n' +
              '}(this, function (ol) {\n';
 var footer = 'return angular.module(\'openlayers-directive\')' +
-			 '\n}));             
+			 '\n}));';             
 
 module.exports = function (grunt, options) {
     return {
