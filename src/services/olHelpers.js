@@ -151,6 +151,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 case 'JSONP':
                 case 'TopoJSON':
                 case 'KML':
+				case 'WKT':
                 case 'TileVector':
                     return 'Vector';
                 default:
@@ -379,6 +380,40 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 break;
+				case 'WKT':
+                if (!(source.wkt || source.url)) {
+                    $log.error('[AngularJS - Openlayers] - You need a WKT ' +
+                               'property to add a GeoJSON layer.');
+                    return;
+                }
+                if (isDefined(source.url)) {
+                    oSource = new ol.source.Vector({
+                        format: new ol.format.WKT(),
+                        url: source.url,
+                        wrapX: (source.wrapX === undefined) ? 1 : source.wrapX
+                    });
+                } else {
+                    oSource = new ol.source.Vector();
+
+                    var wktProjection = projection;
+                    if (isDefined(source.wkt.projection)) {
+                        wktProjection = source.wkt.projection;
+                    }
+
+                    var wktFormat = new ol.format.WKT();
+					var wktFeatures = [];
+					for(var k = 0; k< source.wkt.object.length; k++){
+                      var feature = wktFormat.readFeature(
+                        source.wkt.object[k].data, {dataProjection: 'EPSG:4326',featureProjection: wktProjection });
+						if(source.wkt.object[k].properties){
+						 	feature.properties = source.wkt.object[k].properties;
+						}
+					  wktFeatures.push(feature);
+					}
+					oSource.addFeatures(wktFeatures);
+                }
+
+                break;
             case 'JSONP':
                 if (!(source.url)) {
                     $log.error('[AngularJS - Openlayers] - You need an url properly configured to add a JSONP layer.');
@@ -533,15 +568,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 });
                 break;
             case 'XYZ':
-                if (!source.url) {
-                    $log.error('[AngularJS - Openlayers] - XYZ Layer needs valid url and params properties');
+                if (!source.url && !source.tileUrlFunction) {
+                    $log.error('[AngularJS - Openlayers] - XYZ Layer needs valid url or tileUrlFunction properties');
                 }
                 oSource = new ol.source.XYZ({
                     url: source.url,
                     attributions: createAttribution(source),
                     minZoom: source.minZoom,
                     maxZoom: source.maxZoom,
-                    wrapX: (source.wrapX === undefined) ? 1 : source.wrapX
+                    wrapX: (source.wrapX === undefined) ? 1 : source.wrapX,
+                    projection: source.projection,
+                    tileUrlFunction: source.tileUrlFunction
                 });
                 break;
         }
