@@ -1367,6 +1367,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
     var createSource = function(source, projection) {
         var oSource;
+        var geojsonFormat = new ol.format.GeoJSON(); // used in various switch stmnts below
 
         switch (source.type) {
             case 'MapBox':
@@ -1540,7 +1541,6 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                         projectionToUse = source.geojson.projection;
                     }
 
-                    var geojsonFormat = new ol.format.GeoJSON();
                     var features = geojsonFormat.readFeatures(
                         source.geojson.object, { featureProjection: projectionToUse });
 
@@ -1555,17 +1555,20 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 }
 
                 if (isDefined(source.url)) {
-                    oSource = new ol.source.Vector({
-                        format: new ol.format.GeoJSON(),
+                    oSource = new ol.source.ServerVector({
+                        format: geojsonFormat,
                         loader: function(/*extent, resolution, projection*/) {
                             var url = source.url +
                                       '&outputFormat=text/javascript&format_options=callback:JSON_CALLBACK';
-                            $http.jsonp(url, { cache: source.cache}).success(function(response) {
-                                oSource.addFeatures(oSource.readFeatures(response));
-                            }).error(function(response) {
-                                $log(response);
-                            });
-                        }
+                            $http.jsonp(url, { cache: source.cache})
+                                .success(function(response) {
+                                    oSource.addFeatures(geojsonFormat.readFeatures(response));
+                                })
+                                .error(function(response) {
+                                    $log(response);
+                                });
+                        },
+                        projection: projection
                     });
                 }
                 break;
@@ -1806,6 +1809,9 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
             if (view.zoom) {
                 viewConfig.zoom = view.zoom;
             }
+            if (view.resolutions) {
+                viewConfig.resolutions = view.resolutions;
+            }
 
             return new ol.View(viewConfig);
         },
@@ -1955,18 +1961,40 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 });
             }
 
+            var layerConfig = { source: oSource };
+
+            // ol.layer.Layer configuration options
+            if (isDefinedAndNotNull(layer.opacity)) {
+                layerConfig.opacity = layer.opacity;
+            }
+            if (isDefinedAndNotNull(layer.visible)) {
+                layerConfig.visible = layer.visible;
+            }
+            if (isDefinedAndNotNull(layer.extent)) {
+                layerConfig.extent = layer.extent;
+            }
+            if (isDefinedAndNotNull(layer.zIndex)) {
+                layerConfig.zIndex = layer.zIndex;
+            }
+            if (isDefinedAndNotNull(layer.minResolution)) {
+                layerConfig.minResolution = layer.minResolution;
+            }
+            if (isDefinedAndNotNull(layer.maxResolution)) {
+                layerConfig.maxResolution = layer.maxResolution;
+            }
+
             switch (type) {
                 case 'Image':
-                    oLayer = new ol.layer.Image({ source: oSource });
+                    oLayer = new ol.layer.Image(layerConfig);
                     break;
                 case 'Tile':
-                    oLayer = new ol.layer.Tile({ source: oSource });
+                    oLayer = new ol.layer.Tile(layerConfig);
                     break;
                 case 'Heatmap':
-                    oLayer = new ol.layer.Heatmap({ source: oSource });
+                    oLayer = new ol.layer.Heatmap(layerConfig);
                     break;
                 case 'Vector':
-                    oLayer = new ol.layer.Vector({ source: oSource });
+                    oLayer = new ol.layer.Vector(layerConfig);
                     break;
             }
 
@@ -2059,7 +2087,7 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
             if (!isDefined(groupLayer)) {
                 groupLayer = createGroup(name);
-                addLayerBeforeMarkers(layers,groupLayer);
+                addLayerBeforeMarkers(layers, groupLayer);
             }
 
             layer.set('group', name);
@@ -2243,6 +2271,7 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
                     newDefaults.view.minZoom = userDefaults.view.minZoom || newDefaults.view.minZoom;
                     newDefaults.view.projection = userDefaults.view.projection || newDefaults.view.projection;
                     newDefaults.view.extent = userDefaults.view.extent || newDefaults.view.extent;
+                    newDefaults.view.resolutions = userDefaults.view.resolutions || newDefaults.view.resolutions;
                 }
 
                 if (isDefined(userDefaults.styles)) {

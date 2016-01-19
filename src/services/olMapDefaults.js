@@ -129,6 +129,7 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                     newDefaults.view.minZoom = userDefaults.view.minZoom || newDefaults.view.minZoom;
                     newDefaults.view.projection = userDefaults.view.projection || newDefaults.view.projection;
                     newDefaults.view.extent = userDefaults.view.extent || newDefaults.view.extent;
+                    newDefaults.view.resolutions = userDefaults.view.resolutions || newDefaults.view.resolutions;
                 }
 
                 if (isDefined(userDefaults.styles)) {
