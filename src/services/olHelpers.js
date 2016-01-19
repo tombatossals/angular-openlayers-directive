@@ -189,6 +189,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
     var createSource = function(source, projection) {
         var oSource;
+        var geojsonFormat = new ol.format.GeoJSON(); // used in various switch stmnts below
 
         switch (source.type) {
             case 'MapBox':
@@ -362,7 +363,6 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         projectionToUse = source.geojson.projection;
                     }
 
-                    var geojsonFormat = new ol.format.GeoJSON();
                     var features = geojsonFormat.readFeatures(
                         source.geojson.object, { featureProjection: projectionToUse });
 
@@ -377,7 +377,6 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 if (isDefined(source.url)) {
-                    var geojsonFormat = new ol.format.GeoJSON();
                     oSource = new ol.source.ServerVector({
                         format: geojsonFormat,
                         loader: function(/*extent, resolution, projection*/) {
