@@ -1,7 +1,11 @@
 'use strict';
 
 var banner = '(function (root, factory) {\n' +
-             '    if (typeof define === \'function\' && define.amd) {\n' +
+             '    if (typeof require === \'function\' && typeof exports === \'object\') {\n' +
+             '        // CommonJS\n' +
+             '        var ol = require(\'openlayers\');\n' +
+             '        exports.angularOpenlayersDirective = factory(ol);\n' +
+             '    } else if (typeof define === \'function\' && define.amd) {\n' +
              '        // AMD.\n' +
              '        define([\'ol\'], function (ol) {\n' +
              '            return root.angularOpenlayersDirective = factory(ol);\n' +
