@@ -1,5 +1,9 @@
 (function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
+    if (typeof require === 'function' && typeof exports === 'object') {
+        // CommonJS
+        var ol = require('openlayers');
+        exports.angularOpenlayersDirective = factory(ol);
+    } else if (typeof define === 'function' && define.amd) {
         // AMD.
         define(['ol'], function (ol) {
             return root.angularOpenlayersDirective = factory(ol);
