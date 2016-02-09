@@ -15,7 +15,7 @@ your application. If there's an error, please include the error text.
 It's always easy to undestand the bug/problem visually, you can use a predefined
 jsfiddle example which loads a simple map, which you can use to document your issue:
 
-http://jsfiddle.net/tombatossals/v3b0p54h/
+http://jsfiddle.net/juristr/od60raL4/1/
 
 ## <a name="commit"></a> Commit Message Guidelines
 

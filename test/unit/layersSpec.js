@@ -88,6 +88,42 @@ describe('Directive: openlayers layers', function() {
         expect(geoJsonLayer.getSource().getFeatures().length).not.toBe(0);
     });
 
+    it('should properly render a GeoJSON layer containing the GeoJSON object with different projections', function() {
+        scope.geoJsonLayer = {
+            source: {
+                type: 'GeoJSON',
+                geojson: {
+                    object: {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [434179, 122450] // Southampton (UK) in EPSG:27700
+                        }
+                    },
+                    projection: 'EPSG:27700'
+                }
+            }
+        };
+
+        var element = angular.element('<openlayers>' +
+                                       '<ol-layer ol-layer-properties="geoJsonLayer"></ol-layer>' +
+                                       '</openlayers>');
+        element = $compile(element)(scope);
+
+        var layers;
+        olData.getMap().then(function(olMap) {
+            layers = olMap.getLayers();
+        });
+
+        scope.$digest();
+        expect(layers.item(0).getSource() instanceof ol.source.OSM).toBe(true);
+        expect(layers.getLength()).toBe(2);
+
+        var geoJsonLayer = layers.item(1);
+        expect(geoJsonLayer.getSource() instanceof ol.source.Vector).toBe(true);
+        expect(geoJsonLayer.getSource().getFeatures().length).not.toBe(0);
+    });
+
     it('should have one layer if custom-layers is used', function() {
         scope.mapbox = {
             source: {
