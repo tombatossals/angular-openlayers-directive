@@ -68,4 +68,10 @@ angular.module('openlayers-directive').service('olData', function($log, $q) {
         return id;
     }
 
+    this.resetMap = function(scopeId) {
+        if (angular.isDefined(maps[scopeId])) {
+            delete maps[scopeId];
+        }
+    };
+
 });

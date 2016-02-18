@@ -90,6 +90,10 @@ angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', [
                     view: view
                 });
 
+                scope.$on('$destroy', function() {
+                    olData.resetMap(attrs.id);
+                });
+
                 // If no layer is defined, set the default tileLayer
                 if (!attrs.customLayers) {
                     var l = {
@@ -1173,6 +1177,12 @@ angular.module('openlayers-directive').service('olData', ["$log", "$q", function
         }
         return id;
     }
+
+    this.resetMap = function(scopeId) {
+        if (angular.isDefined(maps[scopeId])) {
+            delete maps[scopeId];
+        }
+    };
 
 }]);
 
