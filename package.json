@@ -17,9 +17,9 @@
   ],
   "license": "MIT",
   "dependencies": {
-      "angular": "~1.4.8",
-      "angular-sanitize": "~1.4.8",
-      "openlayers": "~3.8"
+    "angular": "~1.4.8",
+    "angular-sanitize": "~1.4.8",
+    "openlayers": "~3.8"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
@@ -64,5 +64,6 @@
     "postpublish": "publish-latest",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
-  "main": "dist/angular-openlayers-directive"
+  "main": "dist/angular-openlayers-directive",
+  "version": "1.9.2"
 }
