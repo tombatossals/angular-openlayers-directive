@@ -11,14 +11,14 @@
     "dist/angular-openlayers-directive.min.js"
   ],
   "dependencies": {
-    "angular": "*",
-    "angular-sanitize": "*",
+    "angular": "1.4.9",
+    "angular-sanitize": "1.4.9",
     "openlayers3": "https://github.com/tombatossals/ol3-compiled.git#3.8.2"
   },
   "devDependencies": {
     "jquery": "*",
-    "angular-route": "*",
-    "angular-mocks": "*"
+    "angular-route": "1.4.9",
+    "angular-mocks": "1.4.9"
   },
   "ignore": [
     "**/.*",
