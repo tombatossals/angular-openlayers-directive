@@ -1399,7 +1399,8 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                     url: source.url,
                     attributions: createAttribution(source),
                     crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
-                    params: source.params
+                    params: source.params,
+                    ratio: source.ratio
                 });
                 break;
 
