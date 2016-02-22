@@ -1,4 +1,4 @@
-angular.module('openlayers-directive').directive('compile', ['$compile','$rootScope', function ($compile,$rootScope) {
+angular.module('openlayers-directive').directive('compile', ['$compile','$rootScope', function($compile,$rootScope){
     return function(scope, element, attrs) {
         scope.$watch(
             function(scope) {
