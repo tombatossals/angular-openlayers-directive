@@ -20,6 +20,9 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
             var isNumber    = olHelpers.isNumber;
             var insertLayer = olHelpers.insertLayer;
             var removeLayer = olHelpers.removeLayer;
+            var addLayerToGroup = olHelpers.addLayerToGroup;
+            var removeLayerFromGroup = olHelpers.removeLayerFromGroup;
+            var getGroup = olHelpers.getGroup;
 
             olScope.getMap().then(function(map) {
                 var projection = map.getView().getProjection();
@@ -28,7 +31,12 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                 var olLayer;
 
                 scope.$on('$destroy', function() {
-                    removeLayer(layerCollection, olLayer.index);
+                    if (scope.properties.group) {
+                        removeLayerFromGroup(layerCollection, olLayer, scope.properties.group);
+                    } else {
+                        removeLayer(layerCollection, olLayer.index);
+                    }
+
                     map.removeLayer(olLayer);
                 });
 
@@ -66,9 +74,13 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                     }
 
                     var style;
+                    var group;
+                    var collection;
                     if (!isDefined(olLayer)) {
                         olLayer = createLayer(properties, projection);
-                        if (isDefined(properties.index)) {
+                        if (isDefined(properties.group)) {
+                            addLayerToGroup(layerCollection, olLayer, properties.group);
+                        } else if (isDefined(properties.index)) {
                             insertLayer(layerCollection, properties.index, olLayer);
                         } else {
                             addLayerBeforeMarkers(layerCollection, olLayer);
@@ -96,49 +108,113 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                             } else {
                                 style = properties.style;
                             }
-                            olLayer.setStyle(style);
+                            // not every layer has a setStyle method
+                            if (olLayer.setStyle && angular.isFunction(olLayer.setStyle)) {
+                                olLayer.setStyle(style);
+                            }
+                        }
+
+                        if (properties.minResolution) {
+                            olLayer.setMinResolution(properties.minResolution);
+                        }
+
+                        if (properties.maxResolution) {
+                            olLayer.setMaxResolution(properties.maxResolution);
                         }
 
                     } else {
+                        var isNewLayer = (function(olLayer) {
+                            // this function can be used to verify whether a new layer instance has
+                            // been created. This is needed in order to re-assign styles, opacity
+                            // etc...
+                            return function(layer) {
+                                return layer !== olLayer;
+                            };
+                        })(olLayer);
 
+                        // set source properties
+                        if (isDefined(oldProperties) && !equals(properties.source, oldProperties.source)) {
+                            var idx = olLayer.index;
+                            collection = layerCollection;
+                            group = olLayer.get('group');
+
+                            if (group) {
+                                collection = getGroup(layerCollection, group).getLayers();
+                            }
+
+                            collection.removeAt(idx);
+
+                            olLayer = createLayer(properties, projection);
+                            olLayer.set('group', group);
+
+                            if (isDefined(olLayer)) {
+                                insertLayer(collection, idx, olLayer);
+
+                                if (detectLayerType(properties) === 'Vector') {
+                                    setVectorLayerEvents(defaults.events, map, scope, properties.name);
+                                }
+                            }
+                        }
+
+                        // set opacity
                         if (isDefined(oldProperties) &&
-                           !(equals(properties, oldProperties) && equals(properties.style, oldProperties.style))) {
+                            properties.opacity !== oldProperties.opacity || isNewLayer(olLayer)) {
+                            if (isNumber(properties.opacity) || isNumber(parseFloat(properties.opacity))) {
+                                olLayer.setOpacity(properties.opacity);
+                            }
+                        }
 
-                            if (!equals(properties.source, oldProperties.source)) {
-                                var idx = olLayer.index;
-                                layerCollection.removeAt(idx);
-                                olLayer = createLayer(properties, projection);
-                                if (isDefined(olLayer)) {
-                                    insertLayer(layerCollection, idx, olLayer);
+                        // set index
+                        if (isDefined(properties.index) && properties.index !== olLayer.index) {
+                            collection = layerCollection;
+                            group = olLayer.get('group');
 
-                                    if (detectLayerType(properties) === 'Vector') {
-                                        setVectorLayerEvents(defaults.events, map, scope, properties.name);
-                                    }
-                                }
+                            if (group) {
+                                collection = getGroup(layerCollection, group).getLayers();
                             }
 
-                            if (isDefined(properties.index) && properties.index !== olLayer.index) {
-                                removeLayer(layerCollection, olLayer.index);
-                                insertLayer(layerCollection, properties.index, olLayer);
-                            }
+                            removeLayer(collection, olLayer.index);
+                            insertLayer(collection, properties.index, olLayer);
+                        }
 
-                            if (isBoolean(properties.visible) && properties.visible !== oldProperties.visible) {
-                                olLayer.setVisible(properties.visible);
-                            }
+                        // set group
+                        if (isDefined(properties.group) && properties.group !== oldProperties.group) {
+                            removeLayerFromGroup(layerCollection, olLayer, oldProperties.group);
+                            addLayerToGroup(layerCollection, olLayer, properties.group);
+                        }
 
-                            if (properties.opacity !== oldProperties.opacity) {
-                                if (isNumber(properties.opacity) || isNumber(parseFloat(properties.opacity))) {
-                                    olLayer.setOpacity(properties.opacity);
-                                }
-                            }
+                        // set visibility
+                        if (isDefined(oldProperties) &&
+                            isBoolean(properties.visible) &&
+                            properties.visible !== oldProperties.visible || isNewLayer(olLayer)) {
+                            olLayer.setVisible(properties.visible);
+                        }
 
-                            if (isDefined(properties.style) && !equals(properties.style, oldProperties.style)) {
-                                if (!angular.isFunction(properties.style)) {
-                                    style = createStyle(properties.style);
-                                } else {
-                                    style = properties.style;
-                                }
+                        // set style
+                        if (isDefined(properties.style) &&
+                            !equals(properties.style, oldProperties.style) || isNewLayer(olLayer)) {
+                            if (!angular.isFunction(properties.style)) {
+                                style = createStyle(properties.style);
+                            } else {
+                                style = properties.style;
+                            }
+                            // not every layer has a setStyle method
+                            if (olLayer.setStyle && angular.isFunction(olLayer.setStyle)) {
                                 olLayer.setStyle(style);
+                            }
+                        }
+
+                        //set min resolution
+                        if (!equals(properties.minResolution, oldProperties.minResolution) || isNewLayer(olLayer)) {
+                            if (isDefined(properties.minResolution)) {
+                                olLayer.setMinResolution(properties.minResolution);
+                            }
+                        }
+
+                        //set max resolution
+                        if (!equals(properties.maxResolution, oldProperties.maxResolution) || isNewLayer(olLayer)) {
+                            if (isDefined(properties.maxResolution)) {
+                                olLayer.setMaxResolution(properties.maxResolution);
                             }
                         }
                     }

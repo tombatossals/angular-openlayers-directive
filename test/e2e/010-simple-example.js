@@ -7,7 +7,7 @@ describe('Loading 010-simple-example.html', function() {
 
     it('should load the Openlayers map inside the directive tag', function() {
         element(by.className('angular-openlayers-map')).getText().then(function(text) {
-            expect(text).toBe('+\n−\ni');
+            expect(text).toBe('+\n−');
         });
     });
 
