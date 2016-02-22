@@ -360,14 +360,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     oSource = new ol.source.Vector();
 
                     var projectionToUse = projection;
+                    var dataProjection; // Projection of geojson data
                     if (isDefined(source.geojson.projection)) {
-                        projectionToUse = source.geojson.projection;
+                        dataProjection = new ol.proj.get(source.geojson.projection);
+                    } else {
+                        dataProjection = projection; // If not defined, features will not be reprojected.
                     }
 
                     var features = geojsonFormat.readFeatures(
                         source.geojson.object, {
                             featureProjection: projectionToUse,
-                            dataProjection: projectionToUse
+                            dataProjection: dataProjection
                         });
 
                     oSource.addFeatures(features);
