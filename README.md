@@ -1,6 +1,8 @@
 angular-openlayers-directive
 ============================
 [![Build Status](https://travis-ci.org/tombatossals/angular-openlayers-directive.png)](https://travis-ci.org/tombatossals/angular-openlayers-directive)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+[![npm version](https://badge.fury.io/js/angular-openlayers-directive.svg)](http://badge.fury.io/js/angular-openlayers-directive)
 
 Work in progress.
 
@@ -33,6 +35,7 @@ Let's start with some basic examples. Look at the source code of the example to 
 - [Layers Image WMS example](http://tombatossals.github.io/angular-openlayers-directive/examples/053-layers-image-wms-example.html)
 - [Add/Remove/Change Layers dynamically example](http://tombatossals.github.io/angular-openlayers-directive/examples/054-add-remove-multiple-layers-example.html)
 - [Load inline GeoJson in layer example](http://tombatossals.github.io/angular-openlayers-directive/examples/055-layers-geojon-dynamic-load-example.html)
+- [Layer Clustering](http://tombatossals.github.io/angular-openlayers-directive/examples/059-layer-clustering.html)
 - [Marker example](http://tombatossals.github.io/angular-openlayers-directive/examples/060-marker-example.html)
 - [Marker and layer with no javascsript example](http://tombatossals.github.io/angular-openlayers-directive/examples/066-markers-with-layers-no-javascript-example.html)
 - [Marker add/remove from map example](http://tombatossals.github.io/angular-openlayers-directive/examples/061-markers-add-remove-example.html)
@@ -57,6 +60,21 @@ You can take a look at the current documentation go get a more detailed explanat
 - [Center attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/02-center-attribute.md)
 - [Defaults attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/03-defaults-attribute.md)
 - [Layers attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/04-layers-attribute.md)
+
+Install
+--------
+
+Build the files yourself, download from bower
+
+```
+$ bower install angular-openlayers-directive --save
+```
+
+or from npm
+
+```
+$ npm install angular-openlayers-directive --save
+```
 
 Quick start: How to use it
 --------------------------

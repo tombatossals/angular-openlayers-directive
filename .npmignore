@@ -1,0 +1,12 @@
+src/
+doc/
+grunt/
+examples/
+test/
+*.md
+Gruntfile.js
+.travis.yml
+package.json
+bower.json
+node_modules
+bower_components

@@ -1,5 +1,22 @@
+sudo: false
 language: node_js
+cache:
+  directories:
+    - node_modules
+branches:
+  only:
+    - master
+notifications:
+  email: false
 node_js:
-  - "0.10"
+  - '4.1'
+before_install:
+  - npm i -g npm@^2.0.0
+  - npm install -g grunt-cli
+  - npm install -g bower
+  - bower install
+  - npm install
 before_script:
-  - npm install -g grunt-cli
+  - npm prune
+after_success:
+  - npm run semantic-release

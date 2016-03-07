@@ -11,27 +11,29 @@ angular.module('openlayers-directive').directive('olControl', function($log, $q,
             var isDefined   = olHelpers.isDefined;
             var olScope   = controller.getOpenlayersScope();
             var olControl;
+            var olControlOps;
 
             olScope.getMap().then(function(map) {
                 var getControlClasses = olHelpers.getControlClasses;
                 var controlClasses = getControlClasses();
 
-                if (!isDefined(scope.properties)) {
+                scope.$on('$destroy', function() {
+                    map.removeControl(olControl);
+                });
+
+                if (!isDefined(scope.properties) || !isDefined(scope.properties.control)) {
                     if (attrs.name) {
-                        olControl = new controlClasses[attrs.name]();
+                        if (isDefined(scope.properties)) {
+                            olControlOps = scope.properties;
+                        }
+                        olControl = new controlClasses[attrs.name](olControlOps);
                         map.addControl(olControl);
                     }
                     return;
                 }
 
-                if (isDefined(scope.properties.control)) {
-                    olControl = scope.properties.control;
-                    map.addControl(olControl);
-                }
-
-                scope.$on('$destroy', function() {
-                    map.removeControl(olControl);
-                });
+                olControl = scope.properties.control;
+                map.addControl(olControl);
             });
         }
     };

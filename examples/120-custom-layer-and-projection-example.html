@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html ng-app="demoapp">
+<head>
+    <script src="../bower_components/openlayers3/build/ol-debug.js"></script>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="../dist/angular-openlayers-directive.js"></script>
+    <link rel="stylesheet" href="../bower_components/openlayers3/build/ol.css"/>
+    <script>
+        var app = angular.module("demoapp", ["openlayers-directive"]);
+        app.controller('DemoController', ['$scope', function ($scope) {
+
+            var projection = new ol.proj.Projection({
+                code: 'EPSG:31370',
+                extent: [141192.712, 161464.403, 158005.472, 178169.335],
+                units: 'm'
+            });
+            console.info('projection', projection);
+
+            angular.extend($scope, {
+                brussels: {
+                    lat: 149592.58,
+                    lon: 170161.24,
+                    zoom: 1
+                },
+                customLayer: {
+                    source: {
+                        type: 'TileWMS',
+                        url: 'http://geoserver.gis.irisnet.be/geoserver/wms',
+                        params: {LAYERS: 'urbisFR'},
+                        serverType: 'geoserver'
+                    }
+                },
+                defaults: {
+                    // Setting up the
+                    center: {
+                        projection: projection
+                    },
+                    interactions: {
+                        mouseWheelZoom: true
+                    },
+                    view: {
+                        center: [149592.58, 170161.24],
+                        extent: projection.extent,
+                        zoom: 1,
+                        projection: projection
+                    }
+                },
+                view: {
+                    center: [149592.58, 170161.24],
+                    extent: projection.extent,
+                    zoom: 1,
+                    projection: projection
+                }
+            });
+        }]);
+    </script>
+</head>
+<body ng-controller="DemoController">
+<openlayers
+            custom-layers="true"
+            ng-style="mapStyle"
+            ol-center="brussels"
+            ol-defaults="defaults"
+            ol-view="view">
+    <ol-layer ol-layer-properties="customLayer"></ol-layer>
+</openlayers>
+
+<h1>Custom layer source with custom projection and extent</h1>
+
+<p>An example that demonstrates how to adequately setup a custom layer source with a custom projection and extent</p>
+</div>
+
+</body>
+</html>

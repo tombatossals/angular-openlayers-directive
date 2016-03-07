@@ -29,6 +29,7 @@ angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', f
                 var isDefined = olHelpers.isDefined;
                 var createLayer = olHelpers.createLayer;
                 var setMapEvents = olHelpers.setMapEvents;
+                var setViewEvents = olHelpers.setViewEvents;
                 var createView = olHelpers.createView;
                 var defaults = olMapDefaults.setDefaults(scope);
 
@@ -74,6 +75,10 @@ angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', f
                     view: view
                 });
 
+                scope.$on('$destroy', function() {
+                    olData.resetMap(attrs.id);
+                });
+
                 // If no layer is defined, set the default tileLayer
                 if (!attrs.customLayers) {
                     var l = {
@@ -99,6 +104,9 @@ angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', f
 
                 // Set the Default events for the map
                 setMapEvents(defaults.events, map, scope);
+
+                //Set the Default events for the map view
+                setViewEvents(defaults.events, map, scope);
 
                 // Resolve the map object to the promises
                 scope.setMap(map);
