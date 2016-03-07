@@ -189,6 +189,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
     var createSource = function(source, projection) {
         var oSource;
+        var url;
         var geojsonFormat = new ol.format.GeoJSON(); // used in various switch stmnts below
 
         switch (source.type) {
@@ -197,7 +198,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     $log.error('[AngularJS - Openlayers] - MapBox layer requires the map id and the access token');
                     return;
                 }
-                var url = 'http://api.tiles.mapbox.com/v4/' + source.mapId + '/{z}/{x}/{y}.png?access_token=' +
+                url = 'http://api.tiles.mapbox.com/v4/' + source.mapId + '/{z}/{x}/{y}.png?access_token=' +
                     source.accessToken;
 
                 var pixelRatio = window.devicePixelRatio;
@@ -210,6 +211,22 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     url: url,
                     attributions: createAttribution(source),
                     tilePixelRatio: pixelRatio > 1 ? 2 : 1
+                });
+                break;
+            case 'MapBoxStudio':
+                if (!source.mapId || !source.accessToken || !source.userId) {
+                    $log.error('[AngularJS - Openlayers] - MapBox Studio layer requires the map id' +
+                    ', user id  and the access token');
+                    return;
+                }
+                url = 'https://api.mapbox.com/styles/v1/' + source.userId +
+                    '/' + source.mapId + '/tiles/{z}/{x}/{y}?access_token=' +
+                    source.accessToken;
+
+                oSource = new ol.source.XYZ({
+                    url: url,
+                    attributions: createAttribution(source),
+                    tileSize: source.tileSize || [512, 512]
                 });
                 break;
             case 'ImageWMS':
