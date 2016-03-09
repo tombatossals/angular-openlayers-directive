@@ -226,11 +226,8 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                                 label = createOverlay(element, pos);
                                 map.addOverlay(label);
                             }
-
-                            if (properties.onClick && (evt.type === 'click' || evt.type === 'touchend')) {
-                                scope.$apply(function() {
-                                    properties.onClick.call(marker, evt, properties);
-                                });
+                            if (attrs.hasOwnProperty('ngClick') && (evt.type === 'click' || evt.type === 'touchend')) {
+                                element.triggerHandler('click');
                             }
                             map.getTarget().style.cursor = 'pointer';
                         }
@@ -397,7 +394,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
 
                     if ((properties.label && properties.label.show === false &&
                         properties.label.showOnMouseClick) ||
-                        properties.onClick) {
+                        attrs.hasOwnProperty('ngClick')) {
                         map.getViewport().addEventListener('click', properties.handleTapInteraction);
                         map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
                             'touchend', properties.handleTapInteraction);
