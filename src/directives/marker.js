@@ -76,11 +76,10 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
         require: '^openlayers',
         replace: true,
         template:
-        '<div class="popup-label marker">' +
+            '<div class="popup-label marker">' +
             '<div ng-bind-html="message"></div>' +
             '<ng-transclude></ng-transclude>' +
-        '</div>',
-
+            '</div>',
         link: function(scope, element, attrs, controller) {
             var isDefined = olHelpers.isDefined;
             var olScope = controller.getOpenlayersScope();
@@ -203,13 +202,12 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
 
                     // This function handles popup on mouse over/click
                     properties.handleInteraction = function(evt) {
-                        if (attrs.hasOwnProperty('ngClick') && (evt.type === 'click' || evt.type === 'touchend')) {
-                            element.triggerHandler('click');
-                            evt.preventDefault();
-                            evt.stopPropagation();
-                            return;
+                        var ngClick = false;
+                        if (attrs.hasOwnProperty('ngClick')) {
+                            ngClick = true;
                         }
-                        if (properties.label.show) {
+
+                        if (properties.label.show && !ngClick) {
                             return;
                         }
                         var found = false;
@@ -222,6 +220,12 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                         if (feature === marker) {
                             actionTaken = true;
                             found = true;
+                            if (ngClick && (evt.type === 'click' || evt.type === 'touchend')) {
+                                element.triggerHandler('click');
+                                evt.preventDefault();
+                                evt.stopPropagation();
+                                return;
+                            }
                             if (!isDefined(label)) {
                                 if (data.projection === 'pixel') {
                                     pos = properties.coord;
