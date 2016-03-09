@@ -128,13 +128,13 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
 
                     var viewCenter = view.getCenter();
                     if (viewCenter) {
-                        if (defaults.view.projection === 'pixel') {
+                        if (defaults.view.projection === 'pixel' || center.projection === 'pixel') {
                             view.setCenter(center.coord);
-                            return;
-                        }
-                        var actualCenter = ol.proj.transform(viewCenter, defaults.view.projection, center.projection);
-                        if (!(actualCenter[1] === center.lat && actualCenter[0] === center.lon)) {
-                            setCenter(view, defaults.view.projection, center, map);
+                        } else {
+                            var actualCenter = ol.proj.transform(viewCenter, defaults.view.projection, center.projection);
+                            if (!(actualCenter[1] === center.lat && actualCenter[0] === center.lon)) {
+                                setCenter(view, defaults.view.projection, center, map);
+                            }
                         }
                     }
 
@@ -153,7 +153,7 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                         var center = map.getView().getCenter();
                         scope.center.zoom = view.getZoom();
 
-                        if (defaults.view.projection === 'pixel') {
+                        if (defaults.view.projection === 'pixel' || scope.center.projection === 'pixel') {
                             scope.center.coord = center;
                             return;
                         }
