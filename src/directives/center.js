@@ -131,7 +131,8 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                         if (defaults.view.projection === 'pixel' || center.projection === 'pixel') {
                             view.setCenter(center.coord);
                         } else {
-                            var actualCenter = ol.proj.transform(viewCenter, defaults.view.projection, center.projection);
+                            var actualCenter =
+                                ol.proj.transform(viewCenter, defaults.view.projection, center.projection);
                             if (!(actualCenter[1] === center.lat && actualCenter[0] === center.lon)) {
                                 setCenter(view, defaults.view.projection, center, map);
                             }
