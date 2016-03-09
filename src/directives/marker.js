@@ -203,6 +203,12 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
 
                     // This function handles popup on mouse over/click
                     properties.handleInteraction = function(evt) {
+                        if (attrs.hasOwnProperty('ngClick') && (evt.type === 'click' || evt.type === 'touchend')) {
+                            element.triggerHandler('click');
+                            evt.preventDefault();
+                            evt.stopPropagation();
+                            return;
+                        }
                         if (properties.label.show) {
                             return;
                         }
@@ -225,9 +231,6 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                                 }
                                 label = createOverlay(element, pos);
                                 map.addOverlay(label);
-                            }
-                            if (attrs.hasOwnProperty('ngClick') && (evt.type === 'click' || evt.type === 'touchend')) {
-                                element.triggerHandler('click');
                             }
                             map.getTarget().style.cursor = 'pointer';
                         }
