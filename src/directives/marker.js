@@ -223,6 +223,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                             if (ngClick && (evt.type === 'click' || evt.type === 'touchend')) {
                                 element.triggerHandler('click');
                                 evt.preventDefault();
+                                evt.stopPropagation();
                                 return;
                             }
                             if (!isDefined(label)) {
