@@ -261,13 +261,14 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
 
                     var viewCenter = view.getCenter();
                     if (viewCenter) {
-                        if (defaults.view.projection === 'pixel') {
+                        if (defaults.view.projection === 'pixel' || center.projection === 'pixel') {
                             view.setCenter(center.coord);
-                            return;
-                        }
-                        var actualCenter = ol.proj.transform(viewCenter, defaults.view.projection, center.projection);
-                        if (!(actualCenter[1] === center.lat && actualCenter[0] === center.lon)) {
-                            setCenter(view, defaults.view.projection, center, map);
+                        } else {
+                            var actualCenter =
+                                ol.proj.transform(viewCenter, defaults.view.projection, center.projection);
+                            if (!(actualCenter[1] === center.lat && actualCenter[0] === center.lon)) {
+                                setCenter(view, defaults.view.projection, center, map);
+                            }
                         }
                     }
 
@@ -286,7 +287,7 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                         var center = map.getView().getCenter();
                         scope.center.zoom = view.getZoom();
 
-                        if (defaults.view.projection === 'pixel') {
+                        if (defaults.view.projection === 'pixel' || scope.center.projection === 'pixel') {
                             scope.center.coord = center;
                             return;
                         }
@@ -1377,6 +1378,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
     var createSource = function(source, projection) {
         var oSource;
+        var url;
         var geojsonFormat = new ol.format.GeoJSON(); // used in various switch stmnts below
 
         switch (source.type) {
@@ -1385,7 +1387,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     $log.error('[AngularJS - Openlayers] - MapBox layer requires the map id and the access token');
                     return;
                 }
-                var url = 'http://api.tiles.mapbox.com/v4/' + source.mapId + '/{z}/{x}/{y}.png?access_token=' +
+                url = 'http://api.tiles.mapbox.com/v4/' + source.mapId + '/{z}/{x}/{y}.png?access_token=' +
                     source.accessToken;
 
                 var pixelRatio = window.devicePixelRatio;
@@ -1398,6 +1400,22 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     url: url,
                     attributions: createAttribution(source),
                     tilePixelRatio: pixelRatio > 1 ? 2 : 1
+                });
+                break;
+            case 'MapBoxStudio':
+                if (!source.mapId || !source.accessToken || !source.userId) {
+                    $log.error('[AngularJS - Openlayers] - MapBox Studio layer requires the map id' +
+                    ', user id  and the access token');
+                    return;
+                }
+                url = 'https://api.mapbox.com/styles/v1/' + source.userId +
+                    '/' + source.mapId + '/tiles/{z}/{x}/{y}?access_token=' +
+                    source.accessToken;
+
+                oSource = new ol.source.XYZ({
+                    url: url,
+                    attributions: createAttribution(source),
+                    tileSize: source.tileSize || [512, 512]
                 });
                 break;
             case 'ImageWMS':
@@ -1548,14 +1566,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     oSource = new ol.source.Vector();
 
                     var projectionToUse = projection;
+                    var dataProjection; // Projection of geojson data
                     if (isDefined(source.geojson.projection)) {
-                        projectionToUse = source.geojson.projection;
+                        dataProjection = new ol.proj.get(source.geojson.projection);
+                    } else {
+                        dataProjection = projection; // If not defined, features will not be reprojected.
                     }
 
                     var features = geojsonFormat.readFeatures(
                         source.geojson.object, {
                             featureProjection: projectionToUse,
-                            dataProjection: projectionToUse
+                            dataProjection: dataProjection
                         });
 
                     oSource.addFeatures(features);
