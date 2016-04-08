@@ -898,7 +898,12 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
 
                     // This function handles popup on mouse over/click
                     properties.handleInteraction = function(evt) {
-                        if (properties.label.show) {
+                        var ngClick = false;
+                        if (attrs.hasOwnProperty('ngClick')) {
+                            ngClick = true;
+                        }
+
+                        if (properties.label.show && !ngClick) {
                             return;
                         }
                         var found = false;
@@ -911,6 +916,12 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                         if (feature === marker) {
                             actionTaken = true;
                             found = true;
+                            if (ngClick && (evt.type === 'click' || evt.type === 'touchend')) {
+                                element.triggerHandler('click');
+                                evt.preventDefault();
+                                evt.stopPropagation();
+                                return;
+                            }
                             if (!isDefined(label)) {
                                 if (data.projection === 'pixel') {
                                     pos = properties.coord;
@@ -920,12 +931,6 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                                 }
                                 label = createOverlay(element, pos);
                                 map.addOverlay(label);
-                            }
-
-                            if (properties.onClick && (evt.type === 'click' || evt.type === 'touchend')) {
-                                scope.$apply(function() {
-                                    properties.onClick.call(marker, evt, properties);
-                                });
                             }
                             map.getTarget().style.cursor = 'pointer';
                         }
@@ -1092,7 +1097,7 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
 
                     if ((properties.label && properties.label.show === false &&
                         properties.label.showOnMouseClick) ||
-                        properties.onClick) {
+                        attrs.hasOwnProperty('ngClick')) {
                         map.getViewport().addEventListener('click', properties.handleTapInteraction);
                         map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
                             'touchend', properties.handleTapInteraction);
