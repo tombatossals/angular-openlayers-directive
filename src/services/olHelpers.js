@@ -289,7 +289,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         resolutions: source.tileGrid.resolutions,
                         matrixIds: source.tileGrid.matrixIds
                     }),
-                    style : (source.style === 'undefined') ? 'normal' : source.style,
+                    style : (source.style === 'undefined') ? 'normal' : source.style
                 };
 
                 if (isDefined(source.url)) {
