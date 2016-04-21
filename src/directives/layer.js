@@ -3,7 +3,8 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
     return {
         restrict: 'E',
         scope: {
-            properties: '=olLayerProperties'
+            properties: '=olLayerProperties',
+            onLayerCreated: '&'
         },
         replace: false,
         require: '^openlayers',
@@ -49,7 +50,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                             }
                         };
 
-                        olLayer = createLayer(l, projection, attrs.layerName);
+                        olLayer = createLayer(l, projection, attrs.layerName, scope.onLayerCreated);
                         if (detectLayerType(l) === 'Vector') {
                             setVectorLayerEvents(defaults.events, map, scope, attrs.name);
                         }
@@ -77,7 +78,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                     var group;
                     var collection;
                     if (!isDefined(olLayer)) {
-                        olLayer = createLayer(properties, projection);
+                        olLayer = createLayer(properties, projection, scope.onLayerCreated);
                         if (isDefined(properties.group)) {
                             addLayerToGroup(layerCollection, olLayer, properties.group);
                         } else if (isDefined(properties.index)) {
@@ -144,7 +145,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
 
                             collection.removeAt(idx);
 
-                            olLayer = createLayer(properties, projection);
+                            olLayer = createLayer(properties, projection, scope.onLayerCreated);
                             olLayer.set('group', group);
 
                             if (isDefined(olLayer)) {

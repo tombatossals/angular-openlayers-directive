@@ -321,7 +321,8 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
     return {
         restrict: 'E',
         scope: {
-            properties: '=olLayerProperties'
+            properties: '=olLayerProperties',
+            onLayerCreated: '&'
         },
         replace: false,
         require: '^openlayers',
@@ -367,7 +368,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                             }
                         };
 
-                        olLayer = createLayer(l, projection, attrs.layerName);
+                        olLayer = createLayer(l, projection, attrs.layerName, scope.onLayerCreated);
                         if (detectLayerType(l) === 'Vector') {
                             setVectorLayerEvents(defaults.events, map, scope, attrs.name);
                         }
@@ -395,7 +396,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                     var group;
                     var collection;
                     if (!isDefined(olLayer)) {
-                        olLayer = createLayer(properties, projection);
+                        olLayer = createLayer(properties, projection, scope.onLayerCreated);
                         if (isDefined(properties.group)) {
                             addLayerToGroup(layerCollection, olLayer, properties.group);
                         } else if (isDefined(properties.index)) {
@@ -462,7 +463,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
 
                             collection.removeAt(idx);
 
-                            olLayer = createLayer(properties, projection);
+                            olLayer = createLayer(properties, projection, scope.onLayerCreated);
                             olLayer.set('group', group);
 
                             if (isDefined(olLayer)) {
@@ -1482,7 +1483,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         origin: source.tileGrid.origin,
                         resolutions: source.tileGrid.resolutions,
                         matrixIds: source.tileGrid.matrixIds
-                    })
+                    }),
+                    style: (source.style === 'undefined') ? 'normal' : source.style
                 };
 
                 if (isDefined(source.url)) {
@@ -1994,12 +1996,19 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
         detectLayerType: detectLayerType,
 
-        createLayer: function(layer, projection, name) {
+        createLayer: function(layer, projection, name, onLayerCreatedFn) {
             var oLayer;
             var type = detectLayerType(layer);
             var oSource = createSource(layer.source, projection);
             if (!oSource) {
                 return;
+            }
+
+            // handle function overloading. 'name' argument may be
+            // our onLayerCreateFn since name is optional
+            if (typeof(name) === 'function' && !onLayerCreatedFn) {
+                onLayerCreatedFn = name;
+                name = undefined; // reset, otherwise it'll be used later on
             }
 
             // Manage clustering
@@ -2059,6 +2068,13 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 for (var key in layer.customAttributes) {
                     oLayer.set(key, layer.customAttributes[key]);
                 }
+            }
+
+            // invoke the onSourceCreated callback
+            if (onLayerCreatedFn) {
+                onLayerCreatedFn({
+                    oLayer: oLayer
+                });
             }
 
             return oLayer;
