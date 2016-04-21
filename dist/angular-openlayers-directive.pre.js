@@ -548,7 +548,8 @@ angular.module('openlayers-directive').directive('olPath', function($log, $q, ol
     return {
         restrict: 'E',
         scope: {
-            properties: '=olGeomProperties'
+            properties: '=olGeomProperties',
+            style: '=olStyle'
         },
         require: '^openlayers',
         replace: true,
@@ -583,7 +584,7 @@ angular.module('openlayers-directive').directive('olPath', function($log, $q, ol
                         type: 'Polygon',
                         coords: coords,
                         projection: proj,
-                        style: mapDefaults.styles.path
+                        style:  scope.style ? scope.style : mapDefaults.styles.path
                     };
                     var feature = createFeature(data, viewProjection);
                     layer.getSource().addFeature(feature);
