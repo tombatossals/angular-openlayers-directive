@@ -238,7 +238,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     url: source.url,
                     attributions: createAttribution(source),
                     crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
-                    params: source.params,
+                    params: deepCopy(source.params),
                     ratio: source.ratio
                 });
                 break;
@@ -251,7 +251,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
                 var wmsConfiguration = {
                     crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
-                    params: source.params,
+                    params: deepCopy(source.params),
                     attributions: createAttribution(source)
                 };
 
@@ -571,6 +571,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         }
 
         return oSource;
+    };
+
+    var deepCopy = function(oldObj) {
+        var newObj = oldObj;
+        if (oldObj && typeof oldObj === 'object') {
+            newObj = Object.prototype.toString.call(oldObj) === "[object Array]" ? [] : {};
+            for (var i in oldObj) {
+                newObj[i] = deepCopy(oldObj[i]);
+            }
+        }
+        return newObj;
     };
 
     var createAttribution = function(source) {
