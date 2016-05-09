@@ -192,7 +192,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         var url;
         var geojsonFormat = new ol.format.GeoJSON(); // used in various switch stmnts below
 
-        switch (source.type) {
+        // if source object is created externaly there is no need to create it here
+
+        if (angular.isString(source.type))
+            switch (source.type) {
             case 'MapBox':
                 if (!source.mapId || !source.accessToken) {
                     $log.error('[AngularJS - Openlayers] - MapBox layer requires the map id and the access token');
@@ -564,6 +567,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 });
                 break;
         }
+        else
+            oSource = source.type;
 
         // log a warning when no source could be created for the given type
         if (!oSource) {
