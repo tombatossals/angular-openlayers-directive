@@ -151,8 +151,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 case 'JSONP':
                 case 'TopoJSON':
                 case 'KML':
-                case 'TileVector':
                     return 'Vector';
+                case 'TileVector':
+                    return 'TileVector';
                 default:
                     return 'Tile';
             }
@@ -449,7 +450,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 if (!source.url || !source.format) {
                     $log.error('[AngularJS - Openlayers] - TileVector Layer needs valid url and format properties');
                 }
-                oSource = new ol.source.TileVector({
+                oSource = new ol.source.VectorTile({
                     url: source.url,
                     projection: projection,
                     attributions: createAttribution(source),
@@ -869,6 +870,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     break;
                 case 'Vector':
                     oLayer = new ol.layer.Vector(layerConfig);
+                    break;
+                case 'TileVector':
+                    oLayer = new ol.layer.VectorTile(layerConfig);
                     break;
             }
 
