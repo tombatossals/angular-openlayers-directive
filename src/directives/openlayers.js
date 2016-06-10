@@ -8,21 +8,50 @@ angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', f
                 center: '=olCenter',
                 defaults: '=olDefaults',
                 view: '=olView',
-                events: '=olEvents'
+                events: '=olEvents',
+                api: '=?api'
             },
             template: '<div class="angular-openlayers-map" ng-transclude></div>',
             controller: function($scope) {
                 var _map = $q.defer();
+                var _mapObject = null;
                 $scope.getMap = function() {
                     return _map.promise;
                 };
 
                 $scope.setMap = function(map) {
                     _map.resolve(map);
+                    _mapObject = map;
                 };
 
                 this.getOpenlayersScope = function() {
                     return $scope;
+                };
+                
+                $scope.api = {
+                    getMap: function() {
+                        return _mapObject;
+                    },
+                    getMarkersLayer: function() {
+                        var result = null;
+                        
+                        _mapObject.getLayers().forEach(function (lyr) {
+                            if(lyr.get('markers') === true) {
+                                result = lyr;
+                                return;   
+                            }
+                        });
+                        
+                        return result;
+                    },
+                    centerOnExtent: function() {
+                        var markerLayer = this.getMarkersLayer();
+                        
+                        if(markerLayer !== null) {
+                            var extent = markerLayer.getSource().getExtent();
+                            _mapObject.getView().fit(extent, _mapObject.getSize());
+                        }
+                    }
                 };
             },
             link: function(scope, element, attrs) {
@@ -111,7 +140,6 @@ angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', f
                 // Resolve the map object to the promises
                 scope.setMap(map);
                 olData.setMap(map, attrs.id);
-
             }
         };
     });
