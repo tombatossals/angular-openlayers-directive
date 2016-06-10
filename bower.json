@@ -13,12 +13,13 @@
   "dependencies": {
     "angular": "1.4.9",
     "angular-sanitize": "1.4.9",
-    "openlayers3": "https://github.com/tombatossals/ol3-compiled.git#3.8.2"
+    "openlayers": "https://github.com/openlayers/ol3/releases/download/v3.16.0/v3.16.0-dist.zip"
   },
   "devDependencies": {
     "jquery": "*",
     "angular-route": "1.4.9",
-    "angular-mocks": "1.4.9"
+    "angular-mocks": "1.4.9",
+    "js-polyfills": "^0.1.20"
   },
   "ignore": [
     "**/.*",
