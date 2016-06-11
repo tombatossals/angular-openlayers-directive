@@ -151,6 +151,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 case 'JSONP':
                 case 'TopoJSON':
                 case 'KML':
+                case 'WKT':
                 case 'TileVector':
                     return 'Vector';
                 default:
@@ -341,6 +342,25 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     attributions: createAttribution(source),
                     url: _url
                 });
+
+                break;
+
+            case 'WKT':
+                if (!(source.wkt)) {
+                    $log.error('[AngularJS - Openlayers] - You need a WKT ' +
+                               'property to add a WKT layer.');
+                    return;
+                }
+                
+                var wktFormat = new ol.format.WKT();
+                       
+                oSource = new ol.source.Vector();
+                var wktFeatures = wktFormat.readFeatures(source.wkt, {
+                    dataProjection: projection,
+                    featureProjection: projection
+                });
+                
+                oSource.addFeatures(wktFeatures);
 
                 break;
 
