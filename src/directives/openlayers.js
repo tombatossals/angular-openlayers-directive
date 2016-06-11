@@ -45,12 +45,15 @@ angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', f
                         return result;
                     },
                     centerOnExtent: function() {
-                        var markerLayer = this.getMarkersLayer();
-                        
-                        if(markerLayer !== null) {
-                            var extent = markerLayer.getSource().getExtent();
-                            _mapObject.getView().fit(extent, _mapObject.getSize());
-                        }
+                        var extent = ol.extent.createEmpty();
+                        _mapObject.getLayers().forEach(function (layer) {
+                            var source = layer.getSource();
+
+                            if (source.getExtent) {
+                                ol.extent.extend(extent, source.getExtent());
+                            }
+                        });
+                        _mapObject.getView().fit(extent, _mapObject.getSize());
                     }
                 };
             },
