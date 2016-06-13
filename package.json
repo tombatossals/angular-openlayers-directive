@@ -53,7 +53,7 @@
     "load-grunt-config": "^0.17.1",
     "matchdep": "~0.3.0",
     "phantomjs": "^1.9.18",
-    "protractor": "^2.0.0",
+    "protractor": "~2.5.0",
     "publish-latest": "^1.1.2",
     "semantic-release": "^4.3.5"
   },
@@ -65,5 +65,5 @@
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "main": "dist/angular-openlayers-directive",
-  "version": "1.13.1"
+  "version": "1.14.0"
 }

@@ -72,7 +72,9 @@ angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', f
                     controls: controls,
                     interactions: interactions,
                     renderer: defaults.renderer,
-                    view: view
+                    view: view,
+                    loadTilesWhileAnimating: defaults.loadTilesWhileAnimating,
+                    loadTilesWhileInteracting: defaults.loadTilesWhileInteracting
                 });
 
                 scope.$on('$destroy', function() {
