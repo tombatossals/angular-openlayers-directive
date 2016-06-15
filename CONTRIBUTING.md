@@ -118,7 +118,7 @@ Once you have the development dependencies installed, we can use our predefined 
 * **grunt test**. Executes the karma unitary tests and the protractor e2e tests, reporting the actual state of the project.
 * **grunt test:unit**. Executes only the karma unitary tests.
 * **grunt test:e2e**. Executes only the protractor e2e tests.
-* **grunt coverage**. Generates a "coverage" folder with an [istanbul](https://github.com/gotwarlost/istanbul) report of wich part of the code is covered by the actual tests.
+* **grunt coverage**. Generates a "coverage" folder with an [istanbul](https://github.com/gotwarlost/istanbul) report of which part of the code is covered by the actual tests.
 * **grunt**. The default task watches for project files changes and when a change is detected, tries to build the library file passing the jshint filter and the tests. Let's see an example:
 
 ```
