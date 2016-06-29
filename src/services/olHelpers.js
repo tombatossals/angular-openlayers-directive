@@ -538,7 +538,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     attributions: createAttribution(source),
                     imageSize: source.imageSize,
                     projection: projection,
-                    imageExtent: projection.getExtent(),
+                    imageExtent: source.imageExtent ? source.imageExtent : projection.getExtent(),
                     imageLoadFunction: source.imageLoadFunction
                 });
                 break;
