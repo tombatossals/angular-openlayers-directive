@@ -17,9 +17,9 @@
   ],
   "license": "MIT",
   "dependencies": {
-      "angular": "~1.4.8",
-      "angular-sanitize": "~1.4.8",
-      "openlayers": "~3.8"
+    "angular": "~1.4.8",
+    "angular-sanitize": "~1.4.8",
+    "openlayers": "~3.8"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
@@ -58,12 +58,13 @@
     "semantic-release": "^4.3.5"
   },
   "scripts": {
-    "postinstall" : "bower install",
+    "postinstall": "bower install",
     "test": "grunt build && grunt karma:unit",
     "build": "grunt build",
     "prepublish": "npm run build",
     "postpublish": "publish-latest",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
-  "main": "dist/angular-openlayers-directive"
+  "main": "dist/angular-openlayers-directive",
+  "version": "1.15.0"
 }
