@@ -58,7 +58,6 @@
     "semantic-release": "^4.3.5"
   },
   "scripts": {
-    "postinstall" : "bower install",
     "test": "grunt build && grunt karma:unit",
     "build": "grunt build",
     "prepublish": "npm run build",
