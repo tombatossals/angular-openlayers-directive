@@ -58,6 +58,7 @@
     "semantic-release": "^4.3.5"
   },
   "scripts": {
+    "postinstall": "bower install",
     "test": "grunt build && grunt karma:unit",
     "build": "grunt build",
     "prepublish": "npm run build",
@@ -65,5 +66,5 @@
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "main": "dist/angular-openlayers-directive",
-  "version": "1.14.0"
+  "version": "1.14.1"
 }
