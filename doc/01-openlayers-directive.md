@@ -75,14 +75,13 @@ Great, let's see now the complete HTML and inline javascript code needed to load
 
 You can see this example in action on the [simple-example demo file](http://tombatossals.github.io/angular-openlayers-directive/examples/01-simple-example.html).
 
-Take a look at the [AnguarJS controller documentation](http://docs.angularjs.org/guide/controller) if you want to learn more about Angular controller definition, or to the [AngularJS ngApp](http://docs.angularjs.org/api/ng.directive:ngApp) to know how to bootstrap an Angular application.
+Take a look at the [AngularJS controller documentation](http://docs.angularjs.org/guide/controller) if you want to learn more about Angular controller definition, or to the [AngularJS ngApp](http://docs.angularjs.org/api/ng.directive:ngApp) to know how to bootstrap an Angular application.
 
 Attributes Documentation
 ========================
 
 We have much more possibilities than showing a simple map, but this will need that we take a closer look at the attributes, listed below:
 
-- [ol-defaults attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/defaults-attribute.md)
-- [ol-center attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/center-attribute.md)
-- [ol-layers attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/layers-attribute.md)
-- [ol-markers attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/markers-attribute.md)
+- [ol-defaults attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/03-defaults-attribute.md)
+- [ol-center attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/02-center-attribute.md)
+- [ol-layers attribute](https://github.com/tombatossals/angular-openlayers-directive/blob/master/doc/04-layers-attribute.md)
