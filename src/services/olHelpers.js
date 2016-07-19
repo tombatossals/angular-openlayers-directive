@@ -259,6 +259,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     attributions: createAttribution(source),
                     wrapX: (source.wrapX === undefined) ? 1 : source.wrapX
                 };
+                
+                if(source.projection){
+                    wmsConfiguration.projection = new ol.proj.get(source.projection);
+                }                
 
                 if (source.serverType) {
                     wmsConfiguration.serverType = source.serverType;
