@@ -402,8 +402,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
                     var features = geojsonFormat.readFeatures(
                         source.geojson.object, {
-                            featureProjection: projectionToUse,
-                            dataProjection: dataProjection
+                            featureProjection: projectionToUse.getCode(),
+                            dataProjection: dataProjection.getCode()
                         });
 
                     oSource.addFeatures(features);
@@ -424,17 +424,20 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     });
                 } else {
                     oSource = new ol.source.Vector();
-
-                    var wktProjection = projection;
+                    var featureProjection =  projection;       
+                    var wktProjection;
                     if (isDefined(source.wkt.projection)) {
                         wktProjection = source.wkt.projection;
+                    }
+                    else{
+                     wktProjection = projection;   
                     }
 
                     var wktFormat = new ol.format.WKT();
 					var wktFeatures = [];
 					for(var k = 0; k< source.wkt.object.length; k++){
                       var feature = wktFormat.readFeature(
-                        source.wkt.object[k].data, {dataProjection: 'EPSG:4326',featureProjection: wktProjection });
+                        source.wkt.object[k].data, {dataProjection: wktProjection.getCode() ,featureProjection: featureProjection.getCode() });
 						if(source.wkt.object[k].properties){
 						 	feature.properties = source.wkt.object[k].properties;
 						}
