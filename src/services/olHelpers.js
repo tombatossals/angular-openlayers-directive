@@ -427,7 +427,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     var featureProjection =  projection;       
                     var wktProjection;
                     if (isDefined(source.wkt.projection)) {
-                        wktProjection = source.wkt.projection;
+                        wktProjection = new ol.proj.get(source.wkt.projection);
                     }
                     else{
                      wktProjection = projection;   
