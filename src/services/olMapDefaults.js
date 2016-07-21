@@ -129,12 +129,20 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                     newDefaults.view.minZoom = userDefaults.view.minZoom || newDefaults.view.minZoom;
                     newDefaults.view.projection = userDefaults.view.projection || newDefaults.view.projection;
                     newDefaults.view.extent = userDefaults.view.extent || newDefaults.view.extent;
+                    newDefaults.view.resolutions = userDefaults.view.resolutions || newDefaults.view.resolutions;
                 }
 
                 if (isDefined(userDefaults.styles)) {
                     newDefaults.styles = angular.extend(newDefaults.styles, userDefaults.styles);
                 }
 
+                if (isDefined(userDefaults.loadTilesWhileAnimating)) {
+                    newDefaults.loadTilesWhileAnimating = userDefaults.loadTilesWhileAnimating;
+                }
+
+                if (isDefined(userDefaults.loadTilesWhileInteracting)) {
+                    newDefaults.loadTilesWhileInteracting = userDefaults.loadTilesWhileInteracting;
+                }
             }
 
             defaults[scopeId] = newDefaults;

@@ -16,7 +16,11 @@
     "cli"
   ],
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "angular": "~1.4.8",
+    "angular-sanitize": "~1.4.8",
+    "openlayers": "~3.8"
+  },
   "devDependencies": {
     "grunt": "~0.4.5",
     "grunt-bower-task": "~0.4.0",
@@ -49,7 +53,7 @@
     "load-grunt-config": "^0.17.1",
     "matchdep": "~0.3.0",
     "phantomjs": "^1.9.18",
-    "protractor": "^2.0.0",
+    "protractor": "~2.5.0",
     "publish-latest": "^1.1.2",
     "semantic-release": "^4.3.5"
   },
@@ -61,5 +65,5 @@
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "main": "dist/angular-openlayers-directive",
-  "version": "1.6.0"
+  "version": "1.15.1"
 }
