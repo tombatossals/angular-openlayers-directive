@@ -280,7 +280,7 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                     }
                 });
 
-                map.on('moveend', function() {
+                var moveEndEventKey = map.on('moveend', function() {
                     safeApply(olScope, function(scope) {
 
                         if (!isDefined(scope.center)) {
@@ -313,7 +313,10 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                         }
                     });
                 });
-
+                
+                olScope.$on('$destroy', function(){
+                    map.unByKey(moveEndEventKey);
+                });
             });
         }
     };
@@ -646,10 +649,14 @@ angular.module('openlayers-directive').directive('olView', function($log, $q, ol
                     }
                 });
 
-                mapView.on('change:rotation', function() {
+                var rotationEventKey = mapView.on('change:rotation', function() {
                     safeApply(olScope, function(scope) {
                         scope.view.rotation = map.getView().getRotation();
                     });
+                });
+                
+                olScope.$on('$destroy', function(){
+                    map.unByKey(rotationEventKey);
                 });
 
             });
