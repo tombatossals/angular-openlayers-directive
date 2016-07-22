@@ -178,7 +178,7 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                     });
                 });
                 
-                olScope.$on('$destroy', function(){
+                olScope.$on('$destroy', function() {
                     map.unByKey(moveEndEventKey);
                 });
             });
