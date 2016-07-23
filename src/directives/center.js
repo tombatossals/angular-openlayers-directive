@@ -144,7 +144,7 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                     }
                 });
 
-                map.on('moveend', function() {
+                var moveEndEventKey = map.on('moveend', function() {
                     safeApply(olScope, function(scope) {
 
                         if (!isDefined(scope.center)) {
@@ -178,6 +178,9 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                     });
                 });
 
+                olScope.$on('$destroy', function() {
+                    map.unByKey(moveEndEventKey);
+                });
             });
         }
     };
