@@ -97,10 +97,10 @@ describe('Directive: openlayers layers', function() {
                         type: 'Feature',
                         geometry: {
                             type: 'Point',
-                            coordinates: [434179, 122450] // Southampton (UK) in EPSG:27700
+                            coordinates: [50.909698, -1.404351] // Southampton (UK) in EPSG:4326
                         }
                     },
-                    projection: 'EPSG:27700'
+                    projection: 'EPSG:4326'
                 }
             }
         };
