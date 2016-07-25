@@ -88,7 +88,13 @@ angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', f
                     controls: controls,
                     interactions: interactions,
                     renderer: defaults.renderer,
-                    view: view
+                    view: view,
+                    loadTilesWhileAnimating: defaults.loadTilesWhileAnimating,
+                    loadTilesWhileInteracting: defaults.loadTilesWhileInteracting
+                });
+
+                scope.$on('$destroy', function() {
+                    olData.resetMap(attrs.id);
                 });
 
                 // If no layer is defined, set the default tileLayer
@@ -258,13 +264,14 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
 
                     var viewCenter = view.getCenter();
                     if (viewCenter) {
-                        if (defaults.view.projection === 'pixel') {
+                        if (defaults.view.projection === 'pixel' || center.projection === 'pixel') {
                             view.setCenter(center.coord);
-                            return;
-                        }
-                        var actualCenter = ol.proj.transform(viewCenter, defaults.view.projection, center.projection);
-                        if (!(actualCenter[1] === center.lat && actualCenter[0] === center.lon)) {
-                            setCenter(view, defaults.view.projection, center, map);
+                        } else {
+                            var actualCenter =
+                                ol.proj.transform(viewCenter, defaults.view.projection, center.projection);
+                            if (!(actualCenter[1] === center.lat && actualCenter[0] === center.lon)) {
+                                setCenter(view, defaults.view.projection, center, map);
+                            }
                         }
                     }
 
@@ -273,7 +280,7 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                     }
                 });
 
-                map.on('moveend', function() {
+                var moveEndEventKey = map.on('moveend', function() {
                     safeApply(olScope, function(scope) {
 
                         if (!isDefined(scope.center)) {
@@ -283,7 +290,7 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                         var center = map.getView().getCenter();
                         scope.center.zoom = view.getZoom();
 
-                        if (defaults.view.projection === 'pixel') {
+                        if (defaults.view.projection === 'pixel' || scope.center.projection === 'pixel') {
                             scope.center.coord = center;
                             return;
                         }
@@ -306,7 +313,10 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                         }
                     });
                 });
-
+                
+                olScope.$on('$destroy', function(){
+                    map.unByKey(moveEndEventKey);
+                });
             });
         }
     };
@@ -317,7 +327,8 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
     return {
         restrict: 'E',
         scope: {
-            properties: '=olLayerProperties'
+            properties: '=olLayerProperties',
+            onLayerCreated: '&'
         },
         replace: false,
         require: '^openlayers',
@@ -363,7 +374,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                             }
                         };
 
-                        olLayer = createLayer(l, projection, attrs.layerName);
+                        olLayer = createLayer(l, projection, attrs.layerName, scope.onLayerCreated);
                         if (detectLayerType(l) === 'Vector') {
                             setVectorLayerEvents(defaults.events, map, scope, attrs.name);
                         }
@@ -391,7 +402,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                     var group;
                     var collection;
                     if (!isDefined(olLayer)) {
-                        olLayer = createLayer(properties, projection);
+                        olLayer = createLayer(properties, projection, scope.onLayerCreated);
                         if (isDefined(properties.group)) {
                             addLayerToGroup(layerCollection, olLayer, properties.group);
                         } else if (isDefined(properties.index)) {
@@ -458,7 +469,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
 
                             collection.removeAt(idx);
 
-                            olLayer = createLayer(properties, projection);
+                            olLayer = createLayer(properties, projection, scope.onLayerCreated);
                             olLayer.set('group', group);
 
                             if (isDefined(olLayer)) {
@@ -543,7 +554,8 @@ angular.module('openlayers-directive').directive('olPath', function($log, $q, ol
     return {
         restrict: 'E',
         scope: {
-            properties: '=olGeomProperties'
+            properties: '=olGeomProperties',
+            style: '=olStyle'
         },
         require: '^openlayers',
         replace: true,
@@ -578,7 +590,7 @@ angular.module('openlayers-directive').directive('olPath', function($log, $q, ol
                         type: 'Polygon',
                         coords: coords,
                         projection: proj,
-                        style: mapDefaults.styles.path
+                        style:  scope.style ? scope.style : mapDefaults.styles.path
                     };
                     var feature = createFeature(data, viewProjection);
                     layer.getSource().addFeature(feature);
@@ -637,10 +649,14 @@ angular.module('openlayers-directive').directive('olView', function($log, $q, ol
                     }
                 });
 
-                mapView.on('change:rotation', function() {
+                var rotationEventKey = mapView.on('change:rotation', function() {
                     safeApply(olScope, function(scope) {
                         scope.view.rotation = map.getView().getRotation();
                     });
+                });
+                
+                olScope.$on('$destroy', function(){
+                    map.unByKey(rotationEventKey);
                 });
 
             });
@@ -894,7 +910,12 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
 
                     // This function handles popup on mouse over/click
                     properties.handleInteraction = function(evt) {
-                        if (properties.label.show) {
+                        var ngClick = false;
+                        if (attrs.hasOwnProperty('ngClick')) {
+                            ngClick = true;
+                        }
+
+                        if (properties.label.show && !ngClick) {
                             return;
                         }
                         var found = false;
@@ -907,6 +928,12 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                         if (feature === marker) {
                             actionTaken = true;
                             found = true;
+                            if (ngClick && (evt.type === 'click' || evt.type === 'touchend')) {
+                                element.triggerHandler('click');
+                                evt.preventDefault();
+                                evt.stopPropagation();
+                                return;
+                            }
                             if (!isDefined(label)) {
                                 if (data.projection === 'pixel') {
                                     pos = properties.coord;
@@ -916,12 +943,6 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                                 }
                                 label = createOverlay(element, pos);
                                 map.addOverlay(label);
-                            }
-
-                            if (properties.onClick && (evt.type === 'click' || evt.type === 'touchend')) {
-                                scope.$apply(function() {
-                                    properties.onClick.call(marker, evt, properties);
-                                });
                             }
                             map.getTarget().style.cursor = 'pointer';
                         }
@@ -1088,7 +1109,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
 
                     if ((properties.label && properties.label.show === false &&
                         properties.label.showOnMouseClick) ||
-                        properties.onClick) {
+                        attrs.hasOwnProperty('ngClick')) {
                         map.getViewport().addEventListener('click', properties.handleTapInteraction);
                         map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
                             'touchend', properties.handleTapInteraction);
@@ -1174,6 +1195,12 @@ angular.module('openlayers-directive').service('olData', function($log, $q) {
         }
         return id;
     }
+
+    this.resetMap = function(scopeId) {
+        if (angular.isDefined(maps[scopeId])) {
+            delete maps[scopeId];
+        }
+    };
 
 });
 
@@ -1331,8 +1358,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 case 'TopoJSON':
                 case 'KML':
 				case 'WKT':
-                case 'TileVector':
                     return 'Vector';
+                case 'TileVector':
+                    return 'TileVector';
                 default:
                     return 'Tile';
             }
@@ -1369,6 +1397,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
     var createSource = function(source, projection) {
         var oSource;
+        var url;
         var geojsonFormat = new ol.format.GeoJSON(); // used in various switch stmnts below
 
         switch (source.type) {
@@ -1377,7 +1406,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     $log.error('[AngularJS - Openlayers] - MapBox layer requires the map id and the access token');
                     return;
                 }
-                var url = 'http://api.tiles.mapbox.com/v4/' + source.mapId + '/{z}/{x}/{y}.png?access_token=' +
+                url = 'http://api.tiles.mapbox.com/v4/' + source.mapId + '/{z}/{x}/{y}.png?access_token=' +
                     source.accessToken;
 
                 var pixelRatio = window.devicePixelRatio;
@@ -1393,6 +1422,22 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     wrapX: (source.wrapX === undefined) ? 1 : source.wrapX
                 });
                 break;
+            case 'MapBoxStudio':
+                if (!source.mapId || !source.accessToken || !source.userId) {
+                    $log.error('[AngularJS - Openlayers] - MapBox Studio layer requires the map id' +
+                    ', user id  and the access token');
+                    return;
+                }
+                url = 'https://api.mapbox.com/styles/v1/' + source.userId +
+                    '/' + source.mapId + '/tiles/{z}/{x}/{y}?access_token=' +
+                    source.accessToken;
+
+                oSource = new ol.source.XYZ({
+                    url: url,
+                    attributions: createAttribution(source),
+                    tileSize: source.tileSize || [512, 512]
+                });
+                break;
             case 'ImageWMS':
                 if (!source.url || !source.params) {
                     $log.error('[AngularJS - Openlayers] - ImageWMS Layer needs ' +
@@ -1402,8 +1447,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     url: source.url,
                     attributions: createAttribution(source),
                     crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
-                    params: source.params,
-                    wrapX: (source.wrapX === undefined) ? 1 : source.wrapX
+                    wrapX: (source.wrapX === undefined) ? 1 : source.wrapX,
+                    params: deepCopy(source.params),
+                    ratio: source.ratio
                 });
                 break;
 
@@ -1415,10 +1461,14 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
                 var wmsConfiguration = {
                     crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
-                    params: source.params,
+                    params: deepCopy(source.params),
                     attributions: createAttribution(source),
                     wrapX: (source.wrapX === undefined) ? 1 : source.wrapX
                 };
+                
+                if(source.projection){
+                    wmsConfiguration.projection = new ol.proj.get(source.projection);
+                }                
 
                 if (source.serverType) {
                     wmsConfiguration.serverType = source.serverType;
@@ -1454,7 +1504,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         resolutions: source.tileGrid.resolutions,
                         matrixIds: source.tileGrid.matrixIds
                     }),
-                    wrapX: (source.wrapX === undefined) ? 1 : source.wrapX
+                    wrapX: (source.wrapX === undefined) ? 1 : source.wrapX,
+                    style: (source.style === 'undefined') ? 'normal' : source.style
                 };
 
                 if (isDefined(source.url)) {
@@ -1548,14 +1599,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     oSource = new ol.source.Vector();
 
                     var projectionToUse = projection;
+                    var dataProjection; // Projection of geojson data
                     if (isDefined(source.geojson.projection)) {
-                        projectionToUse = source.geojson.projection;
+                        dataProjection = new ol.proj.get(source.geojson.projection);
+                    } else {
+                        dataProjection = projection; // If not defined, features will not be reprojected.
                     }
 
                     var features = geojsonFormat.readFeatures(
                         source.geojson.object, {
-                            featureProjection: projectionToUse,
-                            dataProjection: projectionToUse
+                            featureProjection: projectionToUse.getCode(),
+                            dataProjection: dataProjection.getCode()
                         });
 
                     oSource.addFeatures(features);
@@ -1576,17 +1630,20 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     });
                 } else {
                     oSource = new ol.source.Vector();
-
-                    var wktProjection = projection;
+                    var featureProjection =  projection;       
+                    var wktProjection;
                     if (isDefined(source.wkt.projection)) {
-                        wktProjection = source.wkt.projection;
+                        wktProjection = new ol.proj.get(source.wkt.projection);
+                    }
+                    else{
+                     wktProjection = projection;   
                     }
 
                     var wktFormat = new ol.format.WKT();
 					var wktFeatures = [];
 					for(var k = 0; k< source.wkt.object.length; k++){
                       var feature = wktFormat.readFeature(
-                        source.wkt.object[k].data, {dataProjection: 'EPSG:4326',featureProjection: wktProjection });
+                        source.wkt.object[k].data, {dataProjection: wktProjection.getCode() ,featureProjection: featureProjection.getCode() });
 						if(source.wkt.object[k].properties){
 						 	feature.properties = source.wkt.object[k].properties;
 						}
@@ -1654,7 +1711,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 if (!source.url || !source.format) {
                     $log.error('[AngularJS - Openlayers] - TileVector Layer needs valid url and format properties');
                 }
-                oSource = new ol.source.TileVector({
+                oSource = new ol.source.VectorTile({
                     url: source.url,
                     projection: projection,
                     attributions: createAttribution(source),
@@ -1747,7 +1804,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     attributions: createAttribution(source),
                     imageSize: source.imageSize,
                     projection: projection,
-                    imageExtent: projection.getExtent(),
+                    imageExtent: source.imageExtent ? source.imageExtent : projection.getExtent(),
                     imageLoadFunction: source.imageLoadFunction,
                     wrapX: (source.wrapX === undefined) ? 1 : source.wrapX
                 });
@@ -1766,6 +1823,15 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     tileUrlFunction: source.tileUrlFunction
                 });
                 break;
+            case 'Zoomify':
+                if (!source.url || !angular.isArray(source.imageSize) || source.imageSize.length !== 2) {
+                    $log.error('[AngularJS - Openlayers] - Zoomify Layer needs valid url and imageSize properties');
+                }
+                oSource = new ol.source.Zoomify({
+                    url: source.url,
+                    size: source.imageSize
+                });
+                break;
         }
 
         // log a warning when no source could be created for the given type
@@ -1774,6 +1840,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         }
 
         return oSource;
+    };
+
+    var deepCopy = function(oldObj) {
+        var newObj = oldObj;
+        if (oldObj && typeof oldObj === 'object') {
+            newObj = Object.prototype.toString.call(oldObj) === '[object Array]' ? [] : {};
+            for (var i in oldObj) {
+                newObj[i] = deepCopy(oldObj[i]);
+            }
+        }
+        return newObj;
     };
 
     var createAttribution = function(source) {
@@ -2004,12 +2081,19 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
         detectLayerType: detectLayerType,
 
-        createLayer: function(layer, projection, name) {
+        createLayer: function(layer, projection, name, onLayerCreatedFn) {
             var oLayer;
             var type = detectLayerType(layer);
             var oSource = createSource(layer.source, projection);
             if (!oSource) {
                 return;
+            }
+
+            // handle function overloading. 'name' argument may be
+            // our onLayerCreateFn since name is optional
+            if (typeof(name) === 'function' && !onLayerCreatedFn) {
+                onLayerCreatedFn = name;
+                name = undefined; // reset, otherwise it'll be used later on
             }
 
             // Manage clustering
@@ -2055,6 +2139,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 case 'Vector':
                     oLayer = new ol.layer.Vector(layerConfig);
                     break;
+                case 'TileVector':
+                    oLayer = new ol.layer.VectorTile(layerConfig);
+                    break;
             }
 
             // set a layer name if given
@@ -2069,6 +2156,13 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 for (var key in layer.customAttributes) {
                     oLayer.set(key, layer.customAttributes[key]);
                 }
+            }
+
+            // invoke the onSourceCreated callback
+            if (onLayerCreatedFn) {
+                onLayerCreatedFn({
+                    oLayer: oLayer
+                });
             }
 
             return oLayer;
@@ -2190,7 +2284,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             element.css('display', 'block');
             var ov = new ol.Overlay({
                 position: pos,
-                element: element,
+                element: element[0],
                 positioning: 'center-left'
             });
 
@@ -2337,6 +2431,13 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
                     newDefaults.styles = angular.extend(newDefaults.styles, userDefaults.styles);
                 }
 
+                if (isDefined(userDefaults.loadTilesWhileAnimating)) {
+                    newDefaults.loadTilesWhileAnimating = userDefaults.loadTilesWhileAnimating;
+                }
+
+                if (isDefined(userDefaults.loadTilesWhileInteracting)) {
+                    newDefaults.loadTilesWhileInteracting = userDefaults.loadTilesWhileInteracting;
+                }
             }
 
             defaults[scopeId] = newDefaults;
