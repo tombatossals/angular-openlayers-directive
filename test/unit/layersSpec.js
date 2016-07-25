@@ -124,6 +124,38 @@ describe('Directive: openlayers layers', function() {
         expect(geoJsonLayer.getSource().getFeatures().length).not.toBe(0);
     });
 
+    it('should properly render a vector layer containing the WKT format object', function() {
+        scope.wktLayer = {
+            source: {
+                type: 'WKT',
+                wkt: {
+                    data: 'POLYGON((72.564697265625 61.3916015625, 79.595947265625 56.4697265625, ' +
+                           '82.408447265625 63.5009765625, 71.861572265625 59.9853515625, ' +
+                           '72.564697265625 61.3916015625))',
+                    projection: 'EPSG:4326'
+                }
+            }
+        };
+
+        var element = angular.element('<openlayers>' +
+                                       '<ol-layer ol-layer-properties="wktLayer"></ol-layer>' +
+                                       '</openlayers>');
+        element = $compile(element)(scope);
+
+        var layers;
+        olData.getMap().then(function(olMap) {
+            layers = olMap.getLayers();
+        });
+
+        scope.$digest();
+        expect(layers.item(0).getSource() instanceof ol.source.OSM).toBe(true);
+        expect(layers.getLength()).toBe(2);
+
+        var wktLayer = layers.item(1);
+        expect(wktLayer.getSource() instanceof ol.source.Vector).toBe(true);
+        expect(wktLayer.getSource().getFeatures().length).not.toBe(0);
+    });
+
     it('should have one layer if custom-layers is used', function() {
         scope.mapbox = {
             source: {
