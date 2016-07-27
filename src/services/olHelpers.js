@@ -151,6 +151,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 case 'JSONP':
                 case 'TopoJSON':
                 case 'KML':
+                case 'WKT':
                     return 'Vector';
                 case 'TileVector':
                     return 'TileVector';
@@ -396,6 +397,32 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 break;
+
+            case 'WKT':
+                if (!(source.wkt) && !(source.wkt.data)) {
+                    $log.error('[AngularJS - Openlayers] - You need a WKT ' +
+                               'property to add a WKT format vector layer.');
+                    return;
+                }
+
+                oSource = new ol.source.Vector();
+                var wktFormatter = new ol.format.WKT();
+                var wktProjection; // Projection of wkt data
+                if (isDefined(source.wkt.projection)) {
+                    wktProjection = new ol.proj.get(source.wkt.projection);
+                } else {
+                    wktProjection = projection; // If not defined, features will not be reprojected.
+                }
+
+                var wktFeatures = wktFormatter.readFeatures(
+                    source.wkt.data, {
+                        featureProjection: projection.getCode(),
+                        dataProjection: wktProjection.getCode()
+                    });
+
+                oSource.addFeatures(wktFeatures);
+                break;
+
             case 'JSONP':
                 if (!(source.url)) {
                     $log.error('[AngularJS - Openlayers] - You need an url properly configured to add a JSONP layer.');
