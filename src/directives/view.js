@@ -39,10 +39,14 @@ angular.module('openlayers-directive').directive('olView', function($log, $q, ol
                     }
                 });
 
-                mapView.on('change:rotation', function() {
+                var rotationEventKey = mapView.on('change:rotation', function() {
                     safeApply(olScope, function(scope) {
                         scope.view.rotation = map.getView().getRotation();
                     });
+                });
+
+                olScope.$on('$destroy', function() {
+                    map.unByKey(rotationEventKey);
                 });
 
             });
