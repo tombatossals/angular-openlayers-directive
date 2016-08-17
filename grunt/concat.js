@@ -3,7 +3,7 @@
 var banner = '(function (root, factory) {\n' +
              '    if (typeof require === \'function\' && typeof exports === \'object\') {\n' +
              '        // CommonJS\n' +
-             '        var ol = require(\'openlayers\');\n' +
+             '        var ol = require(\'openlayers-prebuilt\');\n' +
              '        var ngSanitize = require(\'angular-sanitize\');\n' +
              '        exports.angularOpenlayersDirective = factory(ol);\n' +
              '    } else if (typeof define === \'function\' && define.amd) {\n' +
