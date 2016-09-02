@@ -19,7 +19,7 @@
   "dependencies": {
     "angular": "~1.4.8",
     "angular-sanitize": "~1.4.8",
-    "openlayers": "~3.8"
+    "openlayers": "~3.18.1"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
@@ -65,5 +65,5 @@
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "main": "dist/angular-openlayers-directive",
-  "version": "1.15.2"
+  "version": "1.15.3"
 }
