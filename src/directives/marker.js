@@ -155,6 +155,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                 };
 
                 function unregisterHandlers() {
+                    if (!scope.properties) { return ; }
                     // Remove previous listeners if any
                     map.getViewport().removeEventListener('mousemove', scope.properties.handleInteraction);
                     map.getViewport().removeEventListener('click', scope.properties.handleTapInteraction);
