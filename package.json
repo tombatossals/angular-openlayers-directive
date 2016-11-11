@@ -19,7 +19,7 @@
   "dependencies": {
       "angular": "^1.4.8",
       "angular-sanitize": "^1.4.8",
-      "openlayers": "~3.14"
+      "openlayers-prebuilt": "^3.12.1"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
