@@ -933,7 +933,22 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 });
             }
 
-            var layerConfig = { source: oSource };
+            var layerConfig = {};
+
+            // copy over eventual properties set on the passed layerconfig which
+            // can later be retrieved via layer.get('propName');
+            for (var property in layer) {
+                if (layer.hasOwnProperty(property) &&
+                    // ignore props like source or those angular might add (starting with $)
+                    !property.startsWith('$') &&
+                    !property.startsWith('source') &&
+                    !property.startsWith('style')
+                    ) {
+                    layerConfig[property] = layer[property];
+                }
+            }
+
+            layerConfig.source = oSource;
 
             // ol.layer.Layer configuration options
             if (isDefinedAndNotNull(layer.opacity)) {
