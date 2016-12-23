@@ -1,5 +1,5 @@
-angular.module('openlayers-directive').directive('olControl', function($log, $q, olData, olMapDefaults, olHelpers) {
-
+angular.module('openlayers-directive')
+.directive('olControl', function($log, $q, olData, olMapDefaults, olHelpers) {
     return {
         restrict: 'E',
         scope: {
@@ -12,29 +12,58 @@ angular.module('openlayers-directive').directive('olControl', function($log, $q,
             var olScope   = controller.getOpenlayersScope();
             var olControl;
             var olControlOps;
+            var getControlClasses = olHelpers.getControlClasses;
+            var controlClasses = getControlClasses();
 
             olScope.getMap().then(function(map) {
-                var getControlClasses = olHelpers.getControlClasses;
-                var controlClasses = getControlClasses();
 
                 scope.$on('$destroy', function() {
                     map.removeControl(olControl);
                 });
 
-                if (!isDefined(scope.properties) || !isDefined(scope.properties.control)) {
-                    if (attrs.name) {
-                        if (isDefined(scope.properties)) {
-                            olControlOps = scope.properties;
-                        }
-                        olControl = new controlClasses[attrs.name](olControlOps);
-                        map.addControl(olControl);
+                scope.$watch('properties', function(properties) {
+                    if (!isDefined(properties)) {
+                        return;
                     }
-                    return;
+
+                    initCtrls(properties);
+                });
+
+                function initCtrls(properties) {
+                    if (properties && properties.control) {
+                        // the control instance is already defined,
+                        // so simply use it and go ahead
+
+                        // is there already a control, so destroy and recreate it?
+                        if (olControl) {
+                            map.removeControl(olControl);
+                        }
+
+                        olControl = properties.control;
+                        map.addControl(olControl);
+                    } else {
+
+                        // the name is the key to instantiate an ol3 control
+                        if (attrs.name) {
+                            if (isDefined(properties)) {
+                                olControlOps = properties;
+                            }
+
+                            // is there already a control, so destroy and recreate it?
+                            if (olControl) {
+                                map.removeControl(olControl);
+                            }
+
+                            olControl = new controlClasses[attrs.name](olControlOps);
+                            map.addControl(olControl);
+                        }
+                    }
                 }
 
-                olControl = scope.properties.control;
-                map.addControl(olControl);
+                initCtrls(scope.properties);
+
             });
+
         }
     };
 });
