@@ -405,4 +405,85 @@ describe('Directive: openlayers layers', function() {
         expect(otherLayer.getLayers().getArray()[0].get('group')).toEqual('Other');
 
     });
+
+    describe('when setting the index', function() {
+
+        it('should correctly fill up the layer collection with null layers', function() {
+            scope.layers = [
+                {
+                    index: 2,
+                    name: 'Spain',
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
+                    }
+                }
+            ];
+
+            var element = angular
+                    .element('<openlayers custom-layers="true">' +
+                                '<ol-layer ol-layer-properties="layer" ng-repeat="layer in layers"></ol-layer>' +
+                            '</openlayers>');
+            element = $compile(element)(scope);
+
+            var layers;
+            olData.getMap().then(function(olMap) {
+                layers = olMap.getLayers();
+            });
+
+            scope.$digest();
+            expect(layers.getLength()).toBe(3);
+
+            expect(layers.item(2).getSource() instanceof ol.source.Vector).toBeTruthy();
+        });
+
+        it('should correctly populate the layer collection with when layers are provided in random order', function() {
+            scope.layers = [
+                {
+                    index: 1,
+                    name: 'Spain',
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
+                    }
+                },
+                {
+                    index: 2,
+                    name: 'Italy',
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
+                    }
+                },
+                {
+                    index: 0,
+                    name: 'Germany',
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
+                    }
+                }
+            ];
+
+            var element = angular
+                    .element('<openlayers custom-layers="true">' +
+                                '<ol-layer ol-layer-properties="layer" ng-repeat="layer in layers"></ol-layer>' +
+                            '</openlayers>');
+            element = $compile(element)(scope);
+
+            var layers;
+            olData.getMap().then(function(olMap) {
+                layers = olMap.getLayers();
+            });
+
+            scope.$digest();
+            expect(layers.getLength()).toBe(3);
+
+            expect(layers.item(0).get('name')).toBe('Germany');
+            expect(layers.item(1).get('name')).toBe('Spain');
+            expect(layers.item(2).get('name')).toBe('Italy');
+        });
+
+    });
+
 });
