@@ -1103,6 +1103,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 while (layers.getLength() < index) {
                     var nullLayer = new ol.layer.Image();
                     nullLayer.index = layers.getLength(); // add index which will be equal to the length in this case
+                    nullLayer.name = '(null-layer)'; // we need a marker somehow
                     layers.push(nullLayer);
                 }
                 layer.index = index;
@@ -1110,9 +1111,11 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             } else {
                 layer.index = index;
                 layers.insertAt(layer.index, layer);
+
+                // remove eventual null layers
                 for (var i = index + 1; i < layers.getLength(); i++) {
                     var l = layers.item(i);
-                    if (l === null) {
+                    if (l.name === '(null-layer)') {
                         layers.removeAt(i);
                         break;
                     } else {
