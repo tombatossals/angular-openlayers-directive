@@ -17,9 +17,9 @@
   ],
   "license": "MIT",
   "dependencies": {
-      "angular": "~1.4.8",
-      "angular-sanitize": "~1.4.8",
-      "openlayers": "~3.8"
+    "angular": "~1.4.8",
+    "angular-sanitize": "~1.4.8",
+    "openlayers": "~3.18.1"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
@@ -53,7 +53,7 @@
     "load-grunt-config": "^0.17.1",
     "matchdep": "~0.3.0",
     "phantomjs": "^1.9.18",
-    "protractor": "^2.0.0",
+    "protractor": "~2.5.0",
     "publish-latest": "^1.1.2",
     "semantic-release": "^4.3.5"
   },
