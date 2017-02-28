@@ -286,10 +286,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     attributions: createAttribution(source),
                     wrapX: source.wrapX !== undefined ? source.wrapX : true
                 };
-                
-                if(source.projection){
+
+                if (source.projection) {
                     wmsConfiguration.projection = new ol.proj.get(source.projection);
-                }                
+                }
 
                 if (source.serverType) {
                     wmsConfiguration.serverType = source.serverType;
@@ -455,12 +455,11 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
                     oSource.addFeatures(features);
                 }
-
                 break;
-				case 'WKT':
+            case 'WKT':
                 if (!(source.wkt || source.url)) {
                     $log.error('[AngularJS - Openlayers] - You need a WKT ' +
-                               'property to add a GeoJSON layer.');
+                                'property to add a GeoJSON layer.');
                     return;
                 }
                 if (isDefined(source.url)) {
@@ -471,26 +470,26 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     });
                 } else {
                     oSource = new ol.source.Vector();
-                    var featureProjection =  projection;       
+                    var featureProjection =  projection;
                     var wktProjection;
                     if (isDefined(source.wkt.projection)) {
                         wktProjection = new ol.proj.get(source.wkt.projection);
-                    }
-                    else{
-                     wktProjection = projection;   
+                    } else {
+                        wktProjection = projection;
                     }
 
                     var wktFormat = new ol.format.WKT();
-					var wktFeatures = [];
-					for(var k = 0; k< source.wkt.object.length; k++){
-                      var feature = wktFormat.readFeature(
-                        source.wkt.object[k].data, {dataProjection: wktProjection.getCode() ,featureProjection: featureProjection.getCode() });
-						if(source.wkt.object[k].properties){
-						 	feature.properties = source.wkt.object[k].properties;
-						}
-					  wktFeatures.push(feature);
-					}
-					oSource.addFeatures(wktFeatures);
+                    var wktFeatures = [];
+                    for (var k = 0; k < source.wkt.object.length; k++) {
+                        var feature = wktFormat.readFeature(
+                        source.wkt.object[k].data, {dataProjection: wktProjection.getCode() ,
+                                                    featureProjection: featureProjection.getCode() });
+                        if (source.wkt.object[k].properties) {
+                            feature.properties = source.wkt.object[k].properties;
+                        }
+                        wktFeatures.push(feature);
+                    }
+                    oSource.addFeatures(wktFeatures);
                 }
 
                 break;
@@ -528,7 +527,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 if (source.url) {
                     oSource = new ol.source.Vector({
                         format: new ol.format.TopoJSON(),
-                        url: source.url                       
+                        url: source.url
                     });
                 } else {
                     oSource = new ol.source.Vector(angular.extend(source.topojson, {
