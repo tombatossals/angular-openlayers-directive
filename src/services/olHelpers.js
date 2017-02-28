@@ -152,8 +152,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 case 'JSONP':
                 case 'TopoJSON':
                 case 'KML':
+                case 'WKT':
                     return 'Vector';
                 case 'TileVector':
+                case 'MVT':
                     return 'TileVector';
                 default:
                     return 'Tile';
@@ -191,6 +193,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
     var createSource = function(source, projection) {
         var oSource;
+        var pixelRatio;
         var url;
         var geojsonFormat = new ol.format.GeoJSON(); // used in various switch stmnts below
 
@@ -200,10 +203,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     $log.error('[AngularJS - Openlayers] - MapBox layer requires the map id and the access token');
                     return;
                 }
-                url = 'http://api.tiles.mapbox.com/v4/' + source.mapId + '/{z}/{x}/{y}.png?access_token=' +
+                url = 'https://api.tiles.mapbox.com/v4/' + source.mapId + '/{z}/{x}/{y}.png?access_token=' +
                     source.accessToken;
 
-                var pixelRatio = window.devicePixelRatio;
+                pixelRatio = window.devicePixelRatio;
 
                 if (pixelRatio > 1) {
                     url = url.replace('.png', '@2x.png');
@@ -211,8 +214,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
                 oSource = new ol.source.XYZ({
                     url: url,
+                    tileLoadFunction: source.tileLoadFunction,
                     attributions: createAttribution(source),
-                    tilePixelRatio: pixelRatio > 1 ? 2 : 1
+                    tilePixelRatio: pixelRatio > 1 ? 2 : 1,
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
                 break;
             case 'MapBoxStudio':
@@ -225,10 +230,32 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     '/' + source.mapId + '/tiles/{z}/{x}/{y}?access_token=' +
                     source.accessToken;
 
+                pixelRatio = window.devicePixelRatio;
+
+                if (pixelRatio > 1) {
+                    url = url.replace('{y}?access_token', '{y}@2x?access_token');
+                }
+
                 oSource = new ol.source.XYZ({
                     url: url,
+                    tileLoadFunction: source.tileLoadFunction,
                     attributions: createAttribution(source),
-                    tileSize: source.tileSize || [512, 512]
+                    tilePixelRatio: pixelRatio > 1 ? 2 : 1,
+                    tileSize: source.tileSize || [512, 512],
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
+                });
+                break;
+            case 'MVT':
+                if (!source.url) {
+                    $log.error('[AngularJS - Openlayers] - MVT layer requires the source url');
+                    return;
+                }
+                oSource = new ol.source.VectorTile({
+                    attributions: source.attributions || '',
+                    format: new ol.format.MVT(),
+                    tileGrid: ol.tilegrid.createXYZ({maxZoom: source.maxZoom || 22}),
+                    tilePixelRatio: source.tilePixelRatio || 16,
+                    url: source.url
                 });
                 break;
             case 'ImageWMS':
@@ -238,6 +265,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
                 oSource = new ol.source.ImageWMS({
                     url: source.url,
+                    imageLoadFunction: source.imageLoadFunction,
                     attributions: createAttribution(source),
                     crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
                     params: deepCopy(source.params),
@@ -252,10 +280,16 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 var wmsConfiguration = {
+                    tileLoadFunction: source.tileLoadFunction,
                     crossOrigin: (typeof source.crossOrigin === 'undefined') ? 'anonymous' : source.crossOrigin,
                     params: deepCopy(source.params),
-                    attributions: createAttribution(source)
+                    attributions: createAttribution(source),
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 };
+
+                if (source.projection) {
+                    wmsConfiguration.projection = new ol.proj.get(source.projection);
+                }
 
                 if (source.serverType) {
                     wmsConfiguration.serverType = source.serverType;
@@ -279,6 +313,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 var wmtsConfiguration = {
+                    tileLoadFunction: source.tileLoadFunction,
                     projection: projection,
                     layer: source.layer,
                     attributions: createAttribution(source),
@@ -291,7 +326,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         resolutions: source.tileGrid.resolutions,
                         matrixIds: source.tileGrid.matrixIds
                     }),
-                    style: (source.style === 'undefined') ? 'normal' : source.style
+                    style: (source.style === 'undefined') ? 'normal' : source.style,
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 };
 
                 if (isDefined(source.url)) {
@@ -307,7 +343,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
             case 'OSM':
                 oSource = new ol.source.OSM({
-                    attributions: createAttribution(source)
+                    tileLoadFunction: source.tileLoadFunction,
+                    attributions: createAttribution(source),
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
 
                 if (source.url) {
@@ -323,9 +361,11 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
                 var bingConfiguration = {
                     key: source.key,
+                    tileLoadFunction: source.tileLoadFunction,
                     attributions: createAttribution(source),
                     imagerySet: source.imagerySet ? source.imagerySet : bingImagerySets[0],
-                    culture: source.culture
+                    culture: source.culture,
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 };
 
                 if (source.maxZoom) {
@@ -343,7 +383,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
                 oSource = new ol.source.MapQuest({
                     attributions: createAttribution(source),
-                    layer: source.layer
+                    layer: source.layer,
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
 
                 break;
@@ -362,7 +403,23 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
                 oSource = new ol.source.XYZ({
                     attributions: createAttribution(source),
-                    url: _url
+                    tileLoadFunction: source.tileLoadFunction,
+                    url: _url,
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
+                });
+
+                break;
+
+            case 'TileArcGISRest':
+                if (!source.url) {
+                    $log.error('[AngularJS - Openlayers] - TileArcGISRest Layer needs valid url');
+                }
+
+                oSource = new ol.source.TileArcGISRest({
+                    attributions: createAttribution(source),
+                    tileLoadFunction: source.tileLoadFunction,
+                    url: source.url,
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
 
                 break;
@@ -397,6 +454,42 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         });
 
                     oSource.addFeatures(features);
+                }
+                break;
+            case 'WKT':
+                if (!(source.wkt || source.url)) {
+                    $log.error('[AngularJS - Openlayers] - You need a WKT ' +
+                                'property to add a GeoJSON layer.');
+                    return;
+                }
+                if (isDefined(source.url)) {
+                    oSource = new ol.source.Vector({
+                        format: new ol.format.WKT(),
+                        url: source.url,
+                        wrapX: source.wrapX !== undefined ? source.wrapX : true
+                    });
+                } else {
+                    oSource = new ol.source.Vector();
+                    var featureProjection =  projection;
+                    var wktProjection;
+                    if (isDefined(source.wkt.projection)) {
+                        wktProjection = new ol.proj.get(source.wkt.projection);
+                    } else {
+                        wktProjection = projection;
+                    }
+
+                    var wktFormat = new ol.format.WKT();
+                    var wktFeatures = [];
+                    for (var k = 0; k < source.wkt.object.length; k++) {
+                        var feature = wktFormat.readFeature(
+                        source.wkt.object[k].data, {dataProjection: wktProjection.getCode() ,
+                                                    featureProjection: featureProjection.getCode() });
+                        if (source.wkt.object[k].properties) {
+                            feature.properties = source.wkt.object[k].properties;
+                        }
+                        wktFeatures.push(feature);
+                    }
+                    oSource.addFeatures(wktFeatures);
                 }
 
                 break;
@@ -446,7 +539,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 oSource = new ol.source.TileJSON({
                     url: source.url,
                     attributions: createAttribution(source),
-                    crossOrigin: 'anonymous'
+                    tileLoadFunction: source.tileLoadFunction,
+                    crossOrigin: 'anonymous',
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
                 break;
 
@@ -458,10 +553,12 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     url: source.url,
                     projection: projection,
                     attributions: createAttribution(source),
+                    tileLoadFunction: source.tileLoadFunction,
                     format: source.format,
                     tileGrid: new ol.tilegrid.createXYZ({
                         maxZoom: source.maxZoom || 19
-                    })
+                    }),
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
                 break;
 
@@ -473,6 +570,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     url: source.url,
                     maxExtent: source.maxExtent,
                     attributions: createAttribution(source),
+                    tileLoadFunction: source.tileLoadFunction,
                     tileGrid: new ol.tilegrid.TileGrid({
                         origin: source.tileGrid.origin,
                         resolutions: source.tileGrid.resolutions
@@ -490,13 +588,15 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                         var url = source.url + z + '/' + x + '/' + y + '.png';
 
                         return url;
-                    }
+                    },
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
                 break;
             case 'TileImage':
                 oSource = new ol.source.TileImage({
                     url: source.url,
                     attributions: createAttribution(source),
+                    tileLoadFunction: source.tileLoadFunction,
                     tileGrid: new ol.tilegrid.TileGrid({
                         origin: source.tileGrid.origin, // top left corner of the pixel projection's extent
                         resolutions: source.tileGrid.resolutions
@@ -510,7 +610,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                             .replace('{x}', x.toString())
                             .replace('{y}', y.toString());
                         return url;
-                    }
+                    },
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
                 break;
             case 'KML':
@@ -529,7 +630,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     return;
                 }
                 oSource = new ol.source.Stamen({
-                    layer: source.layer
+                    tileLoadFunction: source.tileLoadFunction,
+                    layer: source.layer,
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
                 break;
             case 'ImageStatic':
@@ -557,7 +660,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     minZoom: source.minZoom,
                     maxZoom: source.maxZoom,
                     projection: source.projection,
-                    tileUrlFunction: source.tileUrlFunction
+                    tileUrlFunction: source.tileUrlFunction,
+                    tileLoadFunction: source.tileLoadFunction,
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
                 break;
             case 'Zoomify':
@@ -566,7 +671,8 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
                 oSource = new ol.source.Zoomify({
                     url: source.url,
-                    size: source.imageSize
+                    size: source.imageSize,
+                    wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
                 break;
         }
@@ -841,7 +947,22 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 });
             }
 
-            var layerConfig = { source: oSource };
+            var layerConfig = {};
+
+            // copy over eventual properties set on the passed layerconfig which
+            // can later be retrieved via layer.get('propName');
+            for (var property in layer) {
+                if (layer.hasOwnProperty(property) &&
+                    // ignore props like source or those angular might add (starting with $)
+                    !property.startsWith('$') &&
+                    !property.startsWith('source') &&
+                    !property.startsWith('style')
+                    ) {
+                    layerConfig[property] = layer[property];
+                }
+            }
+
+            layerConfig.source = oSource;
 
             // ol.layer.Layer configuration options
             if (isDefinedAndNotNull(layer.opacity)) {
@@ -861,6 +982,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             }
             if (isDefinedAndNotNull(layer.maxResolution)) {
                 layerConfig.maxResolution = layer.maxResolution;
+            }
+            if (isDefinedAndNotNull(layer.style) && type === 'TileVector') {
+                layerConfig.style = layer.style;
             }
 
             switch (type) {
@@ -998,6 +1122,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 while (layers.getLength() < index) {
                     var nullLayer = new ol.layer.Image();
                     nullLayer.index = layers.getLength(); // add index which will be equal to the length in this case
+                    nullLayer.name = '(null-layer)'; // we need a marker somehow
                     layers.push(nullLayer);
                 }
                 layer.index = index;
@@ -1005,9 +1130,11 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             } else {
                 layer.index = index;
                 layers.insertAt(layer.index, layer);
+
+                // remove eventual null layers
                 for (var i = index + 1; i < layers.getLength(); i++) {
                     var l = layers.item(i);
-                    if (l === null) {
+                    if (l.name === '(null-layer)') {
                         layers.removeAt(i);
                         break;
                     } else {
