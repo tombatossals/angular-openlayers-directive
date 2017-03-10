@@ -1301,7 +1301,8 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
     var esriBaseLayers = ['World_Imagery', 'World_Street_Map', 'World_Topo_Map',
                           'World_Physical_Map', 'World_Terrain_Base',
-                          'Ocean_Basemap', 'NatGeo_World_Map'];
+                          'Ocean_Basemap', 'NatGeo_World_Map',
+                          'World_Light_Gray_Base', 'World_Dark_Gray_Base'];
 
     var styleMap = {
         'style': ol.style.Style,
@@ -1641,6 +1642,9 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 }
 
                 var _urlBase = 'http://services.arcgisonline.com/ArcGIS/rest/services/';
+                if (source.layer === 'World_Light_Gray_Base' || source.layer === 'World_Dark_Gray_Base') {
+                    _urlBase = _urlBase + 'Canvas/';
+                }
                 var _url = _urlBase + source.layer + '/MapServer/tile/{z}/{y}/{x}';
 
                 oSource = new ol.source.XYZ({
@@ -1850,9 +1854,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                 var extractStyles = source.extractStyles || false;
                 oSource = new ol.source.Vector({
                     url: source.url,
-                    format: new ol.format.KML(),
-                    radius: source.radius,
-                    extractStyles: extractStyles
+                    format: new ol.format.KML({
+                        extractStyles: extractStyles
+                    }),
+                    radius: source.radius
                 });
                 break;
             case 'Stamen':
@@ -2179,7 +2184,19 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
             }
 
             var layerConfig = {};
+            // to check the browser type
+            // to check whether the IE browser or not
+            var ua = window.navigator.userAgent;
+            var msie = ua.indexOf('MSIE ');
 
+            if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+                if (typeof String.prototype.startsWith === 'undefined') {
+                    String.prototype.startsWith = function(searchString, position) {
+                        position = position || 0;
+                        return this.indexOf(searchString, position) === position;
+                    };
+                }
+            }
             // copy over eventual properties set on the passed layerconfig which
             // can later be retrieved via layer.get('propName');
             for (var property in layer) {

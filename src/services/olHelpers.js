@@ -934,7 +934,19 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             }
 
             var layerConfig = {};
+            // to check the browser type
+            // to check whether the IE browser or not
+            var ua = window.navigator.userAgent;
+            var msie = ua.indexOf('MSIE');
 
+            if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+                if (typeof String.prototype.startsWith === 'undefined') {
+                    String.prototype.startsWith = function(searchString, position) {
+                        position = position || 0;
+                        return this.indexOf(searchString, position) === position;
+                    };
+                }
+            }
             // copy over eventual properties set on the passed layerconfig which
             // can later be retrieved via layer.get('propName');
             for (var property in layer) {
