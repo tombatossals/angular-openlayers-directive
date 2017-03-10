@@ -2185,9 +2185,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
             for (var property in layer) {
                 if (layer.hasOwnProperty(property) &&
                     // ignore props like source or those angular might add (starting with $)
-                    !property.startsWith('$') &&
-                    !property.startsWith('source') &&
-                    !property.startsWith('style')
+                    // don't use startsWith as it is not supported in IE
+                    property.indexOf('$', 0) !== 0 &&
+                    property.indexOf('source', 0) !== 0 &&
+                    property.indexOf('style', 0) !== 0
                     ) {
                     layerConfig[property] = layer[property];
                 }
