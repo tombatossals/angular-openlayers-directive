@@ -12,3 +12,4 @@ libpeerconnection.log
 selenium
 coverage
 *.log
+.vscode
