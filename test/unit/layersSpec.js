@@ -486,4 +486,70 @@ describe('Directive: openlayers layers', function() {
 
     });
 
+    describe('when updating the visibility', function() {
+        beforeEach(function() {
+            scope.layers = [
+                {
+                    identifier: 'LAYER-SPAIN',
+                    name: 'Spain',
+                    visible: true,
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
+                    }
+                }
+            ];
+
+            var element = angular
+                    .element('<openlayers custom-layers="true">' +
+                                '<ol-layer ol-layer-properties="layer" ng-repeat="layer in layers"></ol-layer>' +
+                            '</openlayers>');
+            element = $compile(element)(scope);
+            scope.$digest();
+        });
+
+        it('the layer should be set to visible', function() {
+            olData.getMap().then(function(olMap) {
+                var layers = olMap.getLayers().getArray();
+                expect(layers[0].getVisible()).toBeTruthy();
+            });
+        });
+
+        it('should correctly set the layer to visible false', function() {
+            // act
+            scope.layers[0].visible = false;
+            scope.$digest();
+
+            // assert
+            olData.getMap().then(function(olMap) {
+                var layers = olMap.getLayers().getArray();
+                expect(layers[0].getVisible()).toBeFalsy();
+            });
+
+        });
+
+        it('should sync visibility of the underlying OL3 object if not aligned', function() {
+            // assume our object is set to visible false
+            scope.layers[0].visible = false;
+            scope.$digest();
+
+            olData.getMap().then(function(olMap) {
+                var layers = olMap.getLayers().getArray();
+                // set visibility on the underlying ol3 object
+                layers[0].setVisible(true);
+            });
+
+            scope.layers[0].name = 'Bla bla'; // just to kick on change detection
+            scope.$digest();
+
+            // assert
+            olData.getMap().then(function(olMap) {
+                var layers = olMap.getLayers().getArray();
+                expect(layers[0].getVisible()).toBeFalsy();
+            });
+
+        });
+
+    });
+
 });
