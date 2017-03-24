@@ -59,11 +59,12 @@
   },
   "scripts": {
     "test": "grunt build && grunt karma:unit",
+    "test.watch": "grunt build && grunt karma:dev",
     "build": "grunt build",
     "prepublish": "npm run build",
     "postpublish": "publish-latest",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "main": "dist/angular-openlayers-directive",
-  "version": "1.19.2"
+  "version": "1.19.3"
 }
