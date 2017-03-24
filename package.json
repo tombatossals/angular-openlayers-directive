@@ -59,6 +59,7 @@
   },
   "scripts": {
     "test": "grunt build && grunt karma:unit",
+    "test.watch": "grunt build && grunt karma:dev",
     "build": "grunt build",
     "prepublish": "npm run build",
     "postpublish": "publish-latest",
