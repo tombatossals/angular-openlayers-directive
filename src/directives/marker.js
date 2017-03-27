@@ -77,11 +77,10 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
         require: '^openlayers',
         replace: true,
         template:
-        '<div class="popup-label marker">' +
+            '<div class="popup-label marker">' +
             '<div ng-bind-html="message"></div>' +
             '<ng-transclude></ng-transclude>' +
-        '</div>',
-
+            '</div>',
         link: function(scope, element, attrs, controller) {
             var isDefined = olHelpers.isDefined;
             var olScope = controller.getOpenlayersScope();
