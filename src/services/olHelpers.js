@@ -656,6 +656,38 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
                 break;
+             case 'Here':
+                if (!source.code) {
+                    $log.error('[AngularJS - Openlayers] - You need an API key to show the Here Maps.');
+                    return;
+                }
+
+                function createUrl(tpl, layerDesc) {
+                    return tpl
+                        .replace('{base}', layerDesc.base)
+                        .replace('{type}', layerDesc.type)
+                        .replace('{scheme}', layerDesc.scheme)
+                        .replace('{app_id}', layerDesc.app_id)
+                        .replace('{app_code}', layerDesc.app_code);
+                }
+
+                var urlTpl = 'https://{1-4}.{base}.maps.cit.api.here.com' +
+                    '/{type}/2.1/maptile/newest/{scheme}/{z}/{x}/{y}/256/png' +
+                    '?app_id={app_id}&app_code={app_code}';
+
+                var hereConfiguration = {
+                    url: createUrl(urlTpl, {
+                        base: 'base',
+                        type: 'maptile',
+                        scheme: 'normal.day',
+                        app_id: source.appId,
+                        app_code: source.code,
+                    }),
+                    attributions: createAttribution(source)
+                };
+
+                oSource = new ol.source.XYZ(hereConfiguration);
+                break;                
         }
 
         // log a warning when no source could be created for the given type
