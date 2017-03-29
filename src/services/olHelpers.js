@@ -416,6 +416,18 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
                 break;
 
+            case 'TileArcGISRest':
+                if (!source.url) {
+                    $log.error('[AngularJS - Openlayers] - TileArcGISRest Layer needs valid url');
+                }
+
+                oSource = new ol.source.TileArcGISRest({
+                    attributions: createAttribution(source),
+                    url: source.url
+                });
+
+                break;
+
             case 'GeoJSON':
                 if (!(source.geojson || source.url)) {
                     $log.error('[AngularJS - Openlayers] - You need a geojson ' +
