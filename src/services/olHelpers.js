@@ -656,6 +656,15 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     wrapX: source.wrapX !== undefined ? source.wrapX : true
                 });
                 break;
+            case 'Zoomify':
+                if (!source.url || !angular.isArray(source.imageSize) || source.imageSize.length !== 2) {
+                    $log.error('[AngularJS - Openlayers] - Zoomify Layer needs valid url and imageSize properties');
+                }
+                oSource = new ol.source.Zoomify({
+                    url: source.url,
+                    size: source.imageSize
+                });
+                break;
         }
 
         // log a warning when no source could be created for the given type
