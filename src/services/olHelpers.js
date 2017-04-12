@@ -482,6 +482,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 if (isDefined(source.url)) {
+                    var geojsonFormat = new ol.format.GeoJSON();
                     oSource = new ol.source.ServerVector({
                         format: geojsonFormat,
                         loader: function(/*extent, resolution, projection*/) {
