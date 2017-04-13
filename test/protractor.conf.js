@@ -96,6 +96,10 @@ exports.config = {
         }
     },
 
+    // Define test framework for protractor.
+    // default value is 'jasmine1'
+    framework: 'jasmine2',
+
     // ----- Options to be passed to minijasminenode -----
     //
     // See the full list at https://github.com/juliemr/minijasminenode

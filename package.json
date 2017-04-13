@@ -46,7 +46,7 @@
     "karma-coverage": "^0.5.0",
     "karma-firefox-launcher": "~0.1.4",
     "karma-html2js-preprocessor": "~0.1.0",
-    "karma-jasmine": "~0.3.3",
+    "karma-jasmine": "~0.3.6",
     "karma-phantomjs-launcher": "^0.2.1",
     "karma-requirejs": "~0.2.2",
     "karma-script-launcher": "~0.1.0",
@@ -65,5 +65,6 @@
     "postpublish": "publish-latest",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
-  "main": "dist/angular-openlayers-directive"
+  "main": "dist/angular-openlayers-directive",
+  "version": "1.2.2"
 }

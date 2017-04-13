@@ -36,6 +36,7 @@ module.exports = function (grunt, options) {
                 waits      : false,
                 waitsFor   : false,
                 beforeEach : false,
+                beforeAll : false,
                 afterEach  : false,
                 describe   : false,
                 xdescribe   : false,
