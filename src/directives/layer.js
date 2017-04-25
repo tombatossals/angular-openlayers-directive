@@ -66,12 +66,10 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
 
                     if (!isDefined(properties.visible)) {
                         properties.visible = true;
-                        return;
                     }
 
                     if (!isDefined(properties.opacity)) {
                         properties.opacity = 1;
-                        return;
                     }
 
                     var style;
