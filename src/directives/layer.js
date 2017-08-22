@@ -32,6 +32,10 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                 var olLayer;
 
                 scope.$on('$destroy', function() {
+                    if (!isDefined(olLayer)) {
+                        return;
+                    }
+
                     if (scope.properties.group) {
                         removeLayerFromGroup(layerCollection, olLayer, scope.properties.group);
                     } else {
