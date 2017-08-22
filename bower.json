@@ -8,12 +8,12 @@
     "openlayers"
   ],
   "main": [
-    "dist/angular-openlayers-directive.min.js"
+    "dist/angular-openlayers-directive.js"
   ],
   "dependencies": {
     "angular": "1.4.9",
     "angular-sanitize": "1.4.9",
-    "openlayers": "https://github.com/openlayers/ol3/releases/download/v3.16.0/v3.16.0-dist.zip"
+    "openlayers": "https://github.com/openlayers/openlayers/releases/download/v4.0.0/v4.0.0-dist.zip"
   },
   "devDependencies": {
     "jquery": "*",

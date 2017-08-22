@@ -12,8 +12,8 @@ describe('Directive: openlayers controls', function() {
     var scope;
 
     var containsInstance = function(controls, instance) {
-        for (var i in controls.array_) {
-            if (controls.array_[i] instanceof instance) {
+        for (var i in controls.getArray()) {
+            if (controls.getArray()[i] instanceof instance) {
                 return true;
             }
         }
