@@ -1936,9 +1936,39 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
     var createAttribution = function(source) {
         var attributions = [];
         if (isDefined(source.attribution)) {
-            attributions.unshift(new ol.Attribution({html: source.attribution}));
+            // opt-out -> default tries to show an attribution
+            if (!(source.attribution === false)) { // jshint ignore:line
+                // we got some HTML so display that as the attribution
+                attributions.unshift(new ol.Attribution({html: source.attribution}));
+            }
+        } else {
+            // try to infer automatically
+            var attrib = extractAttributionFromSource(source);
+            if (attrib) {
+                attributions.unshift(attrib);
+            }
         }
+
         return attributions;
+    };
+
+    var extractAttributionFromSource = function(source) {
+        if (source && source.type) {
+            var ol3SourceInstance = ol.source[source.type];
+            if (ol3SourceInstance) {
+                // iterate over the object's props and try
+                // to find the attribution one as it differs
+                for (var prop in ol3SourceInstance) {
+                    if (ol3SourceInstance.hasOwnProperty(prop)) {
+                        if (prop.toLowerCase().indexOf('attribution') > -1) {
+                            return ol.source[source.type][prop];
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     };
 
     var createGroup = function(name) {
