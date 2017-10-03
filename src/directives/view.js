@@ -46,7 +46,7 @@ angular.module('openlayers-directive').directive('olView', function($log, $q, ol
                 });
 
                 olScope.$on('$destroy', function() {
-                    map.unByKey(rotationEventKey);
+                    ol.Observable.unByKey(rotationEventKey);
                 });
 
             });
