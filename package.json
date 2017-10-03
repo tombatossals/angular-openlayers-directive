@@ -18,7 +18,8 @@
   "license": "MIT",
   "dependencies": {
     "angular": "~1.4.8",
-    "angular-sanitize": "~1.4.8"
+    "angular-sanitize": "~1.4.8",
+    "openlayers": "~4.3.4"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
