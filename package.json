@@ -52,7 +52,7 @@
     "karma-script-launcher": "~0.1.0",
     "load-grunt-config": "^0.17.1",
     "matchdep": "~0.3.0",
-    "phantomjs": "^1.9.18",
+    "phantomjs": "^2.1.0",
     "protractor": "~2.5.0",
     "publish-latest": "^1.1.2",
     "semantic-release": "^4.3.5"
