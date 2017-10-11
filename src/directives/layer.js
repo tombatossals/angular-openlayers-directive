@@ -63,7 +63,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                     return;
                 }
 
-                scope.$watch('properties', function(properties, oldProperties) {
+                scope.$watchCollection('properties', function(properties, oldProperties) {
                     if (!isDefined(properties.source) || !isDefined(properties.source.type)) {
                         return;
                     }
@@ -227,7 +227,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                             }
                         }
                     }
-                }, true);
+                });
             });
         }
     };
