@@ -1646,7 +1646,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     return;
                 }
 
-                var _urlBase = 'http://services.arcgisonline.com/ArcGIS/rest/services/';
+                var _urlBase = 'https://services.arcgisonline.com/ArcGIS/rest/services/';
                 var _url = _urlBase + source.layer + '/MapServer/tile/{z}/{y}/{x}';
 
                 oSource = new ol.source.XYZ({
