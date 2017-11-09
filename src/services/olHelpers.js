@@ -865,29 +865,30 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
         setCenter: function(view, projection, newCenter, map) {
 
-            if (map && view.getCenter()) {
-                var pan = ol.animation.pan({
-                    duration: 150,
-                    source: (view.getCenter())
-                });
-                map.beforeRender(pan);
+            if (view.getCenter() === null) {
+                view.setCenter([0,0]); // view.animate crashes if center === null
             }
 
+            var center = undefined;
             if (newCenter.projection === projection) {
-                view.setCenter([newCenter.lon, newCenter.lat]);
+                center = [newCenter.lon, newCenter.lat];
             } else {
                 var coord = [newCenter.lon, newCenter.lat];
-                view.setCenter(ol.proj.transform(coord, newCenter.projection, projection));
+                center = ol.proj.transform(coord, newCenter.projection, projection);
             }
+
+            view.animate({
+                duration: 150,
+                center: center
+            });
         },
 
         setZoom: function(view, zoom, map) {
-            var z = ol.animation.zoom({
+            view.animate({
                 duration: 150,
-                resolution: map.getView().getResolution()
+                resolution: map.getView().getResolution(),
+                zoom: zoom
             });
-            map.beforeRender(z);
-            view.setZoom(zoom);
         },
 
         isBoolean: function(value) {
