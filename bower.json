@@ -8,17 +8,17 @@
     "openlayers"
   ],
   "main": [
-    "dist/angular-openlayers-directive.min.js"
+    "dist/angular-openlayers-directive.js"
   ],
   "dependencies": {
-    "angular": "1.4.9",
-    "angular-sanitize": "1.4.9",
-    "openlayers": "https://github.com/openlayers/ol3/releases/download/v3.16.0/v3.16.0-dist.zip"
+    "angular": "1.6.6",
+    "angular-sanitize": "1.6.6",
+    "openlayers": "https://github.com/openlayers/openlayers/releases/download/v4.3.1/v4.3.1-dist.zip"
   },
   "devDependencies": {
     "jquery": "*",
-    "angular-route": "1.4.9",
-    "angular-mocks": "1.4.9",
+    "angular-route": "1.6.6",
+    "angular-mocks": "1.6.6",
     "js-polyfills": "^0.1.20"
   },
   "ignore": [

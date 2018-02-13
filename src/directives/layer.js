@@ -32,6 +32,10 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                 var olLayer;
 
                 scope.$on('$destroy', function() {
+                    if (!isDefined(olLayer)) {
+                        return;
+                    }
+
                     if (scope.properties.group) {
                         removeLayerFromGroup(layerCollection, olLayer, scope.properties.group);
                     } else {
@@ -59,19 +63,17 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                     return;
                 }
 
-                scope.$watch('properties', function(properties, oldProperties) {
+                scope.$watchCollection('properties', function(properties, oldProperties) {
                     if (!isDefined(properties.source) || !isDefined(properties.source.type)) {
                         return;
                     }
 
                     if (!isDefined(properties.visible)) {
                         properties.visible = true;
-                        return;
                     }
 
                     if (!isDefined(properties.opacity)) {
                         properties.opacity = 1;
-                        return;
                     }
 
                     var style;
@@ -225,7 +227,7 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                             }
                         }
                     }
-                }, true);
+                });
             });
         }
     };
