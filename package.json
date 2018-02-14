@@ -65,5 +65,6 @@
     "postpublish": "publish-latest",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
-  "main": "dist/angular-openlayers-directive"
+  "main": "dist/angular-openlayers-directive",
+  "version": "1.20.2"
 }
