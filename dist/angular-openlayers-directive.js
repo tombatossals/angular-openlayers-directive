@@ -314,7 +314,7 @@ angular.module('openlayers-directive').directive('olCenter', ["$log", "$location
                 });
 
                 olScope.$on('$destroy', function() {
-                    map.unByKey(moveEndEventKey);
+                    ol.Observable.unByKey(moveEndEventKey);
                 });
             });
         }
@@ -661,7 +661,7 @@ angular.module('openlayers-directive').directive('olView', ["$log", "$q", "olDat
                 });
 
                 olScope.$on('$destroy', function() {
-                    map.unByKey(rotationEventKey);
+                    ol.Observable.unByKey(rotationEventKey);
                 });
 
             });
@@ -2122,11 +2122,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
         setCenter: function(view, projection, newCenter, map) {
 
             if (map && view.getCenter()) {
-                var pan = ol.animation.pan({
+                view.animate({
                     duration: 150,
-                    source: (view.getCenter())
+                    center: view.getCenter()
                 });
-                map.beforeRender(pan);
             }
 
             if (newCenter.projection === projection) {
@@ -2138,11 +2137,11 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
         },
 
         setZoom: function(view, zoom, map) {
-            var z = ol.animation.zoom({
+            view.animate({
                 duration: 150,
-                resolution: map.getView().getResolution()
+                resolution: map.getView().getResolution(),
+                zoom: zoom
             });
-            map.beforeRender(z);
             view.setZoom(zoom);
         },
 

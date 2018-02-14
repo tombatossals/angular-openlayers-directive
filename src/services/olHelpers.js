@@ -868,11 +868,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         setCenter: function(view, projection, newCenter, map) {
 
             if (map && view.getCenter()) {
-                var pan = ol.animation.pan({
+                view.animate({
                     duration: 150,
-                    source: (view.getCenter())
+                    center: view.getCenter()
                 });
-                map.beforeRender(pan);
             }
 
             if (newCenter.projection === projection) {
@@ -884,11 +883,11 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         },
 
         setZoom: function(view, zoom, map) {
-            var z = ol.animation.zoom({
+            view.animate({
                 duration: 150,
-                resolution: map.getView().getResolution()
+                resolution: map.getView().getResolution(),
+                zoom: zoom
             });
-            map.beforeRender(z);
             view.setZoom(zoom);
         },
 
