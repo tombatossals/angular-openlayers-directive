@@ -634,11 +634,12 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 });
                 break;
             case 'XYZ':
-                if (!source.url && !source.tileUrlFunction) {
-                    $log.error('[AngularJS - Openlayers] - XYZ Layer needs valid url or tileUrlFunction properties');
+                if (!source.url && !source.urls && !source.tileUrlFunction) {
+                    $log.error('[AngularJS - Openlayers] - XYZ Layer needs valid url(s) or tileUrlFunction properties');
                 }
                 oSource = new ol.source.XYZ({
                     url: source.url,
+                    urls: source.urls,
                     attributions: createAttribution(source),
                     minZoom: source.minZoom,
                     maxZoom: source.maxZoom,
