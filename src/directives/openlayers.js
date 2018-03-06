@@ -79,6 +79,8 @@ angular.module('openlayers-directive', ['ngSanitize']).directive('openlayers', f
 
                 scope.$on('$destroy', function() {
                     olData.resetMap(attrs.id);
+                    map.setTarget(null);
+                    map = null;
                 });
 
                 // If no layer is defined, set the default tileLayer
