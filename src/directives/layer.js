@@ -187,7 +187,13 @@ angular.module('openlayers-directive').directive('olLayer', function($log, $q, o
                         // set visibility
                         if (isDefined(oldProperties) &&
                             isBoolean(properties.visible) &&
-                            properties.visible !== oldProperties.visible || isNewLayer(olLayer)) {
+                            (
+                                properties.visible !== oldProperties.visible ||
+                                isNewLayer(olLayer) ||
+                                // to make sure the underlying ol3 object is always synched
+                                olLayer.getVisible() !== properties.visible
+                            )
+                            ) {
                             olLayer.setVisible(properties.visible);
                         }
 

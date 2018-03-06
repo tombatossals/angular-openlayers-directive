@@ -177,9 +177,9 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                         }
                     });
                 });
-                
-                olScope.$on('$destroy', function(){
-                    map.unByKey(moveEndEventKey);
+
+                olScope.$on('$destroy', function() {
+                    ol.Observable.unByKey(moveEndEventKey);
                 });
             });
         }

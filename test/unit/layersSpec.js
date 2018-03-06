@@ -124,6 +124,38 @@ describe('Directive: openlayers layers', function() {
         expect(geoJsonLayer.getSource().getFeatures().length).not.toBe(0);
     });
 
+    it('should properly render a vector layer containing the WKT format object', function() {
+        scope.wktLayer = {
+            source: {
+                type: 'WKT',
+                wkt: {
+                    data: 'POLYGON((72.564697265625 61.3916015625, 79.595947265625 56.4697265625, ' +
+                           '82.408447265625 63.5009765625, 71.861572265625 59.9853515625, ' +
+                           '72.564697265625 61.3916015625))',
+                    projection: 'EPSG:4326'
+                }
+            }
+        };
+
+        var element = angular.element('<openlayers>' +
+                                       '<ol-layer ol-layer-properties="wktLayer"></ol-layer>' +
+                                       '</openlayers>');
+        element = $compile(element)(scope);
+
+        var layers;
+        olData.getMap().then(function(olMap) {
+            layers = olMap.getLayers();
+        });
+
+        scope.$digest();
+        expect(layers.item(0).getSource() instanceof ol.source.OSM).toBe(true);
+        expect(layers.getLength()).toBe(2);
+
+        var wktLayer = layers.item(1);
+        expect(wktLayer.getSource() instanceof ol.source.Vector).toBe(true);
+        expect(wktLayer.getSource().getFeatures().length).not.toBe(0);
+    });
+
     it('should have one layer if custom-layers is used', function() {
         scope.mapbox = {
             source: {
@@ -373,4 +405,151 @@ describe('Directive: openlayers layers', function() {
         expect(otherLayer.getLayers().getArray()[0].get('group')).toEqual('Other');
 
     });
+
+    describe('when setting the index', function() {
+
+        it('should correctly fill up the layer collection with null layers', function() {
+            scope.layers = [
+                {
+                    index: 2,
+                    name: 'Spain',
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
+                    }
+                }
+            ];
+
+            var element = angular
+                    .element('<openlayers custom-layers="true">' +
+                                '<ol-layer ol-layer-properties="layer" ng-repeat="layer in layers"></ol-layer>' +
+                            '</openlayers>');
+            element = $compile(element)(scope);
+
+            var layers;
+            olData.getMap().then(function(olMap) {
+                layers = olMap.getLayers();
+            });
+
+            scope.$digest();
+            expect(layers.getLength()).toBe(3);
+
+            expect(layers.item(2).getSource() instanceof ol.source.Vector).toBeTruthy();
+        });
+
+        it('should correctly populate the layer collection with when layers are provided in random order', function() {
+            scope.layers = [
+                {
+                    index: 1,
+                    name: 'Spain',
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
+                    }
+                },
+                {
+                    index: 2,
+                    name: 'Italy',
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
+                    }
+                },
+                {
+                    index: 0,
+                    name: 'Germany',
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
+                    }
+                }
+            ];
+
+            var element = angular
+                    .element('<openlayers custom-layers="true">' +
+                                '<ol-layer ol-layer-properties="layer" ng-repeat="layer in layers"></ol-layer>' +
+                            '</openlayers>');
+            element = $compile(element)(scope);
+
+            var layers;
+            olData.getMap().then(function(olMap) {
+                layers = olMap.getLayers();
+            });
+
+            scope.$digest();
+            expect(layers.getLength()).toBe(3);
+
+            expect(layers.item(0).get('name')).toBe('Germany');
+            expect(layers.item(1).get('name')).toBe('Spain');
+            expect(layers.item(2).get('name')).toBe('Italy');
+        });
+
+    });
+
+    describe('when updating the visibility', function() {
+        beforeEach(function() {
+            scope.layers = [
+                {
+                    identifier: 'LAYER-SPAIN',
+                    name: 'Spain',
+                    visible: true,
+                    source: {
+                        type: 'GeoJSON',
+                        url: 'json/ESP.geo.json'
+                    }
+                }
+            ];
+
+            var element = angular
+                    .element('<openlayers custom-layers="true">' +
+                                '<ol-layer ol-layer-properties="layer" ng-repeat="layer in layers"></ol-layer>' +
+                            '</openlayers>');
+            element = $compile(element)(scope);
+            scope.$digest();
+        });
+
+        it('the layer should be set to visible', function() {
+            olData.getMap().then(function(olMap) {
+                var layers = olMap.getLayers().getArray();
+                expect(layers[0].getVisible()).toBeTruthy();
+            });
+        });
+
+        it('should correctly set the layer to visible false', function() {
+            // act
+            scope.layers[0].visible = false;
+            scope.$digest();
+
+            // assert
+            olData.getMap().then(function(olMap) {
+                var layers = olMap.getLayers().getArray();
+                expect(layers[0].getVisible()).toBeFalsy();
+            });
+
+        });
+
+        it('should sync visibility of the underlying OL3 object if not aligned', function() {
+            // assume our object is set to visible false
+            scope.layers[0].visible = false;
+            scope.$digest();
+
+            olData.getMap().then(function(olMap) {
+                var layers = olMap.getLayers().getArray();
+                // set visibility on the underlying ol3 object
+                layers[0].setVisible(true);
+            });
+
+            scope.layers[0].name = 'Bla bla'; // just to kick on change detection
+            scope.$digest();
+
+            // assert
+            olData.getMap().then(function(olMap) {
+                var layers = olMap.getLayers().getArray();
+                expect(layers[0].getVisible()).toBeFalsy();
+            });
+
+        });
+
+    });
+
 });
