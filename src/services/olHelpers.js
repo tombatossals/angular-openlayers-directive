@@ -395,7 +395,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     return;
                 }
 
-                var _urlBase = 'http://services.arcgisonline.com/ArcGIS/rest/services/';
+                var _urlBase = 'https://services.arcgisonline.com/ArcGIS/rest/services/';
                 if (source.layer === 'World_Light_Gray_Base' || source.layer === 'World_Dark_Gray_Base') {
                     _urlBase = _urlBase + 'Canvas/';
                 }
@@ -652,7 +652,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 break;
             case 'XYZ':
                 if (!source.url && !source.urls && !source.tileUrlFunction) {
-                    $log.error('[AngularJS - Openlayers] - XYZ Layer needs valid urls or tileUrlFunction properties');
+                    $log.error('[AngularJS - Openlayers] - XYZ Layer needs valid url(s) or tileUrlFunction properties');
                 }
                 oSource = new ol.source.XYZ({
                     url: source.url,
@@ -700,9 +700,39 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
     var createAttribution = function(source) {
         var attributions = [];
         if (isDefined(source.attribution)) {
-            attributions.unshift(new ol.Attribution({html: source.attribution}));
+            // opt-out -> default tries to show an attribution
+            if (!(source.attribution === false)) { // jshint ignore:line
+                // we got some HTML so display that as the attribution
+                attributions.unshift(new ol.Attribution({html: source.attribution}));
+            }
+        } else {
+            // try to infer automatically
+            var attrib = extractAttributionFromSource(source);
+            if (attrib) {
+                attributions.unshift(attrib);
+            }
         }
+
         return attributions;
+    };
+
+    var extractAttributionFromSource = function(source) {
+        if (source && source.type) {
+            var ol3SourceInstance = ol.source[source.type];
+            if (ol3SourceInstance) {
+                // iterate over the object's props and try
+                // to find the attribution one as it differs
+                for (var prop in ol3SourceInstance) {
+                    if (ol3SourceInstance.hasOwnProperty(prop)) {
+                        if (prop.toLowerCase().indexOf('attribution') > -1) {
+                            return ol.source[source.type][prop];
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     };
 
     var createGroup = function(name) {
@@ -856,11 +886,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         setCenter: function(view, projection, newCenter, map) {
 
             if (map && view.getCenter()) {
-                var pan = ol.animation.pan({
+                view.animate({
                     duration: 150,
-                    source: (view.getCenter())
+                    center: view.getCenter()
                 });
-                map.beforeRender(pan);
             }
 
             if (newCenter.projection === projection) {
@@ -872,11 +901,11 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
         },
 
         setZoom: function(view, zoom, map) {
-            var z = ol.animation.zoom({
+            view.animate({
                 duration: 150,
-                resolution: map.getView().getResolution()
+                resolution: map.getView().getResolution(),
+                zoom: zoom
             });
-            map.beforeRender(z);
             view.setZoom(zoom);
         },
 

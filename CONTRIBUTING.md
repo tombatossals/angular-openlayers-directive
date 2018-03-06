@@ -89,7 +89,7 @@ Software development life-cycle
 -------------------------------
 There are a some Grunt tasks defined to ease the development cycle. Let's see how to use them:
 
-First, make sure you have npm and grunt-cli installed globally. Let's install the dependencies.
+First, make sure you have npm, bower and grunt-cli installed globally. Let's install the dependencies.
 
 ```
 # Inside the project dir, install the dependencies
@@ -110,6 +110,17 @@ npm http GET https://registry.npmjs.org/grunt-ngmin
 ├── useragent@2.0.7 (lru-cache@2.2.4)
 ├── connect@2.8.8 (methods@0.0.1, uid2@0.0.2, fresh@0.2.0, cookie@0.1.0, ..., send@0.1.4)
 └── socket.io@0.9.16 (base64id@0.1.0, policyfile@0.0.4, redis@0.7.3, socket.io-client@0.9.16)
+...
+$ bower install
+...
+bower jquery#*                 install jquery#3.2.1
+bower angular#1.4.9            install angular#1.4.9
+bower angular-sanitize#1.4.9   install angular-sanitize#1.4.9
+bower js-polyfills#^0.1.20     install js-polyfills#0.1.34
+bower angular-mocks#1.4.9      install angular-mocks#1.4.9
+bower angular-route#1.4.9      install angular-route#1.4.9
+bower openlayers#*             install openlayers#e-tag:a8ff409d6
+...
 $
 ```
 
