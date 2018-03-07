@@ -51,8 +51,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
     var esriBaseLayers = ['World_Imagery', 'World_Street_Map', 'World_Topo_Map',
                           'World_Physical_Map', 'World_Terrain_Base',
-                          'Ocean_Basemap', 'NatGeo_World_Map',
-                          'World_Light_Gray_Base', 'World_Dark_Gray_Base'];
+                          'Ocean_Basemap', 'NatGeo_World_Map'];
 
     var styleMap = {
         'style': ol.style.Style,
@@ -396,9 +395,6 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 }
 
                 var _urlBase = 'https://services.arcgisonline.com/ArcGIS/rest/services/';
-                if (source.layer === 'World_Light_Gray_Base' || source.layer === 'World_Dark_Gray_Base') {
-                    _urlBase = _urlBase + 'Canvas/';
-                }
                 var _url = _urlBase + source.layer + '/MapServer/tile/{z}/{y}/{x}';
 
                 oSource = new ol.source.XYZ({
@@ -618,10 +614,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 var extractStyles = source.extractStyles || false;
                 oSource = new ol.source.Vector({
                     url: source.url,
-                    format: new ol.format.KML({
-                        extractStyles: extractStyles
-                    }),
-                    radius: source.radius
+                    format: new ol.format.KML(),
+                    radius: source.radius,
+                    extractStyles: extractStyles
                 });
                 break;
             case 'Stamen':
