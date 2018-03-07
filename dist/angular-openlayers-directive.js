@@ -1,7 +1,8 @@
 (function (root, factory) {
     if (typeof require === 'function' && typeof exports === 'object') {
         // CommonJS
-        var ol = require('openlayers');
+        var ol = require('openlayers-prebuilt');
+        var ngSanitize = require('angular-sanitize');
         exports.angularOpenlayersDirective = factory(ol);
     } else if (typeof define === 'function' && define.amd) {
         // AMD.
@@ -671,8 +672,8 @@ angular.module('openlayers-directive').directive('olView', ["$log", "$q", "olDat
     };
 }]);
 
-angular.module('openlayers-directive').directive('olControl', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
-
+angular.module('openlayers-directive')
+.directive('olControl', ["$log", "$q", "olData", "olMapDefaults", "olHelpers", function($log, $q, olData, olMapDefaults, olHelpers) {
     return {
         restrict: 'E',
         scope: {
@@ -685,29 +686,58 @@ angular.module('openlayers-directive').directive('olControl', ["$log", "$q", "ol
             var olScope   = controller.getOpenlayersScope();
             var olControl;
             var olControlOps;
+            var getControlClasses = olHelpers.getControlClasses;
+            var controlClasses = getControlClasses();
 
             olScope.getMap().then(function(map) {
-                var getControlClasses = olHelpers.getControlClasses;
-                var controlClasses = getControlClasses();
 
                 scope.$on('$destroy', function() {
                     map.removeControl(olControl);
                 });
 
-                if (!isDefined(scope.properties) || !isDefined(scope.properties.control)) {
-                    if (attrs.name) {
-                        if (isDefined(scope.properties)) {
-                            olControlOps = scope.properties;
-                        }
-                        olControl = new controlClasses[attrs.name](olControlOps);
-                        map.addControl(olControl);
+                scope.$watch('properties', function(properties) {
+                    if (!isDefined(properties)) {
+                        return;
                     }
-                    return;
+
+                    initCtrls(properties);
+                });
+
+                function initCtrls(properties) {
+                    if (properties && properties.control) {
+                        // the control instance is already defined,
+                        // so simply use it and go ahead
+
+                        // is there already a control, so destroy and recreate it?
+                        if (olControl) {
+                            map.removeControl(olControl);
+                        }
+
+                        olControl = properties.control;
+                        map.addControl(olControl);
+                    } else {
+
+                        // the name is the key to instantiate an ol3 control
+                        if (attrs.name) {
+                            if (isDefined(properties)) {
+                                olControlOps = properties;
+                            }
+
+                            // is there already a control, so destroy and recreate it?
+                            if (olControl) {
+                                map.removeControl(olControl);
+                            }
+
+                            olControl = new controlClasses[attrs.name](olControlOps);
+                            map.addControl(olControl);
+                        }
+                    }
                 }
 
-                olControl = scope.properties.control;
-                map.addControl(olControl);
+                initCtrls(scope.properties);
+
             });
+
         }
     };
 }]);
@@ -772,6 +802,7 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
 
                 if (!scopes.length) {
                     map.removeLayer(mapDict[mapIndex].markerLayer);
+                    delete mapDict[mapIndex].markerLayer;
                     delete mapDict[mapIndex];
                 }
             }
@@ -816,7 +847,7 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                 // This function handles dragging a marker
                 var pickOffset = null;
                 var pickProperties = null;
-                function handleDrag(evt) {
+                scope.handleDrag = function(evt) {
                     var coord = evt.coordinate;
                     var proj = map.getView().getProjection().getCode();
                     if (proj === 'pixel') {
@@ -865,12 +896,25 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                             });
                         }
                     }
+                };
+
+                function unregisterHandlers() {
+                    if (!scope.properties) { return ; }
+                    // Remove previous listeners if any
+                    map.getViewport().removeEventListener('mousemove', scope.properties.handleInteraction);
+                    map.getViewport().removeEventListener('click', scope.properties.handleTapInteraction);
+                    map.getViewport().querySelector('canvas.ol-unselectable').removeEventListener(
+                        'touchend', scope.properties.handleTapInteraction);
+                    map.getViewport().removeEventListener('mousemove', scope.properties.showAtLeastOneOverlay);
+                    map.getViewport().removeEventListener('click', scope.properties.removeAllOverlays);
+                    map.getViewport().querySelector('canvas.ol-unselectable').removeEventListener(
+                        'touchmove', scope.properties.activateCooldown);
                 }
 
                 // Setup generic handlers for marker drag
-                map.on('pointerdown', handleDrag);
-                map.on('pointerup', handleDrag);
-                map.on('pointerdrag', handleDrag);
+                map.on('pointerdown', scope.handleDrag);
+                map.on('pointerup', scope.handleDrag);
+                map.on('pointerdrag', scope.handleDrag);
 
                 scope.$on('$destroy', function() {
                     markerLayer.getSource().removeFeature(marker);
@@ -878,6 +922,10 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                         map.removeOverlay(label);
                     }
                     markerLayerManager.deregisterScope(scope, map);
+                    map.un('pointerdown', scope.handleDrag);
+                    map.un('pointerup', scope.handleDrag);
+                    map.un('pointerdrag', scope.handleDrag);
+                    unregisterHandlers();
                 });
 
                 if (!isDefined(scope.properties)) {
@@ -907,13 +955,7 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
 
                 scope.$watch('properties', function(properties) {
 
-                    // Remove previous listeners if any
-                    map.getViewport().removeEventListener('mousemove', properties.handleInteraction);
-                    map.getViewport().removeEventListener('click', properties.handleTapInteraction);
-                    map.getViewport().querySelector('canvas.ol-unselectable').removeEventListener(
-                        'touchend', properties.handleTapInteraction);
-                    map.getViewport().removeEventListener('mousemove', properties.showAtLeastOneOverlay);
-                    map.getViewport().removeEventListener('click', properties.removeAllOverlays);
+                    unregisterHandlers();
 
                     // This function handles popup on mouse over/click
                     properties.handleInteraction = function(evt) {
@@ -972,7 +1014,7 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                         var prevTimeout;
 
                         // Sets the cooldown flag to filter out any subsequent events within 500 ms
-                        function activateCooldown() {
+                        properties.activateCooldown = function() {
                             cooldownActive = true;
                             if (prevTimeout) {
                                 clearTimeout(prevTimeout);
@@ -981,16 +1023,20 @@ angular.module('openlayers-directive').directive('olMarker', ["$log", "$q", "olM
                                 cooldownActive = false;
                                 prevTimeout = null;
                             }, 500);
-                        }
+                        };
 
                         // Preventing from 'touchend' to be considered a tap, if fired immediately after 'touchmove'
+                        if (properties.activateCooldown) {
+                            map.getViewport().querySelector('canvas.ol-unselectable').removeEventListener(
+                                'touchmove', properties.activateCooldown);
+                        }
                         map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
-                            'touchmove', activateCooldown);
+                            'touchmove', properties.activateCooldown);
 
                         return function() {
                             if (!cooldownActive) {
                                 properties.handleInteraction.apply(null, arguments);
-                                activateCooldown();
+                                properties.activateCooldown();
                             }
                         };
                     })();
@@ -2553,5 +2599,5 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
         }
     };
 }]);
-
+return angular.module('openlayers-directive');
 }));
