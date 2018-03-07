@@ -58,6 +58,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
 
                 if (!scopes.length) {
                     map.removeLayer(mapDict[mapIndex].markerLayer);
+                    delete mapDict[mapIndex].markerLayer;
                     delete mapDict[mapIndex];
                 }
             }
@@ -102,7 +103,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                 // This function handles dragging a marker
                 var pickOffset = null;
                 var pickProperties = null;
-                function handleDrag(evt) {
+                scope.handleDrag = function(evt) {
                     var coord = evt.coordinate;
                     var proj = map.getView().getProjection().getCode();
                     if (proj === 'pixel') {
@@ -151,12 +152,25 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                             });
                         }
                     }
+                };
+
+                function unregisterHandlers() {
+                    if (!scope.properties) { return ; }
+                    // Remove previous listeners if any
+                    map.getViewport().removeEventListener('mousemove', scope.properties.handleInteraction);
+                    map.getViewport().removeEventListener('click', scope.properties.handleTapInteraction);
+                    map.getViewport().querySelector('canvas.ol-unselectable').removeEventListener(
+                        'touchend', scope.properties.handleTapInteraction);
+                    map.getViewport().removeEventListener('mousemove', scope.properties.showAtLeastOneOverlay);
+                    map.getViewport().removeEventListener('click', scope.properties.removeAllOverlays);
+                    map.getViewport().querySelector('canvas.ol-unselectable').removeEventListener(
+                        'touchmove', scope.properties.activateCooldown);
                 }
 
                 // Setup generic handlers for marker drag
-                map.on('pointerdown', handleDrag);
-                map.on('pointerup', handleDrag);
-                map.on('pointerdrag', handleDrag);
+                map.on('pointerdown', scope.handleDrag);
+                map.on('pointerup', scope.handleDrag);
+                map.on('pointerdrag', scope.handleDrag);
 
                 scope.$on('$destroy', function() {
                     markerLayer.getSource().removeFeature(marker);
@@ -164,6 +178,10 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                         map.removeOverlay(label);
                     }
                     markerLayerManager.deregisterScope(scope, map);
+                    map.un('pointerdown', scope.handleDrag);
+                    map.un('pointerup', scope.handleDrag);
+                    map.un('pointerdrag', scope.handleDrag);
+                    unregisterHandlers();
                 });
 
                 if (!isDefined(scope.properties)) {
@@ -193,13 +211,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
 
                 scope.$watch('properties', function(properties) {
 
-                    // Remove previous listeners if any
-                    map.getViewport().removeEventListener('mousemove', properties.handleInteraction);
-                    map.getViewport().removeEventListener('click', properties.handleTapInteraction);
-                    map.getViewport().querySelector('canvas.ol-unselectable').removeEventListener(
-                        'touchend', properties.handleTapInteraction);
-                    map.getViewport().removeEventListener('mousemove', properties.showAtLeastOneOverlay);
-                    map.getViewport().removeEventListener('click', properties.removeAllOverlays);
+                    unregisterHandlers();
 
                     // This function handles popup on mouse over/click
                     properties.handleInteraction = function(evt) {
@@ -258,7 +270,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                         var prevTimeout;
 
                         // Sets the cooldown flag to filter out any subsequent events within 500 ms
-                        function activateCooldown() {
+                        properties.activateCooldown = function() {
                             cooldownActive = true;
                             if (prevTimeout) {
                                 clearTimeout(prevTimeout);
@@ -267,16 +279,20 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
                                 cooldownActive = false;
                                 prevTimeout = null;
                             }, 500);
-                        }
+                        };
 
                         // Preventing from 'touchend' to be considered a tap, if fired immediately after 'touchmove'
+                        if (properties.activateCooldown) {
+                            map.getViewport().querySelector('canvas.ol-unselectable').removeEventListener(
+                                'touchmove', properties.activateCooldown);
+                        }
                         map.getViewport().querySelector('canvas.ol-unselectable').addEventListener(
-                            'touchmove', activateCooldown);
+                            'touchmove', properties.activateCooldown);
 
                         return function() {
                             if (!cooldownActive) {
                                 properties.handleInteraction.apply(null, arguments);
-                                activateCooldown();
+                                properties.activateCooldown();
                             }
                         };
                     })();
