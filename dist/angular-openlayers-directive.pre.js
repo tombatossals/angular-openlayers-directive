@@ -2593,5 +2593,5 @@ angular.module('openlayers-directive').factory('olMapDefaults', function($q, olH
         }
     };
 });
-
+return angular.module('openlayers-directive');
 }));

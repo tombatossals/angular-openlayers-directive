@@ -16,12 +16,15 @@ var banner = '(function (root, factory) {\n' +
              '    }\n' +
              '}(this, function (ol) {\n';
 
+var footer = 'return angular.module(\'openlayers-directive\');' +
+			 '\n}));';             
+
 module.exports = function (grunt, options) {
     return {
         dist: {
             options: {
                 banner: banner,
-                footer: '\n}));'
+                footer: footer
             },
             src: [
                 'src/directives/openlayers.js',

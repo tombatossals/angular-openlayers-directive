@@ -2593,5 +2593,5 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
         }
     };
 }]);
-
+return angular.module('openlayers-directive');
 }));
