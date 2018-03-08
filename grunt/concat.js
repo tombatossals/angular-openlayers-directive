@@ -5,7 +5,7 @@ var banner = '(function (root, factory) {\n' +
              '        // CommonJS\n' +
              '        var ol = require(\'openlayers\');\n' +
              '        var ngSanitize = require(\'angular-sanitize\');\n' +             
-             '        exports.angularOpenlayersDirective = factory(ol);\n' +
+             '        module.exports = factory(ol);\n' +
              '    } else if (typeof define === \'function\' && define.amd) {\n' +
              '        // AMD.\n' +
              '        define([\'ol\'], function (ol) {\n' +

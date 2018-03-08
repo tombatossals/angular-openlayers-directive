@@ -3,7 +3,7 @@
         // CommonJS
         var ol = require('openlayers');
         var ngSanitize = require('angular-sanitize');
-        exports.angularOpenlayersDirective = factory(ol);
+        module.exports = factory(ol);
     } else if (typeof define === 'function' && define.amd) {
         // AMD.
         define(['ol'], function (ol) {
