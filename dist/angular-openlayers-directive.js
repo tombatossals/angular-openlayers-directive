@@ -2,6 +2,7 @@
     if (typeof require === 'function' && typeof exports === 'object') {
         // CommonJS
         var ol = require('openlayers');
+        var ngSanitize = require('angular-sanitize');
         exports.angularOpenlayersDirective = factory(ol);
     } else if (typeof define === 'function' && define.amd) {
         // AMD.
