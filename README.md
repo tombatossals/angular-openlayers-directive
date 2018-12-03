@@ -4,7 +4,14 @@ angular-openlayers-directive
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![npm version](https://badge.fury.io/js/angular-openlayers-directive.svg)](http://badge.fury.io/js/angular-openlayers-directive)
 
-Work in progress.
+
+---
+
+**MAINTAINER NEEDED:** Read more [here](https://github.com/tombatossals/angular-openlayers-directive/issues/404)
+
+---
+
+
 
 [AngularJS](http://angularjs.org/) directive for the OpenLayers (version 3) Javascript Library. This software allows you to embed maps managed by openlayers on your [AnguarJS](http://angularjs.org/) or [OpenLayers](http://openlayers.org/) project. It's a good starting point to learn the ***Openlayers API*** too.
 
