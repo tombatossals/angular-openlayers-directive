@@ -25,7 +25,7 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                 if (attrs.olCenter.search('-') !== -1) {
                     $log.error('[AngularJS - Openlayers] The "center" variable can\'t use ' +
                                'a "-" on his key name: "' + attrs.center + '".');
-                    setCenter(view, defaults.view.projection, defaults.center, map);
+                    setCenter(view, defaults.view.projection, defaults.center);
                     return;
                 }
 
@@ -53,7 +53,7 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                     center.zoom = 1;
                 }
 
-                setCenter(view, defaults.view.projection, center, map);
+                setCenter(view, defaults.view.projection, center);
                 view.setZoom(center.zoom);
 
                 var centerUrlHash;
@@ -134,13 +134,13 @@ angular.module('openlayers-directive').directive('olCenter', function($log, $loc
                             var actualCenter =
                                 ol.proj.transform(viewCenter, defaults.view.projection, center.projection);
                             if (!(actualCenter[1] === center.lat && actualCenter[0] === center.lon)) {
-                                setCenter(view, defaults.view.projection, center, map);
+                                setCenter(view, defaults.view.projection, center);
                             }
                         }
                     }
 
                     if (view.getZoom() !== center.zoom) {
-                        setZoom(view, center.zoom, map);
+                        setZoom(view, center.zoom);
                     }
                 });
 

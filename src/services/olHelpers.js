@@ -864,29 +864,17 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
             return false;
         },
 
-        setCenter: function(view, projection, newCenter, map) {
-
-            if (map && view.getCenter()) {
-                view.animate({
-                    duration: 150,
-                    center: view.getCenter()
-                });
-            }
+        setCenter: function(view, projection, newCenter) {
+            var coord = [newCenter.lon, newCenter.lat];
 
             if (newCenter.projection === projection) {
-                view.setCenter([newCenter.lon, newCenter.lat]);
+                view.setCenter(coord);
             } else {
-                var coord = [newCenter.lon, newCenter.lat];
                 view.setCenter(ol.proj.transform(coord, newCenter.projection, projection));
             }
         },
 
-        setZoom: function(view, zoom, map) {
-            view.animate({
-                duration: 150,
-                resolution: map.getView().getResolution(),
-                zoom: zoom
-            });
+        setZoom: function(view, zoom) {
             view.setZoom(zoom);
         },
 
