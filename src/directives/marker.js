@@ -78,7 +78,7 @@ angular.module('openlayers-directive').directive('olMarker', function($log, $q, 
         replace: true,
         template:
         '<div class="popup-label marker">' +
-            '<div ng-bind-html="message"></div>' +
+            '<div compile="message"></div>' +
             '<ng-transclude></ng-transclude>' +
         '</div>',
 
