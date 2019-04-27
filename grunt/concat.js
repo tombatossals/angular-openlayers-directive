@@ -4,7 +4,8 @@ var banner = '(function (root, factory) {\n' +
              '    if (typeof require === \'function\' && typeof exports === \'object\') {\n' +
              '        // CommonJS\n' +
              '        var ol = require(\'openlayers\');\n' +
-             '        exports.angularOpenlayersDirective = factory(ol);\n' +
+             '        var ngSanitize = require(\'angular-sanitize\');\n' +             
+             '        module.exports = factory(ol);\n' +
              '    } else if (typeof define === \'function\' && define.amd) {\n' +
              '        // AMD.\n' +
              '        define([\'ol\'], function (ol) {\n' +
@@ -16,12 +17,15 @@ var banner = '(function (root, factory) {\n' +
              '    }\n' +
              '}(this, function (ol) {\n';
 
+var footer = 'return angular.module(\'openlayers-directive\');' +
+			 '\n}));';             
+
 module.exports = function (grunt, options) {
     return {
         dist: {
             options: {
                 banner: banner,
-                footer: '\n}));'
+                footer: footer
             },
             src: [
                 'src/directives/openlayers.js',
