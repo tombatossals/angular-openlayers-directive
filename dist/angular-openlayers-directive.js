@@ -2,7 +2,8 @@
     if (typeof require === 'function' && typeof exports === 'object') {
         // CommonJS
         var ol = require('openlayers');
-        exports.angularOpenlayersDirective = factory(ol);
+        var ngSanitize = require('angular-sanitize');
+        module.exports = factory(ol);
     } else if (typeof define === 'function' && define.amd) {
         // AMD.
         define(['ol'], function (ol) {
@@ -1544,6 +1545,10 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
                     wrapX: source.wrapX !== undefined ? source.wrapX : true
                 };
 
+                if (source.projection) {
+                    wmsConfiguration.projection = new ol.proj.get(source.projection);
+                }
+
                 if (source.serverType) {
                     wmsConfiguration.serverType = source.serverType;
                 }
@@ -1705,34 +1710,44 @@ angular.module('openlayers-directive').factory('olHelpers', ["$q", "$log", "$htt
 
                     oSource.addFeatures(features);
                 }
-
                 break;
-
             case 'WKT':
-                if (!(source.wkt) && !(source.wkt.data)) {
+                if (!(source.wkt || source.url)) {
                     $log.error('[AngularJS - Openlayers] - You need a WKT ' +
-                               'property to add a WKT format vector layer.');
+                                'property to add a GeoJSON layer.');
                     return;
                 }
-
-                oSource = new ol.source.Vector();
-                var wktFormatter = new ol.format.WKT();
-                var wktProjection; // Projection of wkt data
-                if (isDefined(source.wkt.projection)) {
-                    wktProjection = new ol.proj.get(source.wkt.projection);
+                if (isDefined(source.url)) {
+                    oSource = new ol.source.Vector({
+                        format: new ol.format.WKT(),
+                        url: source.url,
+                        wrapX: source.wrapX !== undefined ? source.wrapX : true
+                    });
                 } else {
-                    wktProjection = projection; // If not defined, features will not be reprojected.
+                    oSource = new ol.source.Vector();
+                    var featureProjection =  projection;
+                    var wktProjection;
+                    if (isDefined(source.wkt.projection)) {
+                        wktProjection = new ol.proj.get(source.wkt.projection);
+                    } else {
+                        wktProjection = projection;
+                    }
+
+                    var wktFormat = new ol.format.WKT();
+                    var wktFeatures = [];
+                    for (var k = 0; k < source.wkt.object.length; k++) {
+                        var feature = wktFormat.readFeature(
+                        source.wkt.object[k].data, {dataProjection: wktProjection.getCode() ,
+                                                    featureProjection: featureProjection.getCode() });
+                        if (source.wkt.object[k].properties) {
+                            feature.properties = source.wkt.object[k].properties;
+                        }
+                        wktFeatures.push(feature);
+                    }
+                    oSource.addFeatures(wktFeatures);
                 }
 
-                var wktFeatures = wktFormatter.readFeatures(
-                    source.wkt.data, {
-                        featureProjection: projection.getCode(),
-                        dataProjection: wktProjection.getCode()
-                    });
-
-                oSource.addFeatures(wktFeatures);
                 break;
-
             case 'JSONP':
                 if (!(source.url)) {
                     $log.error('[AngularJS - Openlayers] - You need an url properly configured to add a JSONP layer.');
@@ -2579,5 +2594,5 @@ angular.module('openlayers-directive').factory('olMapDefaults', ["$q", "olHelper
         }
     };
 }]);
-
+return angular.module('openlayers-directive');
 }));

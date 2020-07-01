@@ -18,7 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "angular": "~1.4.8",
-    "angular-sanitize": "~1.4.8",
+    "angular-sanitize": "1.7.9",
     "openlayers": "4.3.4"
   },
   "devDependencies": {
@@ -55,7 +55,9 @@
     "phantomjs": "^2.1.0",
     "protractor": "~2.5.0",
     "publish-latest": "^1.1.2",
-    "semantic-release": "^4.3.5"
+    "semantic-release": "^4.3.5",
+    "bower": "^1.8.8",
+    "requirejs": "^2.3.6"
   },
   "scripts": {
     "test": "grunt build && grunt karma:unit",

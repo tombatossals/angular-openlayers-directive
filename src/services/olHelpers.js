@@ -51,8 +51,7 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
     var esriBaseLayers = ['World_Imagery', 'World_Street_Map', 'World_Topo_Map',
                           'World_Physical_Map', 'World_Terrain_Base',
-                          'Ocean_Basemap', 'NatGeo_World_Map',
-                          'World_Light_Gray_Base', 'World_Dark_Gray_Base'];
+                          'Ocean_Basemap', 'NatGeo_World_Map'];
 
     var styleMap = {
         'style': ol.style.Style,
@@ -287,6 +286,10 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                     wrapX: source.wrapX !== undefined ? source.wrapX : true
                 };
 
+                if (source.projection) {
+                    wmsConfiguration.projection = new ol.proj.get(source.projection);
+                }
+
                 if (source.serverType) {
                     wmsConfiguration.serverType = source.serverType;
                 }
@@ -448,34 +451,44 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
 
                     oSource.addFeatures(features);
                 }
-
                 break;
-
             case 'WKT':
-                if (!(source.wkt) && !(source.wkt.data)) {
+                if (!(source.wkt || source.url)) {
                     $log.error('[AngularJS - Openlayers] - You need a WKT ' +
-                               'property to add a WKT format vector layer.');
+                                'property to add a GeoJSON layer.');
                     return;
                 }
-
-                oSource = new ol.source.Vector();
-                var wktFormatter = new ol.format.WKT();
-                var wktProjection; // Projection of wkt data
-                if (isDefined(source.wkt.projection)) {
-                    wktProjection = new ol.proj.get(source.wkt.projection);
+                if (isDefined(source.url)) {
+                    oSource = new ol.source.Vector({
+                        format: new ol.format.WKT(),
+                        url: source.url,
+                        wrapX: source.wrapX !== undefined ? source.wrapX : true
+                    });
                 } else {
-                    wktProjection = projection; // If not defined, features will not be reprojected.
+                    oSource = new ol.source.Vector();
+                    var featureProjection =  projection;
+                    var wktProjection;
+                    if (isDefined(source.wkt.projection)) {
+                        wktProjection = new ol.proj.get(source.wkt.projection);
+                    } else {
+                        wktProjection = projection;
+                    }
+
+                    var wktFormat = new ol.format.WKT();
+                    var wktFeatures = [];
+                    for (var k = 0; k < source.wkt.object.length; k++) {
+                        var feature = wktFormat.readFeature(
+                        source.wkt.object[k].data, {dataProjection: wktProjection.getCode() ,
+                                                    featureProjection: featureProjection.getCode() });
+                        if (source.wkt.object[k].properties) {
+                            feature.properties = source.wkt.object[k].properties;
+                        }
+                        wktFeatures.push(feature);
+                    }
+                    oSource.addFeatures(wktFeatures);
                 }
 
-                var wktFeatures = wktFormatter.readFeatures(
-                    source.wkt.data, {
-                        featureProjection: projection.getCode(),
-                        dataProjection: wktProjection.getCode()
-                    });
-
-                oSource.addFeatures(wktFeatures);
                 break;
-
             case 'JSONP':
                 if (!(source.url)) {
                     $log.error('[AngularJS - Openlayers] - You need an url properly configured to add a JSONP layer.');
@@ -601,10 +614,9 @@ angular.module('openlayers-directive').factory('olHelpers', function($q, $log, $
                 var extractStyles = source.extractStyles || false;
                 oSource = new ol.source.Vector({
                     url: source.url,
-                    format: new ol.format.KML({
-                        extractStyles: extractStyles
-                    }),
-                    radius: source.radius
+                    format: new ol.format.KML(),
+                    radius: source.radius,
+                    extractStyles: extractStyles
                 });
                 break;
             case 'Stamen':
